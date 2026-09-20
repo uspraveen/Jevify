@@ -79,9 +79,13 @@ class CivilCommentsToxicity(HFAdapter):
         domain="safety", task_family="toxicity", has_soft_labels=True,
         description="Is this online comment toxic? Soft label = share of annotators who said yes.",
         caps={"train": 8000, "validation": 500, "test": 2000},
-        notes="Natural class balance (~8% toxic); test cap raised to 2000 so positives are not too thin.",
+        notes="Natural class balance (~8% toxic); test cap raised to 2000 so positives are not too thin. "
+              "train/validation are drawn from the 97k-row HF validation split (the 1.8M-row train split is not needed).",
     )
     label_column = None  # keep the natural distribution
+    split_map = {"train": "validation", "test": "test"}
+    carve_validation_from = "validation"
+    carve_frac = 0.1
 
     def convert(self, row: dict[str, Any], split: Split, idx: int) -> BenchRecord | None:
         text = row["text"]
