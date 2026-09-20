@@ -79,7 +79,7 @@ def main() -> int:
     ap.add_argument("--env", action="append", default=[], help="local env var to forward (repeatable)")
     ap.add_argument("--timeout", type=int, default=6 * 3600, help="seconds")
     ap.add_argument("--workdir", default=None)
-    a = ap.parse_args()
+    a = ap.parse_intermixed_args()
     if a.cmd == "up":
         asyncio.run(up(a.name, a.memory, a.ttl))
         return 0
