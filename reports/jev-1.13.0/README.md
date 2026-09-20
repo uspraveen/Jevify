@@ -21,6 +21,32 @@ Within-one-level accuracy for the ordinal (score) configs, which the table does 
 helpsteer2_helpfulness 0.81, helpsteer2_verbosity 0.84, measuring_hate_speech 0.79,
 sst5 0.95, stsb 0.95, yelp5 0.99.
 
+## Figures
+
+**Reliability diagrams** — observed accuracy vs. stated confidence, one panel per config (dot size = records in bin).
+Diagonal = perfectly calibrated. Flat lines (`go_emotions`, `helpsteer2_verbosity`) mean confidence carries no information.
+
+![reliability](figures/reliability.png)
+
+**Calibration map** — where each config lands on accuracy vs. ECE.
+
+![calibration map](figures/calibration_map.png)
+
+**Risk–coverage** — error rate if you act only on the most-confident fraction of records. This is the curve a
+confidence-gated router actually lives on.
+
+![risk coverage](figures/risk_coverage.png)
+
+**Model vs. human probability** on the three calibration-gold configs. Dots are (item, option) pairs; the line is the
+binned mean. On ChaosNLI the *average* tracks humans but individual answers are pinned near 0/1; on Civil Comments the
+model says ~0.29 "toxic" when zero annotators did; on hate speech the model barely moves as human consensus goes 0→1.
+
+![human vs model](figures/human_vs_model.png)
+
+**Latency** — client-observed per request from a 2-core sandbox (us-east), one question per request.
+
+![latency](figures/latency.png)
+
 ## Reading
 
 1. **Crisp tasks are excellent and well calibrated.** Knowledge MCQ (ARC 97.9%, MMLU 92.3%),

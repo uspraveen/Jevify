@@ -103,6 +103,8 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--split", default="test")
     r.add_argument("--md", type=Path, default=None, help="write a markdown report here")
     r.add_argument("--json", type=Path, default=None, help="write full metrics (incl. reliability bins) here")
+    r.add_argument("--figures", type=Path, default=None, help="write reliability/calibration/coverage/human figures here")
+    r.add_argument("--label", default=None, help="model label for figure titles (default: model from predictions)")
 
     args = ap.parse_args(argv)
     if args.cmd == "api":
@@ -138,6 +140,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)
         args.json.write_text(json.dumps({k: v.as_dict() for k, v in reports.items()}, indent=1), encoding="utf-8")
+    if args.figures:
+        from ..bench.figures import make_all
+
+        for f in make_all(args.records, args.preds, args.figures, args.label or model, args.split):
+            print("figure:", f, file=sys.stderr)
     return 0
 
 

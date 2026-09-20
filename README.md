@@ -33,6 +33,8 @@ version — a recipe, a benchmark, and a serving stack, for any base model.
 - [ ] Label-first synthetic data pipeline (the moat, per TypeSafe's own account).
 - [ ] Server (`/v1/systemone`), HF Space, model zoo, VLM backbones, vision-tower autoresearch.
 
+![Jev 1.13.0 model vs human probability](reports/jev-1.13.0/figures/human_vs_model.png)
+
 ## Why tiers, and why no RL
 
 Calibration comes from optimizing a strictly proper scoring rule against real outcomes.

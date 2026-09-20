@@ -199,6 +199,10 @@ def baselines_section(baselines: list[tuple[str, str]]) -> str:
     parts = ["", "## Baselines", "", intro, ""]
     for model, table in baselines:
         parts += [f"### {model}", "", table, ""]
+        base = f"results/{model}/figures"
+        parts += [f"![reliability diagrams]({base}/reliability.png)", "",
+                  f"![calibration map]({base}/calibration_map.png)", "",
+                  f"![model vs human probability]({base}/human_vs_model.png)", ""]
     return chr(10).join(parts)
 
 
