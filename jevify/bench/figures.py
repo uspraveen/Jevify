@@ -174,6 +174,51 @@ def fig_vs_cardinality(ev: dict[str, dict[str, Any]], out: Path, model: str, k_o
     return _save(fig, out / "vs_cardinality")
 
 
+def fig_risk_coverage(ev: dict[str, dict[str, Any]], out: Path, model: str = "") -> Path:
+    plt = _mpl()
+    prims = ["choice", "score", "noul"]
+    fig, axes = plt.subplots(1, 3, figsize=(11.5, 3.8))
+    for ax, prim in zip(axes, prims):
+        srcs = sorted([s for s in ev if ev[s]["primitive"] == prim], key=lambda s: -ev[s]["correct"].mean())
+        ramp = BLUE_RAMP[1:] if prim == "choice" else BLUE_RAMP[2:]
+        ends = []
+        for i, src in enumerate(srcs):
+            d = ev[src]
+            order = np.argsort(-d["conf"], kind="stable")
+            err = 1 - d["correct"][order]
+            cov = np.arange(1, len(err) + 1) / len(err)
+            risk = np.cumsum(err) / np.arange(1, len(err) + 1)
+            color = ramp[min(i * len(ramp) // max(len(srcs), 1), len(ramp) - 1)]
+            ax.plot(cov, risk, lw=1.4, color=color, zorder=2)
+            ends.append((src, 1.0, float(risk[-1])))
+        ax.set_title(prim, loc="left")
+        ax.set_xlabel("coverage (fraction of records acted on)"); ax.set_xlim(0, 1.42); ax.set_ylim(0, None)
+        ax.set_xticks([0, 0.25, 0.5, 0.75, 1.0]); ax.tick_params(length=0)
+        _end_labels(fig, ax, ends)
+    axes[0].set_ylabel("error rate on the covered records")
+    fig.suptitle(f"{model}: error rate vs coverage when acting only above a confidence cutoff (ranked by confidence)",
+                 x=0.01, ha="left", fontsize=10)
+    fig.tight_layout(rect=(0, 0, 1, 0.94))
+    return _save(fig, out / "risk_coverage")
+
+
+def _end_labels(fig, ax, ends: list[tuple[str, float, float]], fontsize: float = 6.8) -> None:
+    """Right-of-line labels, nudged vertically until no two overlap (measured)."""
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    placed = []
+    for src, x, y in sorted(ends, key=lambda e: e[2]):
+        for dy in (0, 5, -5, 9, -9, 14, -14, 19, -19, 24, -24):
+            ann = ax.annotate(src, (x, y), xytext=(4, dy), textcoords="offset points", fontsize=fontsize, color=INK2, va="center")
+            box = ann.get_window_extent(renderer).expanded(1.0, 1.15)
+            if not any(box.overlaps(b) for b in placed):
+                placed.append(box)
+                break
+            ann.remove()
+        else:
+            placed.append(ax.annotate(src, (x, y), xytext=(4, 0), textcoords="offset points", fontsize=fontsize, color=INK2, va="center").get_window_extent(renderer))
+
+
 def fig_human_vs_model(ev: dict[str, dict[str, Any]], out: Path, model: str, n_bins: int = 10) -> Path | None:
     plt = _mpl()
     srcs = [s for s in ev if len(ev[s]["human"])]
@@ -342,3 +387,34 @@ def _k_from_records(records_root: Path, ev: dict[str, Any], split: str) -> dict[
         if ks:
             out[src] = int(np.median(ks))
     return out
+
+
+def fig_cardinality_probe(probe_json: Path, out: Path, model: str) -> Path | None:
+    """Within-item cardinality curves from `jevify-bench probe-report` output."""
+    plt = _mpl()
+    an = json.loads(Path(probe_json).read_text(encoding="utf-8"))
+    card = an.get("per_config", {}).get("cardinality", {})
+    if not card:
+        return None
+    by_src: dict[str, list[tuple[int, float, float, float]]] = defaultdict(list)
+    for key, e in card.items():
+        src, var = key.split("|")
+        by_src[src].append((int(var[1:]), e["accuracy"], e["ece"], e["mean_p_gold"]))
+    fig, axes = plt.subplots(1, 3, figsize=(12, 3.7))
+    srcs = sorted(by_src, key=lambda s: -max(v[1] for v in by_src[s]))
+    ramp = [BLUE_RAMP[7], BLUE_RAMP[5], BLUE_RAMP[3], BLUE_RAMP[1], "#eb6834"]
+    for ax, (idx, name) in zip(axes, ((1, "accuracy"), (3, "mean P(gold)"), (2, "expected calibration error"))):
+        ends = []
+        for i, src in enumerate(srcs):
+            pts = sorted(by_src[src])
+            xs = [p[0] for p in pts]; ys = [p[idx] for p in pts]
+            color = "#eb6834" if src == "go_emotions" else ramp[i % 4]
+            ax.plot(xs, ys, marker="o", markersize=3.5, lw=1.5, color=color, zorder=3)
+            ends.append((src, xs[-1], ys[-1]))
+        ax.set_xscale("log"); ax.set_xticks([2, 5, 10, 25, 50, 100]); ax.set_xticklabels(["2", "5", "10", "25", "50", "100"])
+        ax.set_xlim(1.7, 400); ax.set_xlabel("options offered (gold always included)"); ax.set_ylabel(name); ax.tick_params(length=0)
+        ax.set_title(name, loc="left")
+        _end_labels(fig, ax, ends)
+    fig.suptitle(f"{model}: the same items with more distractors — cardinality isolated from difficulty", x=0.01, ha="left", fontsize=10)
+    fig.tight_layout(rect=(0, 0, 1, 0.93))
+    return _save(fig, out / "probe_cardinality")

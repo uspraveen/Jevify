@@ -70,13 +70,18 @@ From 22,773 test records plus a manual audit of its errors
   exactly the inputs where it matters.
 - **The System Two gap is measurable** — 78.5% closed-book vs 95.6% grounded on the same
   StrategyQA questions.
-- **Decision-set size is not what hurts** — clinc150 at K=151 (89%, ECE 0.03) beats GoEmotions at
-  K=28; ambiguity does the damage, not cardinality. The controlled cardinality probe tests this
-  within-item.
+- **Decision-set size is a cost, not a cliff** — within-item, with the gold answer always present,
+  clinc150 goes 99.5% → 91% from K=2 to K=151 with ECE ≤ 0.05, while GoEmotions is 85% at K=2 and
+  30% by K=25: ambiguity does the damage, not cardinality.
+- **The primitive is an instrument, not a skin** — the same yes/no question is twice as well
+  calibrated as Noul than as a 2-way Choice; Score beats an unordered Choice over the same levels.
+  Option order flips 0–13% of answers (scaling with ambiguity); opaque option keys cost nothing if
+  descriptions remain; nonsense options attract ≤3% of the mass.
+  → [behavioral probes](reports/jev-1.13.0/probes/README.md)
 
 ## Roadmap
 
-- [x] jev-bench v0.1.1, Jev 1.13.0 baseline, figures, label audit
+- [x] jev-bench v0.1.1, Jev 1.13.0 baseline, figures, label audit, behavioral probes
 - [x] Tier 0 engine + server + offline recipe search (tests pass on CPU with a 135M model)
 - [ ] Tier 0 sweep on Modal: K2-Horizon-0.9B, Qwen3.5 0.8B–9B (base and instruct), Gemma 4 E2B/E4B/12B,
       SmolLM3-3B, Olmo-3-7B, Apertus-4B — scored against Jev on the same records, latency measured

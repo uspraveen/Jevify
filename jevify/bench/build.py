@@ -209,6 +209,7 @@ def dataset_card(manifest: dict[str, Any], baselines: list[tuple[str, str]] | No
         "Licenses are those of the upstream datasets; this repackaging adds no restrictions. Per-source provenance is in",
         "`manifest.json`.",
         baselines_section(baselines or []), "",
+        probes_section(hero, manifest.get("_probes_summary")), "",
         "## Label audit", "",
         "Every weak result was checked by reading samples of the model's errors. Verdicts, examples and the two v0.1.1 fixes that",
         f"came out of it are in [`results/{audit_dir}/README.md`](results/{audit_dir}/README.md).", "",
@@ -219,6 +220,25 @@ def dataset_card(manifest: dict[str, Any], baselines: list[tuple[str, str]] | No
         f"Built by [`jevify-bench`](https://github.com/uspraveen/Jevify) at commit `{manifest.get('git_commit', '?')[:10]}`, {manifest['built_at']}.", "",
     ]
     return NL.join(lines)
+
+
+def probes_section(model: str | None, summary: dict[str, Any] | None) -> str:
+    if not model or not summary:
+        return ""
+    NL = chr(10)
+    c = summary
+    return NL.join([
+        "## Behavioral probes", "",
+        "Within-item experiments: the same state and gold answer, one factor changed. 200 items per source. "
+        f"Full write-up in [`results/{model}/probes/README.md`](results/{model}/probes/README.md).", "",
+        f"![cardinality probe](results/{model}/figures/probe_cardinality.png)", "",
+        f"- **Decision-set size is a cost, not a cliff**: {c['card_crisp']}",
+        f"- **Ambiguity is the cliff**: {c['card_ambig']}",
+        f"- **Option order**: argmax flips {c['order']} — modest, and scaling with ambiguity, not K.",
+        f"- **Opaque keys with descriptions kept**: accuracy unchanged ({c['rename']}); without descriptions: chance. Jev reads semantics, not key strings.",
+        f"- **Distractor injection**: ≤{c['distractor']} of probability mass leaks to nonsense options.",
+        f"- **Primitive geometry matters**: the same yes/no question is better calibrated as Noul than as a 2-way Choice ({c['prim_noul']}); "
+        f"Score beats an unordered Choice over the same levels ({c['prim_score']}).", ""])
 
 
 def baselines_section(baselines: list[tuple[str, str]]) -> str:
