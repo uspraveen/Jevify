@@ -15,7 +15,6 @@ tests can pin the fast paths against the obviously-correct one.
 """
 from __future__ import annotations
 
-import copy
 import math
 from dataclasses import dataclass
 from typing import Any, Sequence
@@ -37,7 +36,8 @@ class Tokenized:
 class HFScorer:
     def __init__(self, model_id: str, *, device: str | None = None, dtype: torch.dtype | None = None,
                  batch_size: int = 16, cand_chunk: int = 64, max_prefix_tokens: int = 4096,
-                 trust_remote_code: bool = False, hf_token: str | None = None) -> None:
+                 trust_remote_code: bool = False, hf_token: str | None = None, tree_attention: bool | None = None,
+                 tree_max_tokens: int = 6144) -> None:
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
         self.model_id = model_id
@@ -49,16 +49,41 @@ class HFScorer:
         self.batch_size = batch_size
         self.cand_chunk = cand_chunk
         self.max_prefix_tokens = max_prefix_tokens
+        self.tree_max_tokens = tree_max_tokens
         self._bos = self.tokenizer.bos_token_id
+        self.stats = {"tokenize_s": 0.0, "single_s": 0.0, "multi_s": 0.0, "items": 0}
+        self.tree_attention = tree_attention      # None = auto (verify once against naive), True/False = force
+        self._tree_verified: bool | None = None
         self.pad_id = self.tokenizer.pad_token_id if self.tokenizer.pad_token_id is not None else (self.tokenizer.eos_token_id or 0)
 
     # ------------------------------------------------------------------ tokenization
     def tokenize(self, prefix: str, candidates: Sequence[str]) -> Tokenized:
+        """Joint tokenization without re-encoding the whole prompt per candidate.
+
+        The prefix is encoded once. Each candidate is encoded together with a
+        short tail of the prefix (from the last newline, so the BPE boundary is
+        reproduced exactly); if the tail's own tokens do not match the end of the
+        full prefix encoding, fall back to full joint encoding for that candidate."""
         p_ids = self._encode(prefix)
         if len(p_ids) > self.max_prefix_tokens:   # keep the tail: the question and options live there
             prefix = self.tokenizer.decode(p_ids[-self.max_prefix_tokens:], skip_special_tokens=True)
             p_ids = self._encode(prefix)
-        fulls = [self._encode(prefix + c) for c in candidates]
+        cut = prefix.rfind(chr(10), 0, max(len(prefix) - 1, 0)) + 1
+        tail = prefix[cut:]
+        tail_ids = self._encode_raw(tail)
+        fast = bool(tail_ids) and p_ids[-len(tail_ids):] == tail_ids
+        fulls: list[list[int]] = []
+        for c in candidates:
+            if fast:
+                ids = self._encode_raw(tail + c)
+                if ids[: len(tail_ids)] == tail_ids:
+                    fulls.append(p_ids + ids[len(tail_ids):])
+                    continue
+                if _common_prefix_len(tail_ids, ids) > 0:
+                    n = _common_prefix_len(tail_ids, ids)
+                    fulls.append(p_ids[: len(p_ids) - len(tail_ids) + n] + ids[n:])
+                    continue
+            fulls.append(self._encode(prefix + c))
         n_common = min(len(p_ids), *(_common_prefix_len(p_ids, f) for f in fulls))
         if n_common == len(p_ids) and any(len(f) == n_common for f in fulls):
             n_common -= 1   # a candidate merged into the prefix's last token; score from there
@@ -69,23 +94,34 @@ class HFScorer:
     def _encode(self, text: str) -> list[int]:
         return self.tokenizer(text, add_special_tokens=True)["input_ids"]
 
+    def _encode_raw(self, text: str) -> list[int]:
+        return self.tokenizer(text, add_special_tokens=False)["input_ids"]
+
     # ------------------------------------------------------------------ scoring
     @torch.inference_mode()
     def score_many(self, items: Sequence[tuple[str, Sequence[str]]], *, naive: bool = False) -> list[list[float]]:
         """For each (prefix, candidates) return summed log-probs per candidate."""
+        import time as _t
+        t0 = _t.perf_counter()
         toks = [self.tokenize(p, c) for p, c in items]
+        self.stats["tokenize_s"] += _t.perf_counter() - t0
         out: list[list[float] | None] = [None] * len(items)
         if naive:
             return [self._score_naive(t) for t in toks]
         single = [i for i, t in enumerate(toks) if t.single_token]
+        t0 = _t.perf_counter()
         for start in range(0, len(single), self.batch_size):
             idx = single[start:start + self.batch_size]
             res = self._score_single_batch([toks[i] for i in idx])
             for i, r in zip(idx, res):
                 out[i] = r
+        self.stats["single_s"] += _t.perf_counter() - t0
+        t0 = _t.perf_counter()
         for i, t in enumerate(toks):
             if out[i] is None:
-                out[i] = self._score_multi(t)
+                out[i] = self._score_tree(t) if self._tree_usable(t) else self._score_multi(t)
+        self.stats["multi_s"] += _t.perf_counter() - t0
+        self.stats["items"] += len(items)
         return out  # type: ignore[return-value]
 
     def _score_single_batch(self, toks: list[Tokenized]) -> list[list[float]]:
@@ -98,8 +134,14 @@ class HFScorer:
             mask[r, maxlen - n:] = 1
         pos = (mask.cumsum(-1) - 1).clamp(min=0)
         logits = self.model(input_ids=ids.to(self.device), attention_mask=mask.to(self.device), position_ids=pos.to(self.device)).logits[:, -1].float()
-        logp = F.log_softmax(logits, dim=-1).cpu()
-        return [[float(logp[r, c[0]]) for c in t.cand_ids] for r, t in enumerate(toks)]
+        logp = F.log_softmax(logits, dim=-1)
+        rr = [r for r, t in enumerate(toks) for _ in t.cand_ids]
+        tt = [c[0] for t in toks for c in t.cand_ids]
+        flat = logp[torch.tensor(rr, device=self.device), torch.tensor(tt, device=self.device)].tolist()
+        out, k = [], 0
+        for t in toks:
+            out.append(flat[k:k + len(t.cand_ids)]); k += len(t.cand_ids)
+        return out
 
     def _score_multi(self, t: Tokenized) -> list[float]:
         p = torch.tensor([t.prefix_ids], device=self.device)
@@ -115,7 +157,7 @@ class HFScorer:
     def _score_chunk(self, chunk: list[list[int]], cache: Any, last_logp: torch.Tensor, plen: int) -> list[float]:
         C = len(chunk)
         L = max(len(c) for c in chunk)
-        first = torch.tensor([float(last_logp[c[0]]) for c in chunk])
+        first = last_logp[torch.tensor([c[0] for c in chunk], device=last_logp.device)]
         if L == 1:
             return first.tolist()
         ids = torch.full((C, L - 1), self.pad_id, dtype=torch.long)
@@ -128,12 +170,75 @@ class HFScorer:
         expanded = _expand_cache(cache, C)
         logits = self.model(input_ids=ids.to(self.device), attention_mask=attn, position_ids=pos,
                             past_key_values=expanded, use_cache=True).logits.float()
-        logp = F.log_softmax(logits, dim=-1).cpu()
-        total = first.clone()
+        logp = F.log_softmax(logits, dim=-1)
+        rr, jj, tt, owner = [], [], [], []
         for r, c in enumerate(chunk):
             for j in range(1, len(c)):
-                total[r] += float(logp[r, j - 1, c[j]])
+                rr.append(r); jj.append(j - 1); tt.append(c[j]); owner.append(r)
+        total = first.to(self.device)
+        if rr:
+            picked = logp[torch.tensor(rr, device=self.device), torch.tensor(jj, device=self.device), torch.tensor(tt, device=self.device)]
+            total = total.index_add(0, torch.tensor(owner, device=self.device), picked)
         return total.tolist()
+
+    # ---- tree attention: every candidate in one sequence, block-diagonal mask ------------
+    def _tree_usable(self, t: Tokenized) -> bool:
+        if self.tree_attention is False:
+            return False
+        total = len(t.prefix_ids) + sum(len(c) for c in t.cand_ids)
+        if total > self.tree_max_tokens:
+            return False
+        if self.tree_attention is True:
+            return True
+        if self._tree_verified is None:
+            # verify once on this very item: a custom 4D mask that the architecture ignores would
+            # silently leak candidates into each other, so compare against naive recompute.
+            try:
+                tree = self._score_tree(t)
+                ref = self._score_naive(t)
+                # A mask that is ignored leaks candidates into each other and moves probabilities by
+                # tenths; bf16 numerics move them by hundredths at most (measured: <= 0.045 on 151-way).
+                p_tree, p_ref = softmax(tree), softmax(ref)
+                ok = max(abs(a - b) for a, b in zip(p_tree, p_ref)) < 0.1 and (max(range(len(tree)), key=tree.__getitem__) == max(range(len(ref)), key=ref.__getitem__))
+            except Exception as e:  # pragma: no cover - architecture specific
+                print(f"[readout] tree attention unavailable ({type(e).__name__}: {e}); using cache expansion", flush=True)
+                ok = False
+            if not ok:
+                print("[readout] tree attention failed verification; using cache expansion", flush=True)
+            self._tree_verified = ok
+        return self._tree_verified
+
+    def _score_tree(self, t: Tokenized) -> list[float]:
+        T = len(t.prefix_ids)
+        ids = list(t.prefix_ids)
+        pos = list(range(T))
+        spans: list[tuple[int, int]] = []           # [start, end) of each candidate in the sequence
+        for c in t.cand_ids:
+            spans.append((len(ids), len(ids) + len(c)))
+            ids.extend(c)
+            pos.extend(range(T, T + len(c)))
+        N = len(ids)
+        mask = torch.zeros((N, N), dtype=torch.bool)
+        mask[:T, :T] = torch.tril(torch.ones((T, T), dtype=torch.bool))
+        for a, b in spans:
+            mask[a:b, :T] = True
+            mask[a:b, a:b] = torch.tril(torch.ones((b - a, b - a), dtype=torch.bool))
+        dev = self.device
+        out = self.model(input_ids=torch.tensor([ids], device=dev), attention_mask=mask[None, None].to(dev),
+                         position_ids=torch.tensor([pos], device=dev), use_cache=False)
+        # gather every needed (position, token) pair in one op: the prefix's last row predicts each
+        # candidate's first token; row a+j-1 predicts token j of the candidate starting at a.
+        rows, toks, owner = [], [], []
+        for k, ((a, b), c) in enumerate(zip(spans, t.cand_ids)):
+            rows.append(T - 1); toks.append(c[0]); owner.append(k)
+            for j in range(1, len(c)):
+                rows.append(a + j - 1); toks.append(c[j]); owner.append(k)
+        need = sorted(set(rows))
+        logp_rows = F.log_softmax(out.logits[0, need].float(), dim=-1)
+        row_index = {r: i for i, r in enumerate(need)}
+        picked = logp_rows[torch.tensor([row_index[r] for r in rows], device=dev), torch.tensor(toks, device=dev)]
+        totals = torch.zeros(len(spans), device=dev).index_add_(0, torch.tensor(owner, device=dev), picked)
+        return totals.tolist()
 
     def _score_naive(self, t: Tokenized) -> list[float]:
         scores = []
@@ -156,27 +261,25 @@ def _common_prefix_len(a: Sequence[int], b: Sequence[int]) -> int:
 
 
 def _expand_cache(cache: Any, n: int) -> Any:
-    """Return a copy of a KV cache with batch dimension repeated n times.
-    Handles the modern layered DynamicCache, the legacy list-based one, and
-    any cache exposing batch_repeat_interleave."""
-    c = copy.deepcopy(cache)
-    if hasattr(c, "batch_repeat_interleave"):
-        c.batch_repeat_interleave(n)
-        return c
-    if hasattr(c, "layers"):
-        for layer in c.layers:
-            for attr in ("keys", "values"):
-                t = getattr(layer, attr, None)
-                if isinstance(t, torch.Tensor):
-                    setattr(layer, attr, t.repeat_interleave(n, dim=0))
-        return c
-    if hasattr(c, "key_cache"):
-        c.key_cache = [k.repeat_interleave(n, dim=0) for k in c.key_cache]
-        c.value_cache = [v.repeat_interleave(n, dim=0) for v in c.value_cache]
-        return c
-    if isinstance(c, tuple):   # legacy tuple-of-tuples
-        return tuple(tuple(x.repeat_interleave(n, dim=0) for x in layer) for layer in c)
-    raise TypeError(f"don't know how to expand cache of type {type(cache)}")
+    """A new cache whose every layer's K/V is the prefix K/V repeated n times
+    along the batch axis. One allocation per layer; no deepcopy."""
+    from transformers.cache_utils import DynamicCache
+
+    pairs = _kv_pairs(cache)
+    out = DynamicCache()
+    for i, (k, v) in enumerate(pairs):
+        out.update(k.expand(n, *k.shape[1:]).contiguous(), v.expand(n, *v.shape[1:]).contiguous(), i)
+    return out
+
+
+def _kv_pairs(cache: Any) -> list[tuple[torch.Tensor, torch.Tensor]]:
+    if hasattr(cache, "layers"):
+        return [(layer.keys, layer.values) for layer in cache.layers]
+    if hasattr(cache, "key_cache"):
+        return list(zip(cache.key_cache, cache.value_cache))
+    if isinstance(cache, tuple):
+        return [(layer[0], layer[1]) for layer in cache]
+    raise TypeError(f"don't know how to read cache of type {type(cache)}")
 
 
 def softmax(scores: Sequence[float], temperature: float = 1.0) -> list[float]:

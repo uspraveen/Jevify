@@ -120,3 +120,24 @@ def test_temperature_recovery():
         labels.append(y)
     T = fit_temperature(logits, labels)
     assert 2.5 < T < 3.5, T
+
+
+def test_tree_attention_matches_naive(scorer):
+    """The block-diagonal mask must isolate candidates exactly (Llama-style SDPA)."""
+    from jevify.engine.readout import Tokenized
+
+    r = render("I visited Paris last summer and loved it.", CHOICE_Q, mode="label")
+    t = scorer.tokenize(r.prefix, r.candidates)
+    tree = scorer._score_tree(t)
+    ref = scorer._score_naive(t)
+    for a, b in zip(tree, ref):
+        assert abs(a - b) < 2e-3, (tree, ref)
+    big = {"type": "choice", "instructions": "Pick the number of words in the state.",
+           "criteria": {str(i): None for i in range(1, 41)}}
+    r2 = render("one two three", big)
+    t2 = scorer.tokenize(r2.prefix, r2.candidates)
+    assert not t2.single_token
+    tree2 = scorer._score_tree(t2)
+    ref2 = scorer._score_naive(Tokenized(t2.prefix_ids, t2.cand_ids[:6]))
+    for a, b in zip(tree2[:6], ref2):
+        assert abs(a - b) < 2e-3

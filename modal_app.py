@@ -76,7 +76,9 @@ def tier0(model_id: str, run_id: str, sources: str = "", split: str = "test", li
             "recipe": engine.recipe.as_dict(), "chat_applied": engine.chat, "n_new": n, "n_total": len(recs),
             "load_s": round(t_load, 1), "wall_s": round(elapsed, 1),
             "est_cost_usd": round(elapsed / 3600 * RATE_PER_HOUR.get(GPU, 2.5), 3),
-            "torch": torch.__version__, "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu"}
+            "torch": torch.__version__, "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
+            "scorer_stats": {k: (round(v, 2) if isinstance(v, float) else v) for k, v in scorer.stats.items()},
+            "attn_impl": getattr(scorer.model.config, "_attn_implementation", None), "dtype": str(next(scorer.model.parameters()).dtype)}
     (out_dir / "run.json").write_text(json.dumps(info, indent=1))
     runs.commit()
     print(json.dumps(info), flush=True)
@@ -106,3 +108,36 @@ def main(model_id: str, run_id: str, sources: str = "", split: str = "test", lim
     (local / f"{split}_predictions.jsonl").write_bytes(fetch.remote(run_id, f"{split}_predictions.jsonl"))
     (local / "run.json").write_text(json.dumps(info, indent=1))
     print(f"saved to {local}  (wall {info['wall_s']}s, est ${info['est_cost_usd']})")
+
+
+@app.function(image=image, gpu=GPU, volumes={"/hf": hf_cache, "/runs": runs}, secrets=[modal.Secret.from_name("huggingface")], timeout=1800)
+def diag(model_id: str, source: str = "clinc150", trust_remote_code: bool = False, fp32: bool = False) -> dict:
+    """Compare tree / cache-expansion / naive scoring on real items, in the model's own dtype."""
+    import numpy as np
+    import torch
+
+    from jevify.bench.record import read_jsonl
+    from jevify.engine.readout import HFScorer, softmax
+    from jevify.engine.template import render, to_chat
+
+    root = _bench_root()
+    recs = list(read_jsonl(root / "data" / source / "test.jsonl", limit=3))
+    scorer = HFScorer(model_id, dtype=torch.float32 if fp32 else torch.bfloat16, trust_remote_code=trust_remote_code, hf_token=os.environ.get("HF_TOKEN"))
+    report = {}
+    for r in recs:
+        rd = render(r.state, r.question)
+        t = scorer.tokenize(to_chat(rd.prefix, scorer.tokenizer), rd.candidates)
+        with torch.inference_mode():
+            tree = np.array(scorer._score_tree(t)); multi = np.array(scorer._score_multi(t)); naive = np.array(scorer._score_naive(t))
+        p = lambda v: np.array(softmax(list(v)))
+        report[r.id] = {"K": len(t.cand_ids), "max|tree-naive| logp": float(np.abs(tree - naive).max()),
+                        "max|multi-naive| logp": float(np.abs(multi - naive).max()),
+                        "max|tree-naive| prob": float(np.abs(p(tree) - p(naive)).max()),
+                        "max|multi-naive| prob": float(np.abs(p(multi) - p(naive)).max()),
+                        "argmax agree tree/naive": bool(tree.argmax() == naive.argmax())}
+    return report
+
+
+@app.local_entrypoint()
+def diagnose(model_id: str, source: str = "clinc150", trust_remote_code: bool = False, fp32: bool = False):
+    print(json.dumps(diag.remote(model_id, source, trust_remote_code, fp32), indent=1))

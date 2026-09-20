@@ -23,6 +23,9 @@ INK, INK2, GRID, SURFACE = "#0b0b0b", "#52514e", "#e6e5e1", "#fcfcfb"
 BLUE_RAMP = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#1c5cab", "#104281", "#0d366b"]
 
 
+PROVENANCE = ""   # set by make_all, e.g. "Jev 1.13.0 · jev-bench v0.1.1 · 2026-09-21"
+
+
 def _mpl():
     import matplotlib
     matplotlib.use("Agg")
@@ -30,11 +33,35 @@ def _mpl():
     plt.rcParams.update({
         "figure.facecolor": SURFACE, "axes.facecolor": SURFACE, "savefig.facecolor": SURFACE,
         "axes.edgecolor": GRID, "axes.labelcolor": INK2, "xtick.color": INK2, "ytick.color": INK2,
-        "text.color": INK, "axes.grid": True, "grid.color": GRID, "grid.linewidth": 0.6,
-        "axes.spines.top": False, "axes.spines.right": False, "font.size": 9, "axes.titlesize": 9.5,
-        "axes.titleweight": "medium", "legend.frameon": False, "svg.fonttype": "none",
+        "text.color": INK, "axes.grid": True, "grid.color": GRID, "grid.linewidth": 0.6, "grid.alpha": 0.9,
+        "axes.spines.top": False, "axes.spines.right": False, "axes.spines.left": False,
+        "font.size": 9, "axes.titlesize": 9.5, "axes.titleweight": "medium", "axes.titlelocation": "left",
+        "legend.frameon": False, "svg.fonttype": "none", "axes.axisbelow": True,
+        "xtick.major.size": 0, "ytick.major.size": 0, "font.family": "DejaVu Sans",
     })
     return plt
+
+
+def _headline(fig, title: str, subtitle: str | None = None) -> None:
+    """Left-aligned title hanging from the top edge, with a muted subtitle wrapped to the figure width."""
+    import textwrap
+    h, w = fig.get_figheight(), fig.get_figwidth()
+    fig.text(0.012, 1 - 0.08 / h, title, fontsize=11, weight="semibold", color=INK, va="top", ha="left")
+    if subtitle:
+        wrapped = textwrap.fill(subtitle, width=int(w * 14.5))
+        fig.text(0.012, 1 - 0.30 / h, wrapped, fontsize=8.2, color=INK2, va="top", ha="left", linespacing=1.35)
+
+
+def _footer(fig, note: str | None = None) -> None:
+    text = " · ".join(t for t in (PROVENANCE, note) if t)
+    if text:
+        fig.text(0.012, 0.06 / fig.get_figheight(), text, fontsize=7, color=INK2, va="bottom", ha="left")
+
+
+def _layout(fig, subtitle_lines: int = 1) -> tuple[float, float, float, float]:
+    """tight_layout rect leaving room for the headline (top) and footer (bottom), in inches."""
+    h = fig.get_figheight()
+    return (0, 0.22 / h, 1, 1 - (0.50 + 0.15 * (subtitle_lines - 1)) / h)
 
 
 # --------------------------------------------------------------------------- data assembly
@@ -73,11 +100,11 @@ def load_eval(records_root: Path, preds_path: Path, split: str = "test") -> dict
 
 # --------------------------------------------------------------------------- figures
 
-def fig_reliability(ev: dict[str, dict[str, Any]], out: Path, n_bins: int = 10, cols: int = 6) -> Path:
+def fig_reliability(ev: dict[str, dict[str, Any]], out: Path, n_bins: int = 15, cols: int = 6, model: str = "") -> Path:
     plt = _mpl()
     names = sorted(ev, key=lambda s: (ev[s]["primitive"], s))
     rows = int(np.ceil(len(names) / cols))
-    fig, axes = plt.subplots(rows, cols, figsize=(2.1 * cols, 2.2 * rows), squeeze=False)
+    fig, axes = plt.subplots(rows, cols, figsize=(2.1 * cols, 2.25 * rows + 0.9), squeeze=False)
     edges = np.linspace(0, 1, n_bins + 1)
     for ax, src in zip(axes.flat, names):
         d = ev[src]; c = PRIM_COLOR[d["primitive"]]
@@ -90,17 +117,20 @@ def fig_reliability(ev: dict[str, dict[str, Any]], out: Path, n_bins: int = 10, 
         ns = np.array(ns, dtype=float)
         ax.plot(xs, ys, color=c, lw=1.5, zorder=2)
         ax.scatter(xs, ys, s=8 + 60 * ns / max(ns.max(), 1), color=c, zorder=3, linewidths=0.8, edgecolors=SURFACE)
-        gaps = np.abs(np.array(xs) - np.array(ys)) if xs else np.array([0.0])
-        ece = float((ns / ns.sum() * gaps).sum()) if len(ns) else 0.0
-        ax.set_title(f"{src}\nECE {ece:.3f}", loc="left")
+        ece = _ece(d["conf"], d["correct"], n_bins)   # identical definition and binning to the metrics table
+        ax.set_title(f"{src}\nECE {ece:.3f}  ·  n={d['n']:,}", loc="left")
         ax.set_xlim(0, 1); ax.set_ylim(0, 1); ax.set_xticks([0, 0.5, 1]); ax.set_yticks([0, 0.5, 1])
         ax.tick_params(length=0)
     for ax in axes.flat[len(names):]:
         ax.axis("off")
-    fig.supxlabel("model confidence (top-label probability)", color=INK2)
-    fig.supylabel("observed accuracy", color=INK2)
-    _legend_prims(fig, ev)
-    fig.tight_layout(rect=(0.02, 0.02, 1, 0.97))
+    fig.supxlabel("stated confidence (top-label probability)", color=INK2, fontsize=9)
+    fig.supylabel("observed accuracy", color=INK2, fontsize=9)
+    _legend_prims(fig, ev, loc="upper right")
+    r = _layout(fig, 2)
+    fig.tight_layout(rect=(0.02, r[1], 1, r[3]))
+    _headline(fig, f"{model}: reliability diagrams, one per jev-bench config",
+              "Diagonal = perfectly calibrated. Dot size = records in the bin (15 equal-width bins; bins with < 5 records hidden). A flat line means confidence carries no information.")
+    _footer(fig)
     return _save(fig, out / "reliability")
 
 
@@ -129,18 +159,20 @@ def fig_calibration_map(ev: dict[str, dict[str, Any]], out: Path, model: str) ->
         pts.append((src, acc, ece, d["primitive"]))
     ymax = max(0.4, max(p[2] for p in pts) + 0.03)
     # ideal region: high accuracy, low calibration error
-    ax.add_patch(plt.Rectangle((0.85, 0), 0.30, 0.07, facecolor="#1baf7a", alpha=0.07, edgecolor="none", zorder=0))
-    ax.text(0.853, 0.078, "accurate + calibrated", fontsize=7.5, color="#1baf7a", va="bottom")
+    ax.add_patch(plt.Rectangle((0.85, 0), 0.30, 0.07, facecolor="#1baf7a", alpha=0.08, edgecolor="none", zorder=0))
     ax.annotate("", xy=(1.03, 0.02), xytext=(0.62, 0.30), arrowprops={"arrowstyle": "-|>", "color": GRID, "lw": 1.0}, zorder=0)
     ax.text(0.615, 0.305, "better", fontsize=7.5, color=INK2, va="bottom")
-    ax.set_xlabel("accuracy (95% bootstrap interval)"); ax.set_ylabel("expected calibration error (lower is better)")
-    ax.set_title(f"{model}: accuracy vs calibration, one point per jev-bench config", loc="left", pad=14)
+    ax.set_xlabel("accuracy"); ax.set_ylabel("expected calibration error (lower is better)")
     ax.set_xlim(0.25, 1.12); ax.set_ylim(0, ymax)
     from matplotlib.lines import Line2D
     prims = [q for q in ("choice", "score", "noul") if any(d["primitive"] == q for d in ev.values())]
     ax.legend(handles=[Line2D([0], [0], marker="o", color=PRIM_COLOR[q], lw=0, markersize=6, label=q) for q in prims],
               loc="lower left", fontsize=8)
-    fig.tight_layout()
+    fig.tight_layout(rect=_layout(fig, 2))
+    _headline(fig, f"{model}: accuracy vs calibration, one point per jev-bench config",
+              "Test splits: 1,000 records per config (2,000 civil_comments; 1,599 chaosnli). Bars are 95% bootstrap intervals. "
+              "Down and to the right is better; the shaded corner (accuracy ≥ 0.85, ECE ≤ 0.07) is where a decision model earns its confidence.")
+    _footer(fig)
     _annotate_without_overlap(fig, ax, [(src, acc, ece) for src, acc, ece, _ in pts])
     return _save(fig, out / "calibration_map")
 
@@ -160,11 +192,13 @@ def fig_vs_cardinality(ev: dict[str, dict[str, Any]], out: Path, model: str, k_o
         ax.set_xscale("log"); ax.set_xlabel("number of allowed answers (K, log scale)"); ax.set_ylabel(name)
         ax.set_xticks([2, 3, 5, 10, 28, 60, 100, 151]); ax.set_xticklabels(["2", "3", "5", "10", "28", "60", "100", "151"])
         ax.set_xlim(1.7, 230); ax.tick_params(length=0)
-    fig.suptitle(f"{model}: performance vs decision-set size (cross-dataset; difficulty is confounded)", x=0.01, ha="left", fontsize=10)
     from matplotlib.lines import Line2D
     fig.legend(handles=[Line2D([0], [0], marker="o", color=PRIM_COLOR[q], lw=0, markersize=6, label=q) for q in ("choice", "score", "noul")],
-               loc="upper right", ncol=3, fontsize=8, bbox_to_anchor=(0.99, 1.0))
-    fig.tight_layout(rect=(0, 0, 1, 0.93))   # layout first, then measure and place labels
+               loc="upper right", ncol=3, fontsize=8, bbox_to_anchor=(0.99, 0.995))
+    fig.tight_layout(rect=_layout(fig, 2))   # layout first, then measure and place labels
+    _headline(fig, f"{model}: performance vs decision-set size, across configs",
+              "Cross-dataset, so task difficulty is confounded with K — a hypothesis view. The within-item cardinality probe is the controlled version.")
+    _footer(fig)
     for ax, col in zip(axes, (2, 3)):
         singles = [(src, k, (acc, ece)[col - 2]) for src, k, acc, ece, prim in pts if k > 2]
         two = [(acc, ece)[col - 2] for src, k, acc, ece, prim in pts if k == 2]
@@ -196,9 +230,10 @@ def fig_risk_coverage(ev: dict[str, dict[str, Any]], out: Path, model: str = "")
         ax.set_xticks([0, 0.25, 0.5, 0.75, 1.0]); ax.tick_params(length=0)
         _end_labels(fig, ax, ends)
     axes[0].set_ylabel("error rate on the covered records")
-    fig.suptitle(f"{model}: error rate vs coverage when acting only above a confidence cutoff (ranked by confidence)",
-                 x=0.01, ha="left", fontsize=10)
-    fig.tight_layout(rect=(0, 0, 1, 0.94))
+    fig.tight_layout(rect=_layout(fig, 2))
+    _headline(fig, f"{model}: risk–coverage curves",
+              "Records ranked by stated confidence; x = fraction acted on, y = error rate among them. This is the curve a confidence-gated router lives on.")
+    _footer(fig)
     return _save(fig, out / "risk_coverage")
 
 
@@ -238,12 +273,14 @@ def fig_human_vs_model(ev: dict[str, dict[str, Any]], out: Path, model: str, n_b
         ax.plot(xs, ys, color=c, lw=1.8, zorder=3)
         ax.scatter(xs, ys, s=22, color=c, zorder=4, linewidths=0.8, edgecolors=SURFACE)
         tvd = float(np.abs(d["human"] - d["model"]).mean())
-        ax.set_title(f"{src}\nmean |model − human| per option = {tvd:.3f}", loc="left")
+        ax.set_title(f"{src}\nmean |model − human| per option = {tvd:.3f}  ·  {len(d['human']):,} pairs", loc="left")
         ax.set_xlabel("human probability (share of annotators)")
         ax.set_xlim(0, 1); ax.set_ylim(0, 1); ax.tick_params(length=0)
     axes[0][0].set_ylabel("model probability for the same option")
-    fig.suptitle(f"{model}: does the model's probability track how humans actually split?", x=0.01, ha="left", fontsize=10)
-    fig.tight_layout(rect=(0, 0, 1, 0.94))
+    fig.tight_layout(rect=_layout(fig, 2))
+    _headline(fig, f"{model}: does the model's probability track how humans actually split?",
+              "Each dot is one (item, option) pair on a calibration-gold config; the line is the mean model probability per human-probability bin. Diagonal = perfect agreement.")
+    _footer(fig)
     return _save(fig, out / "human_vs_model")
 
 
@@ -260,8 +297,10 @@ def fig_latency(ev: dict[str, dict[str, Any]], out: Path, model: str) -> Path | 
         ax.axvline(v, color=INK2, lw=0.8, ls=(0, (3, 3)))
         ax.annotate(f"{lab} {v:.0f} ms", (v, ax.get_ylim()[1]), xytext=(3, -10), textcoords="offset points", fontsize=7.5, color=INK2)
     ax.set_xlabel("client-observed latency per request (ms)"); ax.set_ylabel("requests")
-    ax.set_title(f"{model}: latency over {len(lat):,} requests (one question each)", loc="left")
-    fig.tight_layout()
+    fig.tight_layout(rect=_layout(fig))
+    _headline(fig, f"{model}: latency over {len(lat):,} requests, one question each",
+              "Measured from a 2-core sandbox in us-east at concurrency 4; includes network. Top 1% trimmed for display.")
+    _footer(fig)
     return _save(fig, out / "latency")
 
 
@@ -362,15 +401,22 @@ def _contains(box, x, y, ax) -> bool:
 def _save(fig, stem: Path) -> Path:
     stem.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(stem.with_suffix(".svg"))
-    fig.savefig(stem.with_suffix(".png"), dpi=160)
+    fig.savefig(stem.with_suffix(".png"), dpi=200)
     import matplotlib.pyplot as plt
     plt.close(fig)
     return stem.with_suffix(".svg")
 
 
-def make_all(records_root: Path, preds_path: Path, out: Path, model: str, split: str = "test") -> list[Path]:
+def make_all(records_root: Path, preds_path: Path, out: Path, model: str, split: str = "test", provenance: str | None = None) -> list[Path]:
+    global PROVENANCE
+    if provenance is None:
+        import datetime as _dt
+        manifest = records_root / "manifest.json"
+        version = json.loads(manifest.read_text(encoding="utf-8")).get("version", "?") if manifest.exists() else "?"
+        provenance = f"{model} · jev-bench v{version} · {_dt.date.today().isoformat()}"
+    PROVENANCE = provenance
     ev = load_eval(records_root, preds_path, split)
-    made = [fig_reliability(ev, out), fig_calibration_map(ev, out, model), fig_risk_coverage(ev, out, model)]
+    made = [fig_reliability(ev, out, model=model), fig_calibration_map(ev, out, model), fig_risk_coverage(ev, out, model)]
     k_of = _k_from_records(records_root, ev, split)
     for f in (fig_human_vs_model(ev, out, model), fig_latency(ev, out, model), fig_vs_cardinality(ev, out, model, k_of)):
         if f:
@@ -415,6 +461,8 @@ def fig_cardinality_probe(probe_json: Path, out: Path, model: str) -> Path | Non
         ax.set_xlim(1.7, 400); ax.set_xlabel("options offered (gold always included)"); ax.set_ylabel(name); ax.tick_params(length=0)
         ax.set_title(name, loc="left")
         _end_labels(fig, ax, ends)
-    fig.suptitle(f"{model}: the same items with more distractors — cardinality isolated from difficulty", x=0.01, ha="left", fontsize=10)
-    fig.tight_layout(rect=(0, 0, 1, 0.93))
+    fig.tight_layout(rect=_layout(fig, 2))
+    _headline(fig, f"{model}: the same items with more distractors — cardinality isolated from difficulty",
+              "200 items per source; the gold option is always present, K−1 distractors drawn from the source's own labels. Past a source's label count the curve repeats the full set.")
+    _footer(fig)
     return _save(fig, out / "probe_cardinality")

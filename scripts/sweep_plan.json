@@ -1,0 +1,17 @@
+[
+  {"run_id": "k2-horizon-0.9b",     "model_id": "IFM/K2-Horizon-0.9B",              "gpu": "L4",        "trust_remote_code": true},
+  {"run_id": "qwen35-0.8b",         "model_id": "Qwen/Qwen3.5-0.8B",                "gpu": "L4"},
+  {"run_id": "qwen35-0.8b-base",    "model_id": "Qwen/Qwen3.5-0.8B-Base",           "gpu": "L4"},
+  {"run_id": "gemma4-e2b-it",       "model_id": "google/gemma-4-E2B-it",            "gpu": "L4"},
+  {"run_id": "gemma4-e2b",          "model_id": "google/gemma-4-E2B",               "gpu": "L4"},
+  {"run_id": "qwen35-2b",           "model_id": "Qwen/Qwen3.5-2B",                  "gpu": "L4"},
+  {"run_id": "smollm3-3b",          "model_id": "HuggingFaceTB/SmolLM3-3B",         "gpu": "L4"},
+  {"run_id": "smollm3-3b-base",     "model_id": "HuggingFaceTB/SmolLM3-3B-Base",    "gpu": "L4"},
+  {"run_id": "qwen35-4b",           "model_id": "Qwen/Qwen3.5-4B",                  "gpu": "A100-80GB"},
+  {"run_id": "qwen35-4b-base",      "model_id": "Qwen/Qwen3.5-4B-Base",             "gpu": "A100-80GB"},
+  {"run_id": "gemma4-e4b-it",       "model_id": "google/gemma-4-E4B-it",            "gpu": "A100-80GB"},
+  {"run_id": "apertus-4b-it",       "model_id": "swiss-ai/Apertus-v1.1-4B-Instruct","gpu": "A100-80GB"},
+  {"run_id": "olmo3-7b-it",         "model_id": "allenai/Olmo-3-7B-Instruct",       "gpu": "A100-80GB"},
+  {"run_id": "qwen35-9b",           "model_id": "Qwen/Qwen3.5-9B",                  "gpu": "A100-80GB"},
+  {"run_id": "gemma4-12b-it",       "model_id": "google/gemma-4-12B-it",            "gpu": "A100-80GB"}
+]
