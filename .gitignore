@@ -11,3 +11,4 @@ data/
 reports/**/*predictions*.jsonl
 .hf_cache/
 runs/
+results/*/test_predictions.jsonl

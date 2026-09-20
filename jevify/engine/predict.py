@@ -20,18 +20,36 @@ from .readout import HFScorer, softmax
 from .template import Rendered, render, to_chat
 
 
+PRIMS = ("choice", "score", "noul")
+
+
 @dataclass
 class Recipe:
-    """Everything that turns raw log-scores into an answer. Versioned with results."""
+    """Everything that turns raw log-scores into an answer. Versioned with results.
+
+    ``permutations`` and ``prior_weight`` may be a scalar (all primitives) or a per-primitive
+    dict — they are applied offline, so nothing forces one setting on every primitive.
+    ``bias`` is a Platt-style offset added to the log-score of "yes" for noul (the one
+    primitive with a fixed answer set, where a scalar bias is meaningful)."""
     mode: str = "index"                 # choice readout: index | label
     chat: bool = True                   # wrap in the chat template when the model has one
-    permutations: int = 1               # option orderings scored for choice (1 = presented order only)
-    prior_weight: float = 0.0           # 0 = off; 1 = full PMI / contextual calibration
-    temperature: dict[str, float] = field(default_factory=lambda: {"choice": 1.0, "score": 1.0, "noul": 1.0})
+    permutations: int | dict[str, int] = 1        # option orderings scored for choice (1 = presented order only)
+    prior_weight: float | dict[str, float] = 0.0  # 0 = off; 1 = full PMI / contextual calibration
+    temperature: dict[str, float] = field(default_factory=lambda: {p: 1.0 for p in PRIMS})
+    bias: dict[str, float] = field(default_factory=lambda: {"noul": 0.0})
+
+    def perm_for(self, prim: str) -> int:
+        return self.permutations.get(prim, 1) if isinstance(self.permutations, dict) else int(self.permutations)
+
+    def prior_for(self, prim: str) -> float:
+        return self.prior_weight.get(prim, 0.0) if isinstance(self.prior_weight, dict) else float(self.prior_weight)
+
+    def max_permutations(self) -> int:
+        return max(self.permutations.values()) if isinstance(self.permutations, dict) else int(self.permutations)
 
     def as_dict(self) -> dict[str, Any]:
         return {"mode": self.mode, "chat": self.chat, "permutations": self.permutations,
-                "prior_weight": self.prior_weight, "temperature": dict(self.temperature)}
+                "prior_weight": self.prior_weight, "temperature": dict(self.temperature), "bias": dict(self.bias)}
 
 
 class Tier0Engine:
@@ -49,7 +67,7 @@ class Tier0Engine:
         ids = self.scorer.identifiers() if self.recipe.mode == "index" else None
         rs = [render(state, question, mode=self.recipe.mode, identifiers=ids)]
         if rs[0].primitive == "choice":
-            for i in range(1, self.recipe.permutations):
+            for i in range(1, self.recipe.max_permutations()):
                 rs.append(render(state, question, mode=self.recipe.mode, permutation_seed=1000 + i, identifiers=ids))
         return rs
 
@@ -109,10 +127,13 @@ def finalize(primitive: str, question: dict[str, Any], extra: dict[str, Any], re
     """Apply a recipe to stored raw log-scores. Pure; used offline for every recipe variant."""
     T = recipe.temperature.get(primitive, 1.0)
     prior = extra.get("prior")
+    pw = recipe.prior_for(primitive)
     prob_maps: list[dict[str, float]] = []
-    for run in extra["runs"]:
+    for run in extra["runs"][: max(1, recipe.perm_for(primitive))]:
         keys, ls = run["keys"], list(run["logscores"])
-        if prior and recipe.prior_weight > 0:
+        if primitive == "noul" and recipe.bias.get("noul"):
+            ls = [v + (recipe.bias["noul"] if k == "1" else 0.0) for k, v in zip(keys, ls)]
+        if prior and pw > 0:
             if extra.get("mode") == "index":
                 # identifiers carry a positional bias: align the content-free prior by position
                 p0 = list(prior["logscores"])[: len(ls)]
@@ -120,7 +141,7 @@ def finalize(primitive: str, question: dict[str, Any], extra: dict[str, Any], re
                 # labels/digits/yes-no carry a surface-form bias: align by key
                 pmap = dict(zip(prior["keys"], prior["logscores"]))
                 p0 = [pmap[k] for k in keys]
-            ls = prior_correct(ls, p0, recipe.prior_weight)
+            ls = prior_correct(ls, p0, pw)
         prob_maps.append(dict(zip(keys, softmax(ls, T))))
     probs = average_permutations(prob_maps)
 

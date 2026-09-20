@@ -38,7 +38,7 @@ def _logscore_sets(records: Sequence[BenchRecord], preds: Sequence[Prediction], 
         if r is None or p.error or not p.extra:
             continue
         # finalize at T=1 to apply prior/permutation, then take log of the averaged probabilities
-        probe = finalize(r.primitive, r.question, p.extra, replace(recipe, temperature={k: 1.0 for k in PRIMS}))
+        probe = finalize(r.primitive, r.question, p.extra, replace(recipe, temperature={k: 1.0 for k in PRIMS}, bias={"noul": 0.0}))
         keys = r.option_keys()
         if r.primitive == "noul":
             probs = [1 - probe.p_yes, probe.p_yes]
@@ -50,59 +50,69 @@ def _logscore_sets(records: Sequence[BenchRecord], preds: Sequence[Prediction], 
     return out
 
 
+def fit_temperature_and_bias(ls: list[list[float]], y: list[int]) -> tuple[float, float]:
+    """Platt scaling for a fixed binary answer set: search a scalar bias on the 'yes' log-score
+    (index 1) and fit the temperature for each; return the pair with the lowest NLL."""
+    best = (float("inf"), 1.0, 0.0)
+    for b in [x / 10 for x in range(-40, 41)]:
+        shifted = [[s0, s1 + b] for s0, s1 in ls]
+        T = fit_temperature(shifted, y)
+        val = float(np.mean([-np.log(max(softmax(s, T)[yy], 1e-12)) for s, yy in zip(shifted, y)]))
+        if val < best[0]:
+            best = (val, T, b)
+    return best[1], best[2]
+
+
 def fit_recipe(records: Sequence[BenchRecord], preds: Sequence[Prediction], base: Recipe) -> tuple[Recipe, dict[str, Any]]:
-    """Grid over {permutations: 1 | all stored} x {prior_weight: 0 | 1}; per
-    primitive pick the variant with the lowest validation NLL after its own
-    temperature fit."""
+    """Per primitive, grid over {permutations: 1 | all stored} x {prior_weight: 0 | 1}, fit the
+    temperature (and, for noul, a bias) for each variant on validation, keep the lowest NLL."""
     n_perm = max((len(p.extra["runs"]) for p in preds if p.extra), default=1)
     grid = [(perm, pw) for perm in sorted({1, n_perm}) for pw in (0.0, 1.0)]
     log: dict[str, Any] = {"grid": [], "chosen": {}}
-    chosen: dict[str, tuple[int, float, float]] = {}
+    best: dict[str, tuple[float, int, float, float, float]] = {}   # prim -> (nll, perm, pw, T, bias)
     for perm, pw in grid:
-        cand = replace(base, permutations=perm, prior_weight=pw)
+        cand = replace(base, permutations=perm, prior_weight=pw, temperature={p: 1.0 for p in PRIMS}, bias={"noul": 0.0})
         sets = _logscore_sets(records, preds, cand)
-        row = {"permutations": perm, "prior_weight": pw}
+        row: dict[str, Any] = {"permutations": perm, "prior_weight": pw}
         for prim in PRIMS:
             ls, y = sets[prim]
             if not y:
                 continue
-            T = fit_temperature(ls, y)
-            nll = float(np.mean([-np.log(max(softmax(s, T)[yy], 1e-12)) for s, yy in zip(ls, y)]))
+            if prim == "noul":
+                T, b = fit_temperature_and_bias(ls, y)
+                scored = [[s0, s1 + b] for s0, s1 in ls]
+            else:
+                T, b = fit_temperature(ls, y), 0.0
+                scored = ls
+            nll = float(np.mean([-np.log(max(softmax(s, T)[yy], 1e-12)) for s, yy in zip(scored, y)]))
             nll_raw = float(np.mean([-np.log(max(softmax(s, 1.0)[yy], 1e-12)) for s, yy in zip(ls, y)]))
-            row[prim] = {"T": round(T, 4), "nll": round(nll, 4), "nll_raw": round(nll_raw, 4), "n": len(y)}
-            if prim not in chosen or nll < chosen[prim][2]:
-                chosen[prim] = (perm, pw, nll, T)
+            row[prim] = {"T": round(T, 4), "bias": round(b, 3), "nll": round(nll, 4), "nll_raw": round(nll_raw, 4), "n": len(y)}
+            if prim not in best or nll < best[prim][0]:
+                best[prim] = (nll, perm, pw, T, b)
         log["grid"].append(row)
-    # One recipe must serve all primitives for permutations/prior (they are rendering choices);
-    # pick the (perm, pw) that wins the most primitives, then temperatures per primitive.
-    votes = defaultdict(int)
-    for prim, (perm, pw, _, _) in chosen.items():
-        votes[(perm, pw)] += 1
-    (perm, pw), _ = max(votes.items(), key=lambda kv: kv[1])
-    final_sets = _logscore_sets(records, preds, replace(base, permutations=perm, prior_weight=pw))
-    temps = {}
-    for prim in PRIMS:
-        ls, y = final_sets[prim]
-        temps[prim] = round(fit_temperature(ls, y), 4) if y else 1.0
-    recipe = replace(base, permutations=perm, prior_weight=pw, temperature=temps)
-    log["chosen"] = {"permutations": perm, "prior_weight": pw, "temperature": temps,
-                     "per_primitive_winners": {p: {"permutations": c[0], "prior_weight": c[1], "nll": round(c[2], 4)} for p, c in chosen.items()}}
+    recipe = replace(base,
+                     permutations={p: best[p][1] if p in best else 1 for p in PRIMS},
+                     prior_weight={p: best[p][2] if p in best else 0.0 for p in PRIMS},
+                     temperature={p: round(best[p][3], 4) if p in best else 1.0 for p in PRIMS},
+                     bias={"noul": round(best["noul"][4], 3) if "noul" in best else 0.0})
+    log["chosen"] = {p: {"permutations": best[p][1], "prior_weight": best[p][2], "T": round(best[p][3], 4),
+                         "bias": round(best[p][4], 3), "val_nll": round(best[p][0], 4)} for p in best}
     return recipe, log
 
 
 def ablation(records: Sequence[BenchRecord], preds: Sequence[Prediction], recipe: Recipe) -> list[dict[str, Any]]:
-    """Raw → +permutations → +prior → +temperature, each scored on the given records."""
+    """raw → +permutations → +prior → +temperature/bias, each scored on the given records."""
+    unit = {p: 1.0 for p in PRIMS}
     steps = [
-        ("raw", replace(recipe, permutations=1, prior_weight=0.0, temperature={p: 1.0 for p in PRIMS})),
-        ("+permutations", replace(recipe, prior_weight=0.0, temperature={p: 1.0 for p in PRIMS})),
-        ("+prior", replace(recipe, temperature={p: 1.0 for p in PRIMS})),
-        ("+temperature", recipe),
+        ("raw", replace(recipe, permutations=1, prior_weight=0.0, temperature=unit, bias={"noul": 0.0})),
+        ("+permutations", replace(recipe, prior_weight=0.0, temperature=unit, bias={"noul": 0.0})),
+        ("+prior", replace(recipe, temperature=unit, bias={"noul": 0.0})),
+        ("+temperature/bias", recipe),
     ]
     rows = []
     for name, rc in steps:
         reps = score_reports(list(records), refinalize(records, preds, rc))
-        agg = _aggregate(reps, records)
-        rows.append({"step": name, **agg})
+        rows.append({"step": name, **_aggregate(reps, records)})
     return rows
 
 
