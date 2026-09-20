@@ -106,7 +106,25 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--figures", type=Path, default=None, help="write reliability/calibration/coverage/human figures here")
     r.add_argument("--label", default=None, help="model label for figure titles (default: model from predictions)")
 
+    rc = sub.add_parser("recipe", help="fit a recipe on validation log-scores, apply to test, write results")
+    rc.add_argument("--records", type=Path, required=True)
+    rc.add_argument("--val", type=Path, required=True, help="validation predictions with raw log-scores")
+    rc.add_argument("--test", type=Path, required=True, help="test predictions with raw log-scores")
+    rc.add_argument("--out", type=Path, required=True, help="results dir (test_predictions.jsonl, recipe.json, reports, figures)")
+    rc.add_argument("--label", default=None)
+
+    cp = sub.add_parser("compare", help="side-by-side table and figures for several prediction files")
+    cp.add_argument("--records", type=Path, required=True)
+    cp.add_argument("--preds", type=Path, nargs="+", required=True)
+    cp.add_argument("--labels", nargs="+", default=None)
+    cp.add_argument("--out", type=Path, required=True)
+    cp.add_argument("--split", default="test")
+
     args = ap.parse_args(argv)
+    if args.cmd == "recipe":
+        return _cmd_recipe(args)
+    if args.cmd == "compare":
+        return _cmd_compare(args)
     if args.cmd == "api":
         from .jev_api import SystemOneAPIRunner
 
@@ -145,6 +163,67 @@ def main(argv: list[str] | None = None) -> int:
 
         for f in make_all(args.records, args.preds, args.figures, args.label or model, args.split):
             print("figure:", f, file=sys.stderr)
+    return 0
+
+
+def _cmd_recipe(args) -> int:
+    from ..engine.predict import Recipe, refinalize
+    from .recipe import ablation, fit_recipe
+
+    val_preds = list(read_predictions(args.val))
+    test_preds = list(read_predictions(args.test))
+    sources = sorted({p.id.split("/")[0] for p in val_preds})
+    val_recs = list(iter_records(args.records, sources, "validation", None))
+    test_recs = list(iter_records(args.records, sorted({p.id.split("/")[0] for p in test_preds}), "test", None))
+    mode = next((p.extra.get("mode") for p in val_preds if p.extra), "index")
+    base = Recipe(mode="label" if mode == "label" else "index")
+    recipe, log = fit_recipe(val_recs, val_preds, base)
+    args.out.mkdir(parents=True, exist_ok=True)
+    (args.out / "recipe.json").write_text(json.dumps({"recipe": recipe.as_dict(), "search": log}, indent=1), encoding="utf-8")
+    abl_val = ablation(val_recs, val_preds, recipe)
+    abl_test = ablation(test_recs, test_preds, recipe)
+    cols = ["step", "macro_acc", "macro_ece", "macro_brier", "choice_acc", "choice_ece", "score_acc", "score_ece", "noul_acc", "noul_ece"]
+    def table(rows):
+        head = '| ' + ' | '.join(cols) + ' |'
+        sep = '|' + '---|' * len(cols)
+        body = ["| " + " | ".join(str(r.get(c, '')) for c in cols) + " |" for r in rows]
+        return chr(10).join([head, sep, *body])
+    (args.out / 'ablation.md').write_text(chr(10).join(['## validation', '', table(abl_val), '', '## test', '', table(abl_test), '']), encoding='utf-8')
+    final = refinalize(test_recs, test_preds, recipe)
+    out_preds = args.out / "test_predictions.jsonl"
+    write_predictions(out_preds, final, progress_every=0)
+    reports = score(test_recs, final)
+    prims = {r.source: r.primitive for r in test_recs}
+    model = args.label or next((p.model for p in final if p.model), "?")
+    md = markdown_table(reports, prims, model)
+    (args.out / "test_report.md").write_text(md + chr(10), encoding="utf-8")
+    (args.out / "test_metrics.json").write_text(json.dumps({k: v.as_dict() for k, v in reports.items()}, indent=1), encoding="utf-8")
+    from ..bench.figures import make_all
+    make_all(args.records, out_preds, args.out / "figures", model, "test")
+    print(json.dumps(log["chosen"], indent=1))
+    print(table(abl_test))
+    return 0
+
+
+def _cmd_compare(args) -> int:
+    from ..bench.figures import fig_compare, load_eval
+    from .recipe import compare_table
+
+    labels = args.labels or [p.parent.name for p in args.preds]
+    named, evs = {}, {}
+    prims: dict[str, str] = {}
+    for label, path in zip(labels, args.preds):
+        preds = list(read_predictions(path))
+        recs = list(iter_records(args.records, sorted({p.id.split("/")[0] for p in preds}), args.split, None))
+        prims.update({r.source: r.primitive for r in recs})
+        named[label] = score(recs, preds)
+        evs[label] = load_eval(args.records, path, args.split)
+    args.out.mkdir(parents=True, exist_ok=True)
+    md = compare_table(named, prims)
+    (args.out / "compare.md").write_text(md + chr(10), encoding="utf-8")
+    for metric in ("accuracy", "ece"):
+        fig_compare(evs, args.out, metric)
+    print(md)
     return 0
 
 
