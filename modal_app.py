@@ -39,9 +39,7 @@ def _bench_root() -> Path:
     return root
 
 
-@app.function(image=image, gpu=GPU, volumes={"/hf": hf_cache, "/runs": runs}, secrets=[modal.Secret.from_name("huggingface")],
-              timeout=4 * 3600, memory=32768)
-def tier0(model_id: str, run_id: str, sources: str = "", split: str = "test", limit: int = 0, mode: str = "index",
+def _tier0_impl(gpu_name: str, model_id: str, run_id: str, sources: str = "", split: str = "test", limit: int = 0, mode: str = "index",
           chat: bool = True, permutations: int = 2, batch: int = 16, cand_chunk: int = 64, trust_remote_code: bool = False,
           resume: bool = True) -> dict:
     import torch
@@ -63,7 +61,7 @@ def tier0(model_id: str, run_id: str, sources: str = "", split: str = "test", li
         recs.extend(read_jsonl(path, limit=limit or None))
     skip = done_ids(out) if resume and out.exists() else set()
     todo = [r for r in recs if r.id not in skip]
-    print(f"[{run_id}] {model_id} on {GPU}: {len(todo)} records ({len(skip)} already done)", flush=True)
+    print(f"[{run_id}] {model_id} on {gpu_name}: {len(todo)} records ({len(skip)} already done)", flush=True)
 
     t0 = time.time()
     scorer = HFScorer(model_id, dtype=torch.bfloat16, batch_size=batch, cand_chunk=cand_chunk,
@@ -72,10 +70,10 @@ def tier0(model_id: str, run_id: str, sources: str = "", split: str = "test", li
     engine = Tier0Engine(scorer, Recipe(mode=mode, chat=chat, permutations=permutations))
     n = write_predictions(out, engine.score_records(todo, batch=batch), append=bool(skip), progress_every=250)
     elapsed = time.time() - t0
-    info = {"run_id": run_id, "model_id": model_id, "gpu": GPU, "split": split, "sources": want, "limit": limit,
+    info = {"run_id": run_id, "model_id": model_id, "gpu": gpu_name, "split": split, "sources": want, "limit": limit,
             "recipe": engine.recipe.as_dict(), "chat_applied": engine.chat, "n_new": n, "n_total": len(recs),
             "load_s": round(t_load, 1), "wall_s": round(elapsed, 1),
-            "est_cost_usd": round(elapsed / 3600 * RATE_PER_HOUR.get(GPU, 2.5), 3),
+            "est_cost_usd": round(elapsed / 3600 * RATE_PER_HOUR.get(gpu_name, 2.5), 3),
             "torch": torch.__version__, "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
             "scorer_stats": {k: (round(v, 2) if isinstance(v, float) else v) for k, v in scorer.stats.items()},
             "attn_impl": getattr(scorer.model.config, "_attn_implementation", None), "dtype": str(next(scorer.model.parameters()).dtype)}
@@ -83,6 +81,60 @@ def tier0(model_id: str, run_id: str, sources: str = "", split: str = "test", li
     runs.commit()
     print(json.dumps(info), flush=True)
     return info
+
+
+GPU_KW = dict(image=image, volumes={"/hf": hf_cache, "/runs": runs}, secrets=[modal.Secret.from_name("huggingface")],
+              timeout=4 * 3600, memory=32768)
+
+
+@app.function(gpu=GPU, **GPU_KW)
+def tier0(model_id: str, run_id: str, sources: str = "", split: str = "test", limit: int = 0, mode: str = "index",
+          chat: bool = True, permutations: int = 2, batch: int = 16, cand_chunk: int = 64, trust_remote_code: bool = False,
+          resume: bool = True) -> dict:
+    return _tier0_impl(GPU, model_id, run_id, sources, split, limit, mode, chat, permutations, batch, cand_chunk, trust_remote_code, resume)
+
+
+@app.function(gpu="L4", **GPU_KW)
+def tier0_l4(*args, **kwargs) -> dict:
+    return _tier0_impl("L4", *args, **kwargs)
+
+
+@app.function(gpu="A100-80GB", **GPU_KW)
+def tier0_a100(*args, **kwargs) -> dict:
+    return _tier0_impl("A100-80GB", *args, **kwargs)
+
+
+@app.function(image=image, volumes={"/runs": runs}, timeout=24 * 3600)
+def sweep(plan: list[dict], permutations: int = 2, val_limit: int = 200, batch: int = 32, smoke: bool = False) -> list[dict]:
+    """Walk the plan server-side: validation then test for each model, resumable, with a ledger on the volume."""
+    ledger_path = Path("/runs/ledger.jsonl")
+    done: list[dict] = []
+    for entry in plan:
+        fn = tier0_a100 if entry["gpu"].startswith("A100") else tier0_l4
+        jobs = [("test", 5)] if smoke else [("validation", val_limit), ("test", 0)]
+        for split, limit in jobs:
+            run_id = entry["run_id"] + ("-smoke" if smoke else "") + ("" if split == "test" else f"-{split}")
+            runs.reload()
+            t0 = time.time()
+            try:
+                info = fn.remote(entry["model_id"], run_id, "", split, limit, "index", entry.get("chat", True), permutations, batch, 64,
+                                 bool(entry.get("trust_remote_code")), True)
+                status = "ok"
+            except Exception as e:  # keep going; the ledger records the failure
+                info = {"run_id": run_id, "error": f"{type(e).__name__}: {str(e)[:300]}"}
+                status = "FAILED"
+            rec = {"run_id": run_id, "model_id": entry["model_id"], "gpu": entry["gpu"], "split": split, "status": status,
+                   "wall_s": round(time.time() - t0, 1), "est_cost_usd": info.get("est_cost_usd"), "error": info.get("error")}
+            with ledger_path.open("a") as f:
+                f.write(json.dumps(rec) + chr(10))
+            runs.commit()
+            print(json.dumps(rec), flush=True)
+            done.append(rec)
+    return done
+
+
+def _n_done(path: Path) -> int:
+    return sum(1 for _ in path.open()) if path.exists() else 0
 
 
 @app.function(image=image, volumes={"/runs": runs}, timeout=600)
@@ -141,3 +193,20 @@ def diag(model_id: str, source: str = "clinc150", trust_remote_code: bool = Fals
 @app.local_entrypoint()
 def diagnose(model_id: str, source: str = "clinc150", trust_remote_code: bool = False, fp32: bool = False):
     print(json.dumps(diag.remote(model_id, source, trust_remote_code, fp32), indent=1))
+
+
+@app.local_entrypoint()
+def run_sweep(plan: str = "scripts/sweep_plan.json", only: str = "", permutations: int = 2, val_limit: int = 200,
+              batch: int = 32, smoke: bool = False):
+    entries = json.loads(Path(plan).read_text())
+    keep = {s for s in only.split(",") if s}
+    entries = [e for e in entries if not keep or e["run_id"] in keep]
+    call = sweep.spawn(entries, permutations, val_limit, batch, smoke)
+    print(f"spawned sweep over {len(entries)} models: {[e['run_id'] for e in entries]}  call_id={call.object_id}")
+
+
+@app.local_entrypoint()
+def sweep_status():
+    for line in ls.remote(""):
+        if "ledger" in line or "run.json" in line or "predictions" in line:
+            print(line)
