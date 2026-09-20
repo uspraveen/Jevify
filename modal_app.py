@@ -210,3 +210,124 @@ def sweep_status():
     for line in ls.remote(""):
         if "ledger" in line or "run.json" in line or "predictions" in line:
             print(line)
+
+
+# --------------------------------------------------------------------------- Tier 1
+# Sources the heads never see in training. Chosen to span primitives, domains and K:
+# large-K routing, knowledge MCQ, an ordinal rating, a soft-label safety scale, and two
+# grounded yes/no tasks. chaosnli has no train split, so it is held out by construction.
+HELDOUT_SOURCES = ["clinc150", "arc_challenge", "yelp5", "measuring_hate_speech", "fever_evidence", "strategyqa_grounded"]
+
+
+def _tier1_impl(gpu_name: str, model_id: str, run_id: str, layer: int = -1, chat: bool = True,
+                train_per_source: int = 600, val_per_source: int = 150, max_slots: int = 16, dim: int = 512,
+                epochs: int = 20, lr: float = 3e-4, batch: int = 8, trust_remote_code: bool = False,
+                heldout: str = "") -> dict:
+    import numpy as np
+    import torch
+
+    from jevify.bench.record import read_jsonl
+    from jevify.engine.features import FeatureExtractor
+    from jevify.engine.heads import HeadConfig, evaluate_loss, predict_rows, save_heads, train_heads
+    from jevify.engine.readout import HFScorer
+    from jevify.runners.base import Prediction, write_predictions
+
+    held = [s for s in (heldout.split(",") if heldout else HELDOUT_SOURCES) if s]
+    root = _bench_root()
+    out_dir = Path(f"/runs/{run_id}")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    t0 = time.time()
+    scorer = HFScorer(model_id, dtype=torch.bfloat16, trust_remote_code=trust_remote_code, hf_token=os.environ.get("HF_TOKEN"))
+    fx = FeatureExtractor(scorer, layer=layer, chat=chat)
+    rng = np.random.default_rng(20260921)
+
+    def load(split: str, limit: int, sources: list[str] | None = None, exclude: list[str] | None = None):
+        recs = []
+        for path in sorted((root / "data").glob(f"*/{split}.jsonl")):
+            name = path.parent.name
+            if sources is not None and name not in sources:
+                continue
+            if exclude and name in exclude:
+                continue
+            recs.extend(read_jsonl(path, limit=limit or None))
+        return recs
+
+    train_recs = load("train", train_per_source, exclude=held)
+    val_recs = load("validation", val_per_source, exclude=held)
+    test_recs = load("test", 0)
+    print(f"[{run_id}] {model_id} on {gpu_name}: {len(train_recs)} train / {len(val_recs)} val / {len(test_recs)} test; "
+          f"heldout={held}", flush=True)
+
+    t_feat = time.time()
+    train_rows = fx.extract(train_recs, max_slots=max_slots, rng=rng, batch_size=batch)
+    val_rows = fx.extract(val_recs, max_slots=max_slots, rng=rng, batch_size=batch)
+    test_rows = fx.extract(test_recs, batch_size=batch)
+    feat_s = time.time() - t_feat
+    print(f"[{run_id}] features in {feat_s:.0f}s", flush=True)
+
+    cfg = HeadConfig(hidden=fx.hidden, dim=dim, layer=layer, backbone=model_id)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    t_train = time.time()
+    heads, info = train_heads(train_rows, val_rows, cfg, epochs=epochs, lr=lr, device=device, verbose=True)
+    train_s = time.time() - t_train
+    save_heads(heads, info, out_dir / "heads")
+
+    probs = predict_rows(heads, test_rows, device=device)
+    by_id = {r.id: r for r in test_recs}
+    preds = []
+    for rid, dist in probs.items():
+        r = by_id[rid]
+        if r.primitive == "noul":
+            preds.append(Prediction(id=rid, primitive="noul", p_yes=dist.get("1", 0.0), answer=dist.get("1", 0.0), model=f"{model_id} (Tier 1)"))
+        else:
+            keys = r.option_keys()
+            pm = {k: float(dist.get(k, 0.0)) for k in keys}
+            total = sum(pm.values()) or 1.0
+            pm = {k: v / total for k, v in pm.items()}
+            best = max(pm, key=pm.get)
+            from jevify.wire import choice_confidence, score_confidence, score_expectation
+            vals = [pm[k] for k in keys]
+            if r.primitive == "choice":
+                preds.append(Prediction(id=rid, primitive="choice", probabilities=pm, answer=best,
+                                        confidence=choice_confidence(vals), model=f"{model_id} (Tier 1)"))
+            else:
+                preds.append(Prediction(id=rid, primitive="score", probabilities=pm, answer=score_expectation(vals),
+                                        confidence=score_confidence(vals), model=f"{model_id} (Tier 1)"))
+    write_predictions(out_dir / "test_predictions.jsonl", preds, progress_every=0)
+    elapsed = time.time() - t0
+    meta = {"run_id": run_id, "model_id": model_id, "gpu": gpu_name, "tier": 1, "layer": layer, "chat_applied": fx.chat,
+            "heldout_sources": held, "n_train": len(train_rows), "n_val": len(val_rows), "n_test": len(test_rows),
+            "max_slots": max_slots, "dim": dim, "epochs": epochs, "lr": lr,
+            "best_epoch": info["best_epoch"], "best_val_loss": round(info["best_val_loss"], 4),
+            "feature_s": round(feat_s), "train_s": round(train_s), "wall_s": round(elapsed, 1),
+            "est_cost_usd": round(elapsed / 3600 * RATE_PER_HOUR.get(gpu_name, 2.5), 3),
+            "val_detail": {k: round(v, 4) for k, v in evaluate_loss(heads, val_rows, device=device).items()}}
+    (out_dir / "run.json").write_text(json.dumps(meta, indent=1))
+    runs.commit()
+    print(json.dumps(meta), flush=True)
+    return meta
+
+
+@app.function(gpu="L4", **GPU_KW)
+def tier1_l4(*args, **kwargs) -> dict:
+    return _tier1_impl("L4", *args, **kwargs)
+
+
+@app.function(gpu="A100-80GB", **GPU_KW)
+def tier1_a100(*args, **kwargs) -> dict:
+    return _tier1_impl("A100-80GB", *args, **kwargs)
+
+
+@app.local_entrypoint()
+def tier1(model_id: str, run_id: str, gpu: str = "A100-80GB", layer: int = -1, chat: bool = True,
+          train_per_source: int = 600, val_per_source: int = 150, max_slots: int = 16, dim: int = 512,
+          epochs: int = 20, lr: float = 3e-4, batch: int = 8, trust_remote_code: bool = False, heldout: str = "",
+          out: str = "runs"):
+    fn = tier1_a100 if gpu.startswith("A100") else tier1_l4
+    info = fn.remote(model_id, run_id, layer, chat, train_per_source, val_per_source, max_slots, dim, epochs, lr,
+                     batch, trust_remote_code, heldout)
+    local = Path(out) / run_id
+    local.mkdir(parents=True, exist_ok=True)
+    (local / "test_predictions.jsonl").write_bytes(fetch.remote(run_id, "test_predictions.jsonl"))
+    (local / "run.json").write_text(json.dumps(info, indent=1))
+    print(f"saved to {local}  (wall {info['wall_s']}s, est ${info['est_cost_usd']})")

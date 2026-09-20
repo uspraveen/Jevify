@@ -1,0 +1,201 @@
+"""Slot features: the hidden states a decision head reads.
+
+For one rendered question we extract
+
+- ``decision``: the hidden state at the final position (after the answer cue). It has
+  attended to the state, the question and *every* option, so it carries the comparison.
+- ``slots``: one hidden state per allowed answer, taken at the last token of that
+  option's line in the prompt, so it carries what the option *means* rather than which
+  identifier token names it. This is the difference from Tier 0, which can only use the
+  LM head's logit for the identifier.
+
+Everything is stored fp16 and option-subsampled at training time (``max_slots``), which
+is what keeps the cache small and the head K-agnostic: it scores each option
+independently, so a head trained with 16 options applies unchanged to 151.
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any, Sequence
+
+import numpy as np
+import torch
+
+from ..bench.record import BenchRecord
+from .readout import HFScorer
+from .template import CUE, Rendered, render, to_chat
+
+
+@dataclass
+class SlotBatch:
+    decision: torch.Tensor          # (B, H)
+    slots: torch.Tensor             # (B, S, H) padded
+    mask: torch.Tensor              # (B, S) bool, True where a slot is real
+    label: torch.Tensor             # (B,) index into the kept slots
+    primitive: list[str]
+    ids: list[str]
+    keys: list[list[str]]           # answer key per kept slot
+
+    def to(self, device: str) -> "SlotBatch":
+        return SlotBatch(self.decision.to(device), self.slots.to(device), self.mask.to(device),
+                         self.label.to(device), self.primitive, self.ids, self.keys)
+
+
+def _line_end_positions(scorer: HFScorer, prefix: str, needles: Sequence[str]) -> list[int]:
+    """Token index of the last token of each option line, found by character offsets."""
+    enc = scorer.tokenizer(prefix, add_special_tokens=True, return_offsets_mapping=True)
+    offsets = enc["offset_mapping"]
+    out = []
+    search_from = 0
+    for text in needles:
+        idx = prefix.find(text, search_from)
+        if idx < 0:
+            idx = prefix.find(text)
+        end_char = (idx + len(text)) if idx >= 0 else len(prefix)
+        search_from = max(search_from, end_char)
+        pos = 0
+        for t, (a, b) in enumerate(offsets):
+            if b and b <= end_char:
+                pos = t
+        out.append(pos)
+    return out
+
+
+class FeatureExtractor:
+    """Runs the backbone once per record (batched) and returns slot features.
+
+    Only one layer's activations are kept, captured with a forward hook — asking
+    ``output_hidden_states=True`` would materialize every layer and dominate memory.
+    Right padding keeps every real token at its true position under a causal mask, so
+    slot indices found by character offsets need no shift.
+    """
+
+    def __init__(self, scorer: HFScorer, layer: int = -1, chat: bool = True) -> None:
+        self.scorer = scorer
+        self.layer = layer
+        self.chat = chat and getattr(scorer.tokenizer, "chat_template", None) is not None
+        self.hidden = int(scorer.model.config.hidden_size)
+        self._captured: torch.Tensor | None = None
+        self._hook = self._target_module().register_forward_hook(self._capture)
+
+    def _target_module(self):
+        model = self.scorer.model
+        for attr in ("model", "transformer", "base_model"):
+            inner = getattr(model, attr, None)
+            layers = getattr(inner, "layers", None) or getattr(inner, "h", None) if inner is not None else None
+            if layers:
+                return layers[self.layer]
+        raise TypeError("could not locate the decoder layers of this architecture")
+
+    def _capture(self, _module, _inputs, output) -> None:
+        self._captured = output[0] if isinstance(output, tuple) else output
+
+    def close(self) -> None:
+        self._hook.remove()
+
+    def _prefix(self, rd: Rendered) -> str:
+        return to_chat(rd.prefix, self.scorer.tokenizer) if self.chat else rd.prefix
+
+    def _needles(self, rd: Rendered, question: dict[str, Any]) -> list[str]:
+        """The text whose last token represents each option."""
+        if rd.primitive == "noul":
+            return ["yes", "no"]
+        if rd.primitive == "score":
+            return [str(c)[:60] for c in question["criteria"]]
+        crit = question["criteria"]
+        return [f"{k}" if not crit.get(k) else f"{k} — {crit[k]}"[:120] for k in rd.keys]
+
+    def _plan(self, r: BenchRecord, max_slots: int, rng, identifiers) -> tuple[str, list[int], list[str], int]:
+        rd = render(r.state, r.question, identifiers=identifiers)
+        prefix = self._prefix(rd)
+        ids = self.scorer.tokenizer(prefix, add_special_tokens=True)["input_ids"]
+        if len(ids) > self.scorer.max_prefix_tokens:
+            prefix = self.scorer.tokenizer.decode(ids[-self.scorer.max_prefix_tokens:], skip_special_tokens=True)
+        keys = list(rd.keys)
+        keep = list(range(len(keys)))
+        if max_slots and len(keys) > max_slots:
+            gold = keys.index(str(r.label))
+            others = [i for i in keep if i != gold]
+            pick = rng.choice(others, size=max_slots - 1, replace=False)
+            keep = sorted([gold] + [int(i) for i in pick])
+        needles = self._needles(rd, r.question)
+        pos = _line_end_positions(self.scorer, prefix, [needles[i] for i in keep])
+        kept = [keys[i] for i in keep]
+        return prefix, pos, kept, kept.index(str(r.label))
+
+    @torch.inference_mode()
+    def extract(self, records: Sequence[BenchRecord], *, max_slots: int = 0, rng: np.random.Generator | None = None,
+                identifiers: Sequence[str] | None = None, batch_size: int = 8) -> list[dict[str, Any]]:
+        rng = rng or np.random.default_rng(0)
+        ids_list = identifiers or self.scorer.identifiers()
+        plans = [self._plan(r, max_slots, rng, ids_list) for r in records]
+        out: list[dict[str, Any]] = []
+        order = sorted(range(len(plans)), key=lambda i: len(plans[i][0]))   # group similar lengths
+        for start in range(0, len(order), batch_size):
+            chunk = [order[j] for j in range(start, min(start + batch_size, len(order)))]
+            enc = self.scorer.tokenizer([plans[i][0] for i in chunk], add_special_tokens=True,
+                                        padding=True, padding_side="right", return_tensors="pt")
+            self._captured = None
+            self.scorer.model(input_ids=enc["input_ids"].to(self.scorer.device),
+                              attention_mask=enc["attention_mask"].to(self.scorer.device), use_cache=False)
+            hs = self._captured
+            assert hs is not None, "forward hook did not fire"
+            lengths = enc["attention_mask"].sum(-1).tolist()
+            for row, i in enumerate(chunk):
+                _, pos, keys, label = plans[i]
+                last = int(lengths[row]) - 1
+                pos = [min(p, last) for p in pos]
+                out.append({"id": records[i].id, "source": records[i].source, "primitive": records[i].primitive,
+                            "decision": hs[row, last].to(torch.float16).cpu().numpy(),
+                            "slots": hs[row, torch.tensor(pos, device=hs.device)].to(torch.float16).cpu().numpy(),
+                            "keys": keys, "label": label})
+        by_id = {r["id"]: r for r in out}
+        return [by_id[r.id] for r in records if r.id in by_id]
+
+
+def save_features(path, rows: list[dict[str, Any]]) -> int:
+    """One .npz per shard: ragged slots are stored flat with an index."""
+    import json
+    from pathlib import Path
+
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    dec = np.stack([r["decision"] for r in rows])
+    counts = np.array([len(r["keys"]) for r in rows], dtype=np.int32)
+    slots = np.concatenate([r["slots"] for r in rows], axis=0)
+    labels = np.array([r["label"] for r in rows], dtype=np.int32)
+    meta = [{"id": r["id"], "source": r["source"], "primitive": r["primitive"], "keys": r["keys"]} for r in rows]
+    np.savez_compressed(path, decision=dec, slots=slots, counts=counts, labels=labels, meta=json.dumps(meta))
+    return len(rows)
+
+
+def load_features(path) -> list[dict[str, Any]]:
+    import json
+
+    z = np.load(path, allow_pickle=False)
+    meta = json.loads(str(z["meta"]))
+    counts, slots = z["counts"], z["slots"]
+    rows, off = [], 0
+    for i, m in enumerate(meta):
+        n = int(counts[i])
+        rows.append({**m, "decision": z["decision"][i], "slots": slots[off:off + n], "label": int(z["labels"][i])})
+        off += n
+    return rows
+
+
+def collate(rows: Sequence[dict[str, Any]]) -> SlotBatch:
+    B = len(rows)
+    S = max(len(r["keys"]) for r in rows)
+    H = rows[0]["decision"].shape[-1]
+    dec = torch.zeros(B, H)
+    slots = torch.zeros(B, S, H)
+    mask = torch.zeros(B, S, dtype=torch.bool)
+    label = torch.zeros(B, dtype=torch.long)
+    for i, r in enumerate(rows):
+        n = len(r["keys"])
+        dec[i] = torch.from_numpy(r["decision"].astype(np.float32))
+        slots[i, :n] = torch.from_numpy(r["slots"].astype(np.float32))
+        mask[i, :n] = True
+        label[i] = r["label"]
+    return SlotBatch(dec, slots, mask, label, [r["primitive"] for r in rows], [r["id"] for r in rows],
+                     [r["keys"] for r in rows])

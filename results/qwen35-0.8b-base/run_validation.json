@@ -1,0 +1,35 @@
+{
+ "run_id": "qwen35-0.8b-base-validation",
+ "model_id": "Qwen/Qwen3.5-0.8B-Base",
+ "gpu": "L4",
+ "split": "validation",
+ "sources": null,
+ "limit": 200,
+ "recipe": {
+  "mode": "index",
+  "chat": false,
+  "permutations": 2,
+  "prior_weight": 0.0,
+  "temperature": {
+   "choice": 1.0,
+   "score": 1.0,
+   "noul": 1.0
+  }
+ },
+ "chat_applied": false,
+ "n_new": 4120,
+ "n_total": 4120,
+ "load_s": 5.8,
+ "wall_s": 439.7,
+ "est_cost_usd": 0.098,
+ "torch": "2.14.0+cu130",
+ "device": "NVIDIA L4",
+ "scorer_stats": {
+  "tokenize_s": 31.1,
+  "single_s": 398.86,
+  "multi_s": 0.0,
+  "items": 6123
+ },
+ "attn_impl": "sdpa",
+ "dtype": "torch.bfloat16"
+}

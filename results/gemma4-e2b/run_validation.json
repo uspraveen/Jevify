@@ -1,0 +1,35 @@
+{
+ "run_id": "gemma4-e2b-validation",
+ "model_id": "google/gemma-4-E2B",
+ "gpu": "L4",
+ "split": "validation",
+ "sources": null,
+ "limit": 200,
+ "recipe": {
+  "mode": "index",
+  "chat": false,
+  "permutations": 2,
+  "prior_weight": 0.0,
+  "temperature": {
+   "choice": 1.0,
+   "score": 1.0,
+   "noul": 1.0
+  }
+ },
+ "chat_applied": false,
+ "n_new": 4120,
+ "n_total": 4120,
+ "load_s": 15.4,
+ "wall_s": 611.1,
+ "est_cost_usd": 0.136,
+ "torch": "2.14.0+cu130",
+ "device": "NVIDIA L4",
+ "scorer_stats": {
+  "tokenize_s": 29.08,
+  "single_s": 562.72,
+  "multi_s": 0.0,
+  "items": 6123
+ },
+ "attn_impl": "sdpa",
+ "dtype": "torch.bfloat16"
+}

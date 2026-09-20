@@ -1,0 +1,38 @@
+{
+ "run_id": "qwen35-2b-validation",
+ "model_id": "Qwen/Qwen3.5-2B",
+ "gpu": "A100-80GB",
+ "split": "validation",
+ "sources": null,
+ "limit": 200,
+ "recipe": {
+  "mode": "index",
+  "chat": true,
+  "permutations": 2,
+  "prior_weight": 0.0,
+  "temperature": {
+   "choice": 1.0,
+   "score": 1.0,
+   "noul": 1.0
+  },
+  "bias": {
+   "noul": 0.0
+  }
+ },
+ "chat_applied": true,
+ "n_new": 4120,
+ "n_total": 4120,
+ "load_s": 29.1,
+ "wall_s": 213.9,
+ "est_cost_usd": 0.149,
+ "torch": "2.14.0+cu130",
+ "device": "NVIDIA A100 80GB PCIe",
+ "scorer_stats": {
+  "tokenize_s": 24.1,
+  "single_s": 153.96,
+  "multi_s": 0.0,
+  "items": 6123
+ },
+ "attn_impl": "sdpa",
+ "dtype": "torch.bfloat16"
+}
