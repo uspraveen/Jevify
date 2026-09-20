@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Iterator
@@ -38,13 +39,19 @@ class Runner:
         raise NotImplementedError
 
 
-def write_predictions(path: Path, preds: Iterable[Prediction]) -> int:
+def write_predictions(path: Path, preds: Iterable[Prediction], *, append: bool = False,
+                      progress_every: int = 500) -> int:
+    """Stream predictions to JSONL as they arrive (flushed per line, so a crash
+    loses at most one). ``append=True`` continues an existing file."""
     path.parent.mkdir(parents=True, exist_ok=True)
     n = 0
-    with path.open("w", encoding="utf-8") as f:
+    with path.open("a" if append else "w", encoding="utf-8") as f:
         for p in preds:
             f.write(json.dumps(p.to_row(), ensure_ascii=False) + "\n")
+            f.flush()
             n += 1
+            if progress_every and n % progress_every == 0:
+                print(f"  {n} predictions written", file=sys.stderr, flush=True)
     return n
 
 
@@ -53,3 +60,10 @@ def read_predictions(path: Path) -> Iterator[Prediction]:
         for line in f:
             if line.strip():
                 yield Prediction.from_row(json.loads(line))
+
+
+def done_ids(path: Path) -> set[str]:
+    """Ids already present in a predictions file (for --resume). Errored rows are retried."""
+    if not path.exists():
+        return set()
+    return {p.id for p in read_predictions(path) if not p.error}

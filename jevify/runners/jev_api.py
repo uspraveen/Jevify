@@ -34,17 +34,31 @@ class SystemOneAPIRunner(Runner):
         self.timeout = timeout
 
     def predict(self, records: Iterable[BenchRecord]) -> Iterator[Prediction]:
+        """Yields predictions in completion order so callers can persist incrementally."""
         recs = list(records)
-        return iter(asyncio.run(self._run(recs)))
+        queue: "asyncio.Queue[Prediction | None]" = asyncio.Queue()
+        loop = asyncio.new_event_loop()
+        producer = loop.create_task(self._run(recs, queue))
+        try:
+            while True:
+                item = loop.run_until_complete(queue.get())
+                if item is None:
+                    break
+                yield item
+            loop.run_until_complete(producer)
+        finally:
+            loop.close()
 
-    async def _run(self, recs: list[BenchRecord]) -> list[Prediction]:
+    async def _run(self, recs: list[BenchRecord], queue: "asyncio.Queue[Prediction | None]") -> None:
         sem = asyncio.Semaphore(self.concurrency)
         headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
         async with httpx.AsyncClient(base_url=self.base_url, headers=headers, timeout=self.timeout) as client:
-            async def one(r: BenchRecord) -> Prediction:
+            async def one(r: BenchRecord) -> None:
                 async with sem:
-                    return await self._predict_one(client, r)
-            return await asyncio.gather(*(one(r) for r in recs))
+                    pred = await self._predict_one(client, r)
+                await queue.put(pred)
+            await asyncio.gather(*(one(r) for r in recs))
+        await queue.put(None)
 
     async def _predict_one(self, client: httpx.AsyncClient, rec: BenchRecord) -> Prediction:
         body = {"state": rec.state, "model": self.model, "questions": {"q": rec.question}}

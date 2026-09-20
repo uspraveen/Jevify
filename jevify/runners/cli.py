@@ -16,7 +16,7 @@ import numpy as np
 
 from ..bench.metrics import Report, report_categorical, report_noul
 from ..bench.record import BenchRecord, read_jsonl
-from .base import Prediction, read_predictions, write_predictions
+from .base import Prediction, done_ids, read_predictions, write_predictions
 
 
 def iter_records(root: Path, sources: list[str] | None, split: str, limit: int | None) -> Iterator[BenchRecord]:
@@ -95,6 +95,7 @@ def main(argv: list[str] | None = None) -> int:
     a.add_argument("--model", default="jev-latest")
     a.add_argument("--base-url", default=None)
     a.add_argument("--concurrency", type=int, default=8)
+    a.add_argument("--resume", action="store_true", help="skip ids already in --out; append new predictions")
 
     r = sub.add_parser("report", help="score predictions against records")
     r.add_argument("--records", type=Path, required=True)
@@ -109,13 +110,18 @@ def main(argv: list[str] | None = None) -> int:
 
         sources = [s for s in args.sources.split(",") if s] or None
         recs = list(iter_records(args.records, sources, args.split, args.limit))
+        skip = done_ids(args.out) if args.resume else set()
+        if skip:
+            recs = [r for r in recs if r.id not in skip]
+            print(f"resuming: {len(skip)} done, {len(recs)} to go", file=sys.stderr)
         print(f"{len(recs)} records -> {args.model} @ {args.base_url or 'default'}", file=sys.stderr)
         runner = SystemOneAPIRunner(model=args.model, base_url=args.base_url, concurrency=args.concurrency)
-        preds = list(runner.predict(recs))
-        n = write_predictions(args.out, preds)
+        write_predictions(args.out, runner.predict(recs), append=bool(skip))
+        preds = list(read_predictions(args.out))
         errs = sum(1 for p in preds if p.error)
         lat = [p.latency_ms for p in preds if p.latency_ms]
-        print(f"wrote {n} predictions ({errs} errors); median latency {np.median(lat):.0f} ms" if lat else f"wrote {n}", file=sys.stderr)
+        med = f"; median latency {np.median(lat):.0f} ms" if lat else ""
+        print(f"{args.out}: {len(preds)} predictions ({errs} errors){med}", file=sys.stderr)
         return 0
 
     preds = list(read_predictions(args.preds))
