@@ -1,6 +1,6 @@
 # Jevify
 
-**Turn any open LLM into a calibrated System One decision model.**
+**Turn any open LLM into a calibrated Jev-syle System-one decision model.**
 
 A *System One* model doesn't write text. It reads a `state`, answers typed questions, and
 returns probability distributions your code can branch on:
