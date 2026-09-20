@@ -466,3 +466,28 @@ def fig_cardinality_probe(probe_json: Path, out: Path, model: str) -> Path | Non
               "200 items per source; the gold option is always present, K−1 distractors drawn from the source's own labels. Past a source's label count the curve repeats the full set.")
     _footer(fig)
     return _save(fig, out / "probe_cardinality")
+
+
+def fig_models_map(rows: list[dict[str, Any]], out: Path, title: str = "Jevified models vs Jev on jev-bench") -> Path:
+    """Model-level calibration map: macro accuracy vs macro ECE, one point per model."""
+    plt = _mpl()
+    fig, ax = plt.subplots(figsize=(7.4, 5.2))
+    pts = []
+    for e in rows:
+        s = e["summary"]["macro"]
+        api = e.get("tier") == "API"
+        color = "#eb6834" if api else PRIM_COLOR["choice"]
+        ax.scatter(s["acc"], s["ece"], s=70 if api else 40, color=color, zorder=3, linewidths=0.8, edgecolors=SURFACE,
+                   marker="D" if api else "o")
+        pts.append((e["label"].split("/")[-1] if "/" in e["label"] else e["label"], s["acc"], s["ece"]))
+    ax.set_xlabel("macro accuracy over 22 configs"); ax.set_ylabel("macro expected calibration error (lower is better)")
+    ax.set_xlim(0.25, 1.0); ax.set_ylim(0, max(0.3, max(p[2] for p in pts) + 0.03))
+    from matplotlib.lines import Line2D
+    ax.legend(handles=[Line2D([0], [0], marker="D", color="#eb6834", lw=0, markersize=7, label="Jev (API)"),
+                       Line2D([0], [0], marker="o", color=PRIM_COLOR["choice"], lw=0, markersize=6, label="Jevified open model (Tier 0)")],
+              loc="upper right", fontsize=8)
+    fig.tight_layout(rect=_layout(fig, 2))
+    _headline(fig, title, "Every model scored on the same 22,773 test records. Tier 0 = zero training: prompt + logit readout + a recipe fitted on validation only. Down and to the right is better.")
+    _footer(fig)
+    _annotate_without_overlap(fig, ax, pts)
+    return _save(fig, out / "models_map")
