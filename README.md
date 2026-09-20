@@ -24,6 +24,9 @@ version — a recipe, a benchmark, and a serving stack, for any base model.
       label *distributions* where available (`jevify/bench`). → `Praveenrajus/jev-bench` on the Hub.
 - [x] Calibration metrics (ECE, Brier, NLL, RPS, selective accuracy, AURC, divergence to human
       distributions) and an API runner that scores Jev itself on the same data.
+- [x] **Baseline: Jev 1.13.0 on all 22,773 test records** → [`reports/jev-1.13.0`](reports/jev-1.13.0/README.md).
+      Headline: excellent and calibrated on crisp tasks (ARC 97.9%, FEVER 97.2%, ECE ≤ 0.06), but far from
+      human label distributions where humans disagree (ChaosNLI TVD 0.33, ECE 0.22) — the axis to compete on.
 - [ ] Tier 0 runner: any HF checkpoint, zero training — logit readout + debiasing + temperature.
 - [ ] Tier 1: frozen backbone + decision heads trained with proper scoring rules.
 - [ ] Tier 2: + LoRA on the backbone, only where the benchmark shows it pays.

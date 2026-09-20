@@ -8,5 +8,5 @@ dist/
 data/
 *.env
 .env*
-reports/*.jsonl
+reports/**/*predictions*.jsonl
 .hf_cache/

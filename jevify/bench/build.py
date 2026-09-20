@@ -114,11 +114,19 @@ def build(out: Path, sources: list[str], *, seed: int, evict_cache: bool, caps_o
         manifest_path.write_text(json.dumps(manifest, indent=1), encoding="utf-8")
         if evict_cache:
             _evict_hf_cache()
-    (out / "README.md").write_text(dataset_card(manifest), encoding="utf-8")
+    (out / "README.md").write_text(dataset_card(manifest, baselines=collect_baselines(out)), encoding="utf-8")
     return manifest
 
 
-def dataset_card(manifest: dict[str, Any]) -> str:
+def collect_baselines(out: Path) -> list[tuple[str, str]]:
+    """(model, markdown table) for every results/<model>/test_report.md under the build dir."""
+    found = []
+    for rep in sorted((out / "results").glob("*/test_report.md")):
+        found.append((rep.parent.name, rep.read_text(encoding="utf-8").strip()))
+    return found
+
+
+def dataset_card(manifest: dict[str, Any], baselines: list[tuple[str, str]] | None = None) -> str:
     srcs = {k: v for k, v in manifest["sources"].items() if "error" not in v}
     configs = []
     for name, e in srcs.items():
@@ -178,7 +186,20 @@ stable schema); `label` is a string (an option key for choice, a level index for
 Licenses are those of the upstream datasets; this repackaging adds no restrictions.
 See `manifest.json` for per-source provenance and `docs/DATASETS.md` in the repo for the
 selection rationale.
-"""
+{baselines_section(baselines or [])}"""
+
+
+def baselines_section(baselines: list[tuple[str, str]]) -> str:
+    if not baselines:
+        return ""
+    intro = ("Test-split results produced by `jevify-run`; predictions and full metrics live under "
+             "`results/<model>/`. Columns: accuracy, top-label ECE, Brier, NLL, selective accuracy at "
+             "90%/50% coverage, AURC, RPS and MAE (ordinal), AUROC (noul), total variation distance to "
+             "human label distributions.")
+    parts = ["", "## Baselines", "", intro, ""]
+    for model, table in baselines:
+        parts += [f"### {model}", "", table, ""]
+    return chr(10).join(parts)
 
 
 def _git_commit() -> str:
