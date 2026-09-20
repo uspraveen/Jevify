@@ -2,77 +2,47 @@
 a model's *distribution* matches human uncertainty, not just its argmax.
 
 Nie, Zhou & Bansal (EMNLP 2020), https://github.com/easonnie/ChaosNLI (CC BY-SA 4.0).
-Not on the Hub, so this adapter downloads the release archive directly.
+The original Dropbox release has been deleted; we use the Hub mirror of the
+MNLI portion (``metaeval/chaos-mnli-ambiguity``), which preserves the original
+fields (``label_counter``, ``label_dist``, ``old_label``, ``entropy``).
 """
 from __future__ import annotations
 
-import io
-import json
-import urllib.request
-import zipfile
-from typing import Any, Sequence
+from typing import Any
 
 from ..record import BenchRecord, Split
-from ._base import Adapter, SourceSpec
+from ._base import HFAdapter, SourceSpec
 from .choice import NLI_CRITERIA
 
-CHAOSNLI_URL = "https://www.dropbox.com/s/h4j7dqszmpt2679/chaosNLI_v1.0.zip?dl=1"
-_FILES = {"snli": "chaosNLI_snli.jsonl", "mnli": "chaosNLI_mnli_m.jsonl"}
 _LABELS = {"e": "entailment", "n": "neutral", "c": "contradiction"}
 
 
-class ChaosNLI(Adapter):
+class ChaosNLI(HFAdapter):
     spec = SourceSpec(
-        name="chaosnli", hf_id="", primitive="choice", license="cc-by-sa-4.0", domain="nli", task_family="nli",
+        name="chaosnli", hf_id="metaeval/chaos-mnli-ambiguity", hf_config="default", primitive="choice",
+        license="cc-by-sa-4.0 (ChaosNLI; Hub mirror of the MNLI portion)", domain="nli", task_family="nli",
         k=3, has_soft_labels=True,
-        description="SNLI/MNLI items re-annotated by 100 crowdworkers each; soft_label = human vote shares (calibration gold).",
-        caps={"train": 0, "validation": 0, "test": 4000},
-        notes="Evaluation only. Source URL: " + CHAOSNLI_URL,
+        description="MNLI items re-annotated by 100 crowdworkers each; soft_label = human vote shares (calibration gold).",
+        caps={"train": 0, "validation": 0, "test": 2000},
+        notes="Evaluation only. Original release: https://github.com/easonnie/ChaosNLI",
     )
     label_column = "majority_label"
-
-    def __init__(self) -> None:
-        self._rows: list[dict[str, Any]] | None = None
-
-    def _download(self) -> list[dict[str, Any]]:
-        req = urllib.request.Request(CHAOSNLI_URL, headers={"User-Agent": "jevify-bench/0.1"})
-        with urllib.request.urlopen(req, timeout=120) as resp:
-            blob = resp.read()
-        rows: list[dict[str, Any]] = []
-        with zipfile.ZipFile(io.BytesIO(blob)) as zf:
-            members = {name.split("/")[-1]: name for name in zf.namelist()}
-            for subset, fname in _FILES.items():
-                with zf.open(members[fname]) as f:
-                    for line in io.TextIOWrapper(f, encoding="utf-8"):
-                        if not line.strip():
-                            continue
-                        d = json.loads(line)
-                        counter = d["label_counter"]
-                        total = sum(counter.values())
-                        dist = {_LABELS[k]: counter.get(k, 0) / total for k in ("e", "n", "c")}
-                        rows.append({
-                            "uid": d["uid"], "subset": subset,
-                            "premise": d["example"]["premise"], "hypothesis": d["example"]["hypothesis"],
-                            "majority_label": _LABELS[d["majority_label"]], "old_label": _LABELS.get(d.get("old_label"), None),
-                            "dist": dist, "n_annotators": total, "entropy": d.get("entropy"),
-                        })
-        return rows
-
-    def load(self, split: Split) -> Sequence[dict[str, Any]]:
-        if split != "test":
-            return []
-        if self._rows is None:
-            self._rows = self._download()
-        return self._rows
+    split_map = {"test": "train"}   # the mirror ships one split; all of it is evaluation data
 
     def convert(self, row: dict[str, Any], split: Split, idx: int) -> BenchRecord | None:
+        counter = row["label_counter"]
+        total = sum(int(counter[k]) for k in ("e", "n", "c") if counter.get(k) is not None)
+        if total == 0:
+            return None
+        dist = {_LABELS[k]: int(counter.get(k) or 0) / total for k in ("e", "n", "c")}
+        majority = _LABELS[row["majority_label"]]
         return self.record(split, idx, state={"premise": row["premise"], "hypothesis": row["hypothesis"]},
                            question={"type": "choice",
                                      "instructions": "What is the relationship of `hypothesis` to `premise`?",
                                      "criteria": NLI_CRITERIA},
-                           label=row["majority_label"], soft_label=row["dist"],
-                           subset=row["subset"], uid=row["uid"], original_label=row["old_label"],
-                           n_annotators=row["n_annotators"], human_entropy=row["entropy"])
+                           label=majority, soft_label=dist,
+                           uid=row["uid"], original_label=_LABELS.get(row.get("old_label")),
+                           n_annotators=total, human_entropy=row.get("entropy"), gini=row.get("gini"))
 
 
 ADAPTERS = [ChaosNLI]

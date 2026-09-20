@@ -218,7 +218,7 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--caps", default="", help="override caps, e.g. test=200,train=0")
     b.add_argument("--evict-cache", action="store_true", help="delete the HF cache after each source (small disks)")
     b.add_argument("--stratify", action="store_true", help="balance small label spaces (training mixes only; distorts base rates)")
-    b.add_argument("--push", default="", help="dataset repo id to upload to, e.g. uspraveen/jev-bench")
+    b.add_argument("--push", default="", help="dataset repo id to upload to, e.g. Praveenrajus/jev-bench")
     sub.add_parser("list", help="list sources")
     args = ap.parse_args(argv)
 

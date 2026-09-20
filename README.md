@@ -21,7 +21,7 @@ version — a recipe, a benchmark, and a serving stack, for any base model.
 - [x] Wire format identical to TypeSafe's API (`jevify/wire.py`), so the official
       `typesafe-sdk` and integrations work against a Jevified model via `TYPESAFE_BASE_URL`.
 - [x] **jev-bench**: 21 human-labeled sources reformatted into System One questions, with human
-      label *distributions* where available (`jevify/bench`). → `uspraveen/jev-bench` on the Hub.
+      label *distributions* where available (`jevify/bench`). → `Praveenrajus/jev-bench` on the Hub.
 - [x] Calibration metrics (ECE, Brier, NLL, RPS, selective accuracy, AURC, divergence to human
       distributions) and an API runner that scores Jev itself on the same data.
 - [ ] Tier 0 runner: any HF checkpoint, zero training — logit readout + debiasing + temperature.
