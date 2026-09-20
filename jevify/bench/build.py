@@ -284,7 +284,33 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--stratify", action="store_true", help="balance small label spaces (training mixes only; distorts base rates)")
     b.add_argument("--push", default="", help="dataset repo id to upload to, e.g. Praveenrajus/jev-bench")
     sub.add_parser("list", help="list sources")
+    pr = sub.add_parser("probe", help="generate controlled behavioral probes from test records")
+    pr.add_argument("--records", type=Path, required=True)
+    pr.add_argument("--out", type=Path, required=True)
+    pr.add_argument("--which", default="cardinality,order,rename,distractor,primitive")
+    pr.add_argument("--n", type=int, default=200, help="items per source")
+    prr = sub.add_parser("probe-report", help="analyze probe predictions")
+    prr.add_argument("--records", type=Path, required=True, help="probe root (from `probe`)")
+    prr.add_argument("--preds", type=Path, required=True)
+    prr.add_argument("--out", type=Path, required=True)
     args = ap.parse_args(argv)
+
+    if args.cmd == "probe":
+        from .probes import generate
+
+        counts = generate(args.records, args.out, [w for w in args.which.split(",") if w], args.n)
+        print(f"{len(counts)} probe configs, {sum(counts.values())} records -> {args.out}")
+        return 0
+    if args.cmd == "probe-report":
+        from .probes import analyze, report_md
+
+        an = analyze(args.records, args.preds)
+        args.out.mkdir(parents=True, exist_ok=True)
+        (args.out / "probes.json").write_text(json.dumps(an, indent=1), encoding="utf-8")
+        md = report_md(an)
+        (args.out / "probes.md").write_text(md, encoding="utf-8")
+        print(md)
+        return 0
 
     if args.cmd == "list":
         for s in specs():
