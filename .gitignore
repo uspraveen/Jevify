@@ -10,3 +10,4 @@ data/
 .env*
 reports/**/*predictions*.jsonl
 .hf_cache/
+runs/
