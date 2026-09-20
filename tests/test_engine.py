@@ -30,17 +30,17 @@ NOUL_Q = {"type": "noul", "instructions": "Is the statement in the state true?"}
 
 def test_render_shapes():
     r = render("hello", CHOICE_Q, mode="index")
-    assert r.candidates == [" A", " B", " C", " D"] and r.keys == ["paris", "berlin", "tokyo", "lima"]
+    assert r.candidates == ["A", "B", "C", "D"] and r.keys == ["paris", "berlin", "tokyo", "lima"]
     r2 = render("hello", CHOICE_Q, mode="index", permutation_seed=7)
     assert sorted(r2.keys) == sorted(r.keys) and r2.keys != r.keys
     big = {"type": "choice", "criteria": {f"k{i}": None for i in range(40)}}
-    assert render("x", big).candidates[0] == " 1" and render("x", big).candidates[-1] == " 40"
+    assert render("x", big).candidates[0] == "1" and render("x", big).candidates[-1] == "40"
     s = render("x", SCORE_Q)
-    assert s.candidates == [" 0", " 1", " 2"] and s.keys == ["0", "1", "2"]
+    assert s.candidates == ["0", "1", "2"] and s.keys == ["0", "1", "2"]
     n = render("x", NOUL_Q)
-    assert n.candidates == [" yes", " no"] and n.keys == ["1", "0"]
+    assert n.candidates == ["yes", "no"] and n.keys == ["1", "0"]
     lab = render("x", CHOICE_Q, mode="label")
-    assert lab.candidates == [" paris", " berlin", " tokyo", " lima"]
+    assert lab.candidates == ["paris", "berlin", "tokyo", "lima"]
 
 
 def test_tokenization_paths(scorer):
@@ -141,3 +141,16 @@ def test_tree_attention_matches_naive(scorer):
     ref2 = scorer._score_naive(Tokenized(t2.prefix_ids, t2.cand_ids[:6]))
     for a, b in zip(tree2[:6], ref2):
         assert abs(a - b) < 2e-3
+
+
+def test_identifiers_are_single_tokens(scorer):
+    ids = scorer.identifiers(255)
+    assert ids[:26] == list("ABCDEFGHIJKLMNOPQRSTUVWXYZ") and len(ids) >= 26
+    big = {"type": "choice", "criteria": {f"k{i}": None for i in range(len(ids))}}
+    r = render("x", big, identifiers=ids)
+    t = scorer.tokenize(r.prefix, r.candidates)
+    assert t.single_token, [c for c in t.cand_ids if len(c) != 1][:3]
+    s = render("x", SCORE_Q)
+    assert scorer.tokenize(s.prefix, s.candidates).single_token
+    n = render("x", NOUL_Q)
+    assert scorer.tokenize(to_chat(n.prefix, scorer.tokenizer), n.candidates).single_token

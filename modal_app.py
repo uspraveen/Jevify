@@ -22,7 +22,7 @@ app = modal.App("jevify")
 image = (
     modal.Image.debian_slim(python_version="3.12")
     .pip_install("torch", "transformers>=5.0", "accelerate", "huggingface_hub", "numpy", "pydantic>=2.5", "httpx", "hf_transfer")
-    .env({"HF_HUB_ENABLE_HF_TRANSFER": "1", "HF_HOME": "/hf"})
+    .env({"HF_XET_HIGH_PERFORMANCE": "1", "HF_HOME": "/hf", "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"})
     .add_local_python_source("jevify")
 )
 hf_cache = modal.Volume.from_name("jevify-hf-cache", create_if_missing=True)

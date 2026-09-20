@@ -54,7 +54,34 @@ class HFScorer:
         self.stats = {"tokenize_s": 0.0, "single_s": 0.0, "multi_s": 0.0, "items": 0}
         self.tree_attention = tree_attention      # None = auto (verify once against naive), True/False = force
         self._tree_verified: bool | None = None
+        self._identifiers: list[str] | None = None
+        import inspect
+        params = inspect.signature(self.model.forward).parameters
+        self._supports_keep = "logits_to_keep" in params or any(p.kind == p.VAR_KEYWORD for p in params.values())
         self.pad_id = self.tokenizer.pad_token_id if self.tokenizer.pad_token_id is not None else (self.tokenizer.eos_token_id or 0)
+
+    # ------------------------------------------------------------------ identifiers
+    def identifiers(self, k: int = 255) -> list[str]:
+        """Up to k option identifiers that are single tokens for THIS tokenizer after the
+        answer cue: A–Z first, then two-letter combinations, so Choice with any K stays on
+        the batched single-token path. Falls back to numbers if the vocabulary is too small."""
+        if self._identifiers is None:
+            import itertools
+            import string
+
+            from .template import CUE, default_identifiers
+
+            probe = "Allowed answers: A, B" + chr(10) + CUE
+            base = self._encode_raw(probe)
+            ok: list[str] = []
+            for cand in itertools.chain(string.ascii_uppercase, ("".join(p) for p in itertools.product(string.ascii_uppercase, repeat=2))):
+                ids = self._encode_raw(probe + cand)
+                if len(ids) - _common_prefix_len(base, ids) == 1:   # exactly one token past the shared prefix
+                    ok.append(cand)
+                if len(ok) >= 255:
+                    break
+            self._identifiers = ok if len(ok) >= 26 else default_identifiers(255)
+        return self._identifiers[:k]
 
     # ------------------------------------------------------------------ tokenization
     def tokenize(self, prefix: str, candidates: Sequence[str]) -> Tokenized:
@@ -108,7 +135,8 @@ class HFScorer:
         out: list[list[float] | None] = [None] * len(items)
         if naive:
             return [self._score_naive(t) for t in toks]
-        single = [i for i, t in enumerate(toks) if t.single_token]
+        # batch by similar prefix length so left-padding wastes little compute
+        single = sorted((i for i, t in enumerate(toks) if t.single_token), key=lambda i: len(toks[i].prefix_ids))
         t0 = _t.perf_counter()
         for start in range(0, len(single), self.batch_size):
             idx = single[start:start + self.batch_size]
@@ -133,7 +161,8 @@ class HFScorer:
             ids[r, maxlen - n:] = torch.tensor(t.prefix_ids)
             mask[r, maxlen - n:] = 1
         pos = (mask.cumsum(-1) - 1).clamp(min=0)
-        logits = self.model(input_ids=ids.to(self.device), attention_mask=mask.to(self.device), position_ids=pos.to(self.device)).logits[:, -1].float()
+        logits = self.model(input_ids=ids.to(self.device), attention_mask=mask.to(self.device), position_ids=pos.to(self.device),
+                            **self._keep(1)).logits[:, -1].float()
         logp = F.log_softmax(logits, dim=-1)
         rr = [r for r, t in enumerate(toks) for _ in t.cand_ids]
         tt = [c[0] for t in toks for c in t.cand_ids]
@@ -145,7 +174,7 @@ class HFScorer:
 
     def _score_multi(self, t: Tokenized) -> list[float]:
         p = torch.tensor([t.prefix_ids], device=self.device)
-        out = self.model(input_ids=p, use_cache=True)
+        out = self.model(input_ids=p, use_cache=True, **self._keep(1))
         last = F.log_softmax(out.logits[0, -1].float(), dim=-1)
         cache = out.past_key_values
         scores: list[float] = []
@@ -225,7 +254,9 @@ class HFScorer:
             mask[a:b, a:b] = torch.tril(torch.ones((b - a, b - a), dtype=torch.bool))
         dev = self.device
         out = self.model(input_ids=torch.tensor([ids], device=dev), attention_mask=mask[None, None].to(dev),
-                         position_ids=torch.tensor([pos], device=dev), use_cache=False)
+                         position_ids=torch.tensor([pos], device=dev), use_cache=False, **self._keep(N - (T - 1)))
+        # logits are now only for positions T-1 .. N-1; re-index accordingly
+        offset = T - 1
         # gather every needed (position, token) pair in one op: the prefix's last row predicts each
         # candidate's first token; row a+j-1 predicts token j of the candidate starting at a.
         rows, toks, owner = [], [], []
@@ -234,11 +265,16 @@ class HFScorer:
             for j in range(1, len(c)):
                 rows.append(a + j - 1); toks.append(c[j]); owner.append(k)
         need = sorted(set(rows))
-        logp_rows = F.log_softmax(out.logits[0, need].float(), dim=-1)
+        logp_rows = F.log_softmax(out.logits[0, [r - offset for r in need]].float(), dim=-1)
         row_index = {r: i for i, r in enumerate(need)}
         picked = logp_rows[torch.tensor([row_index[r] for r in rows], device=dev), torch.tensor(toks, device=dev)]
         totals = torch.zeros(len(spans), device=dev).index_add_(0, torch.tensor(owner, device=dev), picked)
         return totals.tolist()
+
+    def _keep(self, n: int) -> dict[str, int]:
+        """Only compute LM-head logits for the last n positions (the head over a 250k vocab
+        for every position is the dominant memory and a large share of time otherwise)."""
+        return {"logits_to_keep": n} if self._supports_keep else {}
 
     def _score_naive(self, t: Tokenized) -> list[float]:
         scores = []
@@ -261,25 +297,35 @@ def _common_prefix_len(a: Sequence[int], b: Sequence[int]) -> int:
 
 
 def _expand_cache(cache: Any, n: int) -> Any:
-    """A new cache whose every layer's K/V is the prefix K/V repeated n times
-    along the batch axis. One allocation per layer; no deepcopy."""
-    from transformers.cache_utils import DynamicCache
+    """A copy of the cache with every per-layer tensor state repeated n times along the
+    batch axis. Works for K/V layers and for recurrent (linear-attention) layers alike,
+    because it expands whatever tensors the layer holds rather than assuming keys/values."""
+    import copy
 
-    pairs = _kv_pairs(cache)
-    out = DynamicCache()
-    for i, (k, v) in enumerate(pairs):
-        out.update(k.expand(n, *k.shape[1:]).contiguous(), v.expand(n, *v.shape[1:]).contiguous(), i)
-    return out
+    def grow(x):
+        if torch.is_tensor(x) and x.dim() >= 1:
+            return x.expand(n, *x.shape[1:]).contiguous() if x.shape[0] == 1 else x.repeat_interleave(n, dim=0)
+        if isinstance(x, (list, tuple)):
+            return type(x)(grow(y) for y in x)
+        return x
 
-
-def _kv_pairs(cache: Any) -> list[tuple[torch.Tensor, torch.Tensor]]:
     if hasattr(cache, "layers"):
-        return [(layer.keys, layer.values) for layer in cache.layers]
+        new = copy.copy(cache)
+        new.layers = []
+        for layer in cache.layers:
+            L = copy.copy(layer)
+            for name, val in vars(layer).items():
+                setattr(L, name, grow(val))
+            new.layers.append(L)
+        return new
     if hasattr(cache, "key_cache"):
-        return list(zip(cache.key_cache, cache.value_cache))
+        new = copy.copy(cache)
+        new.key_cache = [grow(k) for k in cache.key_cache]
+        new.value_cache = [grow(v) for v in cache.value_cache]
+        return new
     if isinstance(cache, tuple):
-        return [(layer[0], layer[1]) for layer in cache]
-    raise TypeError(f"don't know how to read cache of type {type(cache)}")
+        return tuple(tuple(grow(x) for x in layer) for layer in cache)
+    raise TypeError(f"don't know how to expand cache of type {type(cache)}")
 
 
 def softmax(scores: Sequence[float], temperature: float = 1.0) -> list[float]:

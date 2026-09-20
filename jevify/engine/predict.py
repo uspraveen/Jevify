@@ -46,10 +46,11 @@ class Tier0Engine:
         return to_chat(rendered.prefix, self.scorer.tokenizer) if self.chat else rendered.prefix
 
     def _renderings(self, state: Any, question: dict[str, Any]) -> list[Rendered]:
-        rs = [render(state, question, mode=self.recipe.mode)]
+        ids = self.scorer.identifiers() if self.recipe.mode == "index" else None
+        rs = [render(state, question, mode=self.recipe.mode, identifiers=ids)]
         if rs[0].primitive == "choice":
             for i in range(1, self.recipe.permutations):
-                rs.append(render(state, question, mode=self.recipe.mode, permutation_seed=1000 + i))
+                rs.append(render(state, question, mode=self.recipe.mode, permutation_seed=1000 + i, identifiers=ids))
         return rs
 
     # ------------------------------------------------------------------ raw scoring
@@ -69,7 +70,8 @@ class Tier0Engine:
             for i, r in enumerate(chunk):
                 if not want_prior:
                     break
-                rd = render(r.state, r.question, mode=self.recipe.mode, content_free=True)
+                rd = render(r.state, r.question, mode=self.recipe.mode, content_free=True,
+                            identifiers=self.scorer.identifiers() if self.recipe.mode == "index" else None)
                 key = f"{rd.question_hash}:{rd.mode}"
                 if key not in self._prior_cache and all(k != key for k, _ in prior_keys):
                     prior_keys.append((key, rd))
@@ -89,7 +91,9 @@ class Tier0Engine:
                 extra = {
                     "mode": rd0.mode,
                     "runs": [{"keys": rd.keys, "logscores": sc} for rd, sc in runs],
-                    "prior": {"keys": render(r.state, r.question, mode=self.recipe.mode, content_free=True).keys, "logscores": prior} if prior else None,
+                    "prior": {"keys": render(r.state, r.question, mode=self.recipe.mode, content_free=True,
+                                             identifiers=self.scorer.identifiers() if self.recipe.mode == "index" else None).keys,
+                              "logscores": prior} if prior else None,
                 }
                 pred = finalize(r.primitive, r.question, extra, self.recipe)
                 pred.id = r.id

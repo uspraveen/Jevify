@@ -19,7 +19,7 @@ import json
 import random
 import string
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import Any, Literal, Sequence
 
 from ..wire import ChoiceQuestion, NoulQuestion, ScoreQuestion, parse_question
 
@@ -65,10 +65,15 @@ def _describe(x: Any) -> str:
     return json.dumps(x, ensure_ascii=False)
 
 
-def _ids(k: int) -> list[str]:
+def default_identifiers(k: int) -> list[str]:
+    """Fallback identifiers when no tokenizer-aware list is supplied: letters, then numbers."""
     if k <= 26:
         return list(string.ascii_uppercase[:k])
     return [str(i + 1) for i in range(k)]
+
+
+CUE = "Answer: "   # trailing space: candidates follow without a leading space, which keeps digits,
+                   # letters, two-letter ids, "yes" and "no" single tokens in every tokenizer we checked
 
 
 def question_hash(question: dict[str, Any]) -> str:
@@ -76,7 +81,8 @@ def question_hash(question: dict[str, Any]) -> str:
 
 
 def render(state: Any, question: dict[str, Any], *, mode: ReadoutMode = "index",
-           permutation_seed: int | None = None, content_free: bool = False) -> Rendered:
+           permutation_seed: int | None = None, content_free: bool = False,
+           identifiers: Sequence[str] | None = None) -> Rendered:
     q = parse_question(question)
     body = render_state(CONTENT_FREE_STATE if content_free else state)
     qh = question_hash(question)
@@ -89,16 +95,16 @@ def render(state: Any, question: dict[str, Any], *, mode: ReadoutMode = "index",
                 lines.append(f"Answer yes if: {_describe(q.criteria.true)}")
             if q.criteria.false:
                 lines.append(f"Answer no if: {_describe(q.criteria.false)}")
-        lines += ["Allowed answers: yes, no", "Answer:"]
-        return Rendered("\n".join(lines), [" yes", " no"], ["1", "0"], "noul", "yesno", [0, 1], qh)
+        lines += ["Allowed answers: yes, no", CUE]
+        return Rendered("\n".join(lines), ["yes", "no"], ["1", "0"], "noul", "yesno", [0, 1], qh)
 
     if isinstance(q, ScoreQuestion):
         levels = [_describe(c) for c in q.criteria]
         lines = [f"State:\n{body}", "", f"Question: {instr or 'Which level applies?'}", "Levels (ordered from lowest to highest):"]
         lines += [f"{i}. {d}" for i, d in enumerate(levels)]
-        lines += [f"Allowed answers: {', '.join(str(i) for i in range(len(levels)))}", "Answer:"]
+        lines += [f"Allowed answers: {', '.join(str(i) for i in range(len(levels)))}", CUE]
         keys = [str(i) for i in range(len(levels))]
-        return Rendered("\n".join(lines), [f" {k}" for k in keys], keys, "score", "digit", list(range(len(keys))), qh)
+        return Rendered("\n".join(lines), list(keys), keys, "score", "digit", list(range(len(keys))), qh)
 
     assert isinstance(q, ChoiceQuestion)
     keys = list(q.criteria.keys())
@@ -108,24 +114,24 @@ def render(state: Any, question: dict[str, Any], *, mode: ReadoutMode = "index",
     shown = [keys[i] for i in order]
     lines = [f"State:\n{body}", "", f"Question: {instr or 'Which option applies?'}", "Options:"]
     if mode == "index":
-        ids = _ids(len(shown))
+        ids = list(identifiers[: len(shown)]) if identifiers and len(identifiers) >= len(shown) else default_identifiers(len(shown))
         for ident, k in zip(ids, shown):
             desc = _describe(q.criteria[k])
             lines.append(f"{ident}. {k}" + (f" — {desc}" if desc and desc != k else ""))
-        lines += [f"Allowed answers: {', '.join(ids)}", "Answer:"]
-        return Rendered("\n".join(lines), [f" {i}" for i in ids], shown, "choice", "index", order, qh)
+        lines += [f"Allowed answers: {', '.join(ids)}", CUE]
+        return Rendered("\n".join(lines), ids, shown, "choice", "index", order, qh)
     for k in shown:
         desc = _describe(q.criteria[k])
         lines.append(f"- {k}" + (f": {desc}" if desc and desc != k else ""))
-    lines += ["Answer with exactly one option name.", "Answer:"]
-    return Rendered("\n".join(lines), [f" {k}" for k in shown], shown, "choice", "label", order, qh)
+    lines += ["Answer with exactly one option name.", CUE]
+    return Rendered("\n".join(lines), list(shown), shown, "choice", "label", order, qh)
 
 
 def to_chat(prefix: str, tokenizer, *, system: str = SYSTEM_PROMPT) -> str:
     """Wrap a rendered prefix in the model's chat template, leaving the assistant
     turn open so candidates continue it. The trailing "Answer:" cue moves into
     the assistant turn so the model is scored on *its* answer."""
-    user, cue = prefix.rsplit("\nAnswer:", 1)
+    user, cue = prefix.rsplit("\n" + CUE, 1)
     messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
     kwargs: dict[str, Any] = {"tokenize": False, "add_generation_prompt": True}
     try:
@@ -136,4 +142,4 @@ def to_chat(prefix: str, tokenizer, *, system: str = SYSTEM_PROMPT) -> str:
         except Exception:
             messages = messages[1:]   # no system role support
             text = tokenizer.apply_chat_template(messages, **kwargs)
-    return text + "Answer:"
+    return text + CUE
