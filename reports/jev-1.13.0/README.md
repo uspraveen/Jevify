@@ -1,6 +1,6 @@
 # Baseline: TypeSafe Jev 1.13.0 on jev-bench (test splits)
 
-Run 2026-09-20 via `POST /v1/systemone` (`jev-latest` → `jev-1.13.0`), one request per
+Run 2026-09-20 (three configs re-run after the v0.1.1 fixes below) via `POST /v1/systemone` (`jev-latest` → `jev-1.13.0`), one request per
 record, 22,773 records, 0 errors, median latency 192 ms from a 2-core sandbox in us-east.
 Predictions and full metrics (including reliability bins) are archived in the dataset repo
 under `results/jev-1.13.0/`; the command was
@@ -47,6 +47,11 @@ model says ~0.29 "toxic" when zero annotators did; on hate speech the model bare
 
 ![latency](figures/latency.png)
 
+**Performance vs decision-set size** — cross-dataset, so difficulty is confounded; a hypothesis view. Note that Choice does
+not degrade with K (clinc150 at K=151 beats go_emotions at K=28): what hurts is human ambiguity, not set size.
+
+![vs cardinality](figures/vs_cardinality.png)
+
 ## Reading
 
 1. **Crisp tasks are excellent and well calibrated.** Knowledge MCQ (ARC 97.9%, MMLU 92.3%),
@@ -70,6 +75,22 @@ model says ~0.29 "toxic" when zero annotators did; on hate speech the model bare
    worth remembering when porting any threshold from one question wording to another.
 6. **Large-K routing degrades gracefully** (clinc150 89%, massive 81%, banking77 80%,
    ledgar 75% over 100 legal categories) with ECE around 0.1.
+
+## Are the labels right? A manual audit of Jev's errors
+
+Low scores on a benchmark can mean the model is weak or the labels are wrong, so I read random
+samples of Jev's errors on every weak config and judged them myself.
+
+| config | verdict | what the errors actually are |
+|---|---|---|
+| `chaosnli` | **labels right, Jev overconfident** | Jev answers *neutral* at p=0.94–0.98 on items where 56–68% of 100 annotators said *entailment* (e.g. *"A button on the Chatterbox page will make this easy, so please do join in"* → *"They wanted to make the site user friendly"*). Reasonable people split; 0.98 is indefensible. This is the calibration failure the config exists to expose. |
+| `civil_comments` | **labels right, Jev's threshold stricter** | Confident false positives are condescension and name-calling that Jigsaw raters scored 0.0–0.4 (*"Your comments lack dignity, logic and reason."* → Jev 0.80). The question uses Jigsaw's own toxicity definition verbatim; Jev's operating point is simply harsher than the raters'. |
+| `measuring_hate_speech` | **labels contested by design** | Items with 75/25 rater splits; Jev's calls are defensible-but-different and its probabilities do not reflect the split. TVD to the human distribution is the right headline here, not exact accuracy. |
+| `sst5` | **known label noise** | Non-adjacent errors are 5% and sit on sarcasm/mixed sentences where the SST label is as disputable as Jev's (*"has all the poignancy of a hallmark card…"* is labeled *neutral*). Within-one-level accuracy is 0.95. |
+| `go_emotions` | **benchmark improved (v0.1.1)** | Many "errors" were better answers than the label (*"You're a life saver, wish you a blessed new year"* labeled *admiration*; Jev says *gratitude* at p=1.00 — Jev is right). The single-label subset hid rater disagreement, so v0.1.1 rebuilds the config from the raw per-rater votes: soft labels, plurality hard label, ≥3 raters. Mean rater agreement with the plurality is **0.66**, which is the ceiling for exact accuracy; Jev's TVD to the human vote shares (0.68) is the number that matters. |
+| `helpsteer2_verbosity` | **benchmark bug fixed (v0.1.1)** | My level descriptions framed 0/1 as "too short" and 2 as "appropriate". NVIDIA's verbatim scale is a *length* scale: 0 succinct, 1 pretty short, 2 average, 3 moderately long, 4 verbose. The wrong wording pushed normal-length answers to 2–3 when annotators said 1. Levels replaced with the paper's wording (helpfulness aligned verbatim too); Jev re-run. Exact accuracy stays ~34% (within-one 0.84): the task is genuinely hard, but the config no longer misdescribes it. |
+
+Everything else in the table is a real, reproducible property of the model on faithful questions.
 
 ## Caveats
 

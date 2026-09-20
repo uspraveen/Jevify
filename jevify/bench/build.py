@@ -80,7 +80,7 @@ def build(out: Path, sources: list[str], *, seed: int, evict_cache: bool, caps_o
     out.mkdir(parents=True, exist_ok=True)
     manifest_path = out / "manifest.json"
     manifest: dict[str, Any] = json.loads(manifest_path.read_text()) if manifest_path.exists() else {"sources": {}}
-    manifest.update({"name": "jev-bench", "version": "0.1", "seed": seed, "sampling": "stratified" if stratify else "natural",
+    manifest.update({"name": "jev-bench", "version": "0.1.1", "seed": seed, "sampling": "stratified" if stratify else "natural",
                      "built_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
                      "git_commit": _git_commit()})
     for name in sources:
@@ -128,82 +128,121 @@ def collect_baselines(out: Path) -> list[tuple[str, str]]:
 
 def dataset_card(manifest: dict[str, Any], baselines: list[tuple[str, str]] | None = None) -> str:
     srcs = {k: v for k, v in manifest["sources"].items() if "error" not in v}
-    configs = []
-    for name, e in srcs.items():
-        files = [{"split": s, "path": p} for s, p in e["files"].items()]
-        configs.append({"config_name": name, "data_files": files})
+    configs = [{"config_name": n, "data_files": [{"split": sp, "path": pth} for sp, pth in e["files"].items()]} for n, e in srcs.items()]
     header = {
         "pretty_name": "jev-bench",
-        "license": "other",
-        "license_name": "mixed-see-manifest",
+        "license": "other", "license_name": "mixed-see-manifest",
         "license_link": "https://github.com/uspraveen/Jevify/blob/main/docs/DATASETS.md",
-        "language": ["en"],
-        "task_categories": ["text-classification"],
-        "tags": ["calibration", "system-one", "decision-model", "jevify"],
+        "language": ["en"], "task_categories": ["text-classification"], "size_categories": ["100K<n<1M"],
+        "tags": ["calibration", "system-one", "decision-model", "jevify", "benchmark", "human-label-distributions"],
         "configs": configs,
     }
     import yaml  # PyYAML ships with huggingface_hub
 
-    rows = "\n".join(
-        f"| `{n}` | {e['primitive']} | {e['k']} | {e['domain']} | " + " / ".join(f"{s}={c}" for s, c in e["counts"].items())
-        + f" | {'yes' if e['has_soft_labels'] else ''} | {e['license']} |"
-        for n, e in srcs.items()
-    )
     total = sum(sum(e["counts"].values()) for e in srcs.values())
-    return f"""---
-{yaml.safe_dump(header, sort_keys=False).strip()}
----
+    n_test = sum(e["counts"].get("test", 0) for e in srcs.values())
+    gold = [n for n, e in srcs.items() if e["has_soft_labels"]]
+    version = manifest.get("version", "0.1")
+    hero = baselines[0][0] if baselines else None
+    NL = chr(10)
 
-# jev-bench
+    def source_rows(prim: str) -> str:
+        rows = []
+        for n, e in srcs.items():
+            if e["primitive"] != prim:
+                continue
+            counts = " / ".join(f"{e['counts'].get(sp, 0):,}" for sp in ("test", "validation", "train"))
+            rows.append(f"| `{n}` | {e['k']} | {e['domain']} | {e['description']} | {counts} | {'**yes**' if e['has_soft_labels'] else ''} | {e['license']} |")
+        return NL.join(rows)
 
-Real, human-labeled data reformatted into **System One questions**: every row is one
-`(state, question, label)` triple in the exact wire format a System One model (TypeSafe's
-Jev, or anything Jevified) consumes. Three primitives:
+    def table(prim: str, title: str) -> str:
+        return NL.join([f"#### {title}", "", "| config | K | domain | question | test / val / train | human distribution | license |",
+                        "|---|---|---|---|---|---|---|", source_rows(prim), ""])
 
-- **choice** — pick one of K labeled options → probabilities over options
-- **score** — place the state on K ordered levels → probabilities over levels
-- **noul** — an absolute yes/no judgment → P(yes)
+    hero_block = ""
+    if hero:
+        hero_block = NL.join([
+            f"![accuracy vs calibration, one point per config](results/{hero}/figures/calibration_map.png)", "",
+            f"*{hero} on every test record: crisp, grounded decisions land in the accurate-and-calibrated corner; "
+            "ordinal ratings and anything humans disagree about do not.*", ""])
 
-Where the source provides one, `soft_label` carries the **human label distribution**
-(ChaosNLI, Civil Comments, Measuring Hate Speech) so calibration can be measured against
-human uncertainty rather than only against hard labels.
-
-Built by [`jevify-bench`](https://github.com/uspraveen/Jevify) (seed {manifest['seed']},
-commit `{manifest.get('git_commit', '?')[:10]}`, {manifest['built_at']}). {total:,} rows.
-
-## Row format
-
-`state`, `question` and `soft_label` are JSON-encoded strings (so every config has one
-stable schema); `label` is a string (an option key for choice, a level index for score,
-`"0"`/`"1"` for noul). Decode with `jevify.bench.record.BenchRecord.from_row`.
-
-## Sources
-
-| config | primitive | K | domain | rows | soft labels | license |
-|---|---|---|---|---|---|---|
-{rows}
-
-Licenses are those of the upstream datasets; this repackaging adds no restrictions.
-See `manifest.json` for per-source provenance and `docs/DATASETS.md` in the repo for the
-selection rationale.
-{baselines_section(baselines or [])}"""
+    gold_list = ", ".join(f"`{g}`" for g in gold)
+    audit_dir = hero or "jev-1.13.0"
+    lines = [
+        "---", yaml.safe_dump(header, sort_keys=False).strip(), "---", "",
+        '<div align="center">', "", "# jev-bench", "",
+        "**Real human-labeled data, reformatted into System One questions — with human label *distributions* wherever they exist.**", "",
+        f"`{len(srcs)}` configs · `{total:,}` rows · `{n_test:,}` test records · `{len(gold)}` calibration-gold configs · v{version}", "",
+        "[Repo & engine](https://github.com/uspraveen/Jevify) · "
+        "[Source rationale](https://github.com/uspraveen/Jevify/blob/main/docs/DATASETS.md) · "
+        "[What we verified about Jev's API](https://github.com/uspraveen/Jevify/blob/main/docs/JEV_CONTRACT.md) · "
+        "[Other independent Jev evaluations](https://github.com/OmniJev/awesome-jev)", "",
+        "</div>", "", hero_block,
+        "## Why this exists", "",
+        "A *System One* model (TypeSafe's [Jev](https://typesafe.ai), or any open model Jevified by the engine in this repo)",
+        "does not write text. It reads a `state`, answers typed questions, and returns **probability distributions your code**",
+        "**can branch on**. The product claim is calibration: an answer given 0.8 should be right about 80% of the time.", "",
+        f"Most benchmarks can only check the argmax. jev-bench checks the *distribution* — {len(gold)} configs carry the human",
+        f"vote shares behind each label ({gold_list}), so \"calibrated\" is measured against how humans actually split,",
+        "not only against a single hard label.", "",
+        "## The three primitives", "",
+        "| primitive | the question | what comes back | example config |", "|---|---|---|---|",
+        "| `choice` | which of these K options? | probabilities over options + `confidence` | `clinc150` (151 intents incl. out-of-scope) |",
+        "| `score` | where on these K ordered levels? | probabilities over levels, expected `score`, `confidence` | `helpsteer2_helpfulness` (0–4 Likert) |",
+        "| `noul` | is this true? | a single `P(yes)` | `civil_comments` (toxic? with annotator share) |", "",
+        "Every row is one `(state, question, label)` triple in **exactly the wire format a System One model consumes** — send",
+        "`state` and `question` to `POST /v1/systemone` as-is.", "",
+        "```python", "from datasets import load_dataset", "import json", "",
+        'ds = load_dataset("Praveenrajus/jev-bench", "chaosnli", split="test")', "row = ds[0]",
+        'state, question = json.loads(row["state"]), json.loads(row["question"])',
+        'label, human = row["label"], json.loads(row["soft_label"])   # human = {"entailment": 0.63, "neutral": 0.37, ...}',
+        "```", "",
+        "`state`, `question` and `soft_label` are JSON strings so every config shares one stable schema; `label` is a string",
+        "(option key for choice, level index for score, `\"0\"`/`\"1\"` for noul). The [jevify](https://github.com/uspraveen/Jevify)",
+        "package gives you `BenchRecord.from_row`, the metrics (ECE, Brier, RPS, selective accuracy, TVD to human), the API",
+        "runner and the figures.", "",
+        "## Sources", "",
+        f"Natural label distributions everywhere (uniform random samples, seed {manifest['seed']}); a calibration benchmark must not",
+        "shift base rates. Splits: test ≤ 1,000 per config (2,000 for `civil_comments`, all of ChaosNLI), validation ≤ 500,",
+        "train ≤ 8,000 so Tier 1/2 recipes and temperature scaling have in-distribution data without touching test.", "",
+        table("choice", "Choice"), table("score", "Score"), table("noul", "Noul"),
+        "Licenses are those of the upstream datasets; this repackaging adds no restrictions. Per-source provenance is in",
+        "`manifest.json`.",
+        baselines_section(baselines or []), "",
+        "## Label audit", "",
+        "Every weak result was checked by reading samples of the model's errors. Verdicts, examples and the two v0.1.1 fixes that",
+        f"came out of it are in [`results/{audit_dir}/README.md`](results/{audit_dir}/README.md).", "",
+        "## Changelog", "",
+        "- **v0.1.1** — `helpsteer2_verbosity` levels replaced with NVIDIA's verbatim length scale (v0.1 misdescribed them);",
+        "  `go_emotions` rebuilt from raw per-rater votes with soft labels; other configs unchanged.",
+        "- **v0.1** — initial release.", "",
+        f"Built by [`jevify-bench`](https://github.com/uspraveen/Jevify) at commit `{manifest.get('git_commit', '?')[:10]}`, {manifest['built_at']}.", "",
+    ]
+    return NL.join(lines)
 
 
 def baselines_section(baselines: list[tuple[str, str]]) -> str:
     if not baselines:
         return ""
-    intro = ("Test-split results produced by `jevify-run`; predictions and full metrics live under "
-             "`results/<model>/`. Columns: accuracy, top-label ECE, Brier, NLL, selective accuracy at "
-             "90%/50% coverage, AURC, RPS and MAE (ordinal), AUROC (noul), total variation distance to "
-             "human label distributions.")
-    parts = ["", "## Baselines", "", intro, ""]
+    NL = chr(10)
+    parts = ["", "## Baselines", "",
+             "Every test record, one request each, scored by `jevify-run`. Predictions, full metrics with reliability bins, "
+             "and figures live under `results/<model>/`. Columns: accuracy, top-label ECE, Brier, NLL, selective accuracy "
+             "at 90% / 50% coverage, AURC, RPS and MAE (ordinal), AUROC (noul), total variation distance to the human "
+             "label distribution. NLL is inflated on high-K configs because the API rounds probabilities to 0.01; read "
+             "Brier and ECE as the proper scores.", ""]
     for model, table in baselines:
-        parts += [f"### {model}", "", table, ""]
         base = f"results/{model}/figures"
-        parts += [f"![reliability diagrams]({base}/reliability.png)", "",
-                  f"![calibration map]({base}/calibration_map.png)", "",
-                  f"![model vs human probability]({base}/human_vs_model.png)", ""]
-    return chr(10).join(parts)
+        parts += [f"### {model}", "", table, "",
+                  "**Reliability diagrams** — stated confidence vs observed accuracy per config. Flat lines mean the "
+                  "confidence carries no information.", "", f"![reliability]({base}/reliability.png)", "",
+                  "**Model vs human probability** on the calibration-gold configs — the axis that separates a decision "
+                  "model from a classifier.", "", f"![model vs human]({base}/human_vs_model.png)", "",
+                  "**Risk–coverage** — the error rate a confidence-gated router actually gets at each coverage.", "",
+                  f"![risk coverage]({base}/risk_coverage.png)", "",
+                  "**Performance vs decision-set size** (cross-dataset, so difficulty is confounded — a hypothesis view).", "",
+                  f"![vs cardinality]({base}/vs_cardinality.png)", ""]
+    return NL.join(parts)
 
 
 def _git_commit() -> str:

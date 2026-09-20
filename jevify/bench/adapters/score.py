@@ -23,20 +23,20 @@ STARS_5 = [
     "5 stars: excellent, glowing recommendation.",
 ]
 
-HELPFULNESS_5 = [
-    "Not helpful at all: does not address what the user asked.",
-    "Borderline unhelpful: mostly misses what the user was looking for.",
-    "Partially helpful: addresses part of the request but misses the overall goal.",
-    "Mostly helpful: covers the main points with minor gaps or errors.",
-    "Extremely helpful: completely aligned with the request, nothing important missing.",
+HELPFULNESS_5 = [   # verbatim from the HelpSteer2 paper, Appendix G.3.1
+    "Not useful or helpful at all; completely missed the essence of what the user wanted.",
+    "Borderline unhelpful: mostly does not capture what the user was looking for, but still usable and helpful in a small way.",
+    "Partially helpful: misses the overall goal of the user's query in some way; did not fully satisfy what the user was looking for.",
+    "Mostly helpful and mainly aligned with what the user was looking for, but there is still some room for improvement.",
+    "Extremely helpful and completely aligned with the spirit of what the prompt was asking for.",
 ]
 
-VERBOSITY_5 = [
-    "Too short: leaves out things the request clearly needed.",
-    "Somewhat short: a little more detail would have helped.",
-    "Appropriate length for the request.",
-    "Somewhat verbose: some unnecessary detail or repetition.",
-    "Too verbose: far longer than the request warranted.",
+VERBOSITY_5 = [   # verbatim from the HelpSteer2 paper, Appendix G.3.1: a LENGTH scale relative to the prompt, not a defect scale
+    "Succinct: short, to the point, and the most concise it can be; no additional information beyond what was requested.",
+    "Pretty short: on the shorter side, but could still have words, details or text removed before it is at the bare minimum.",
+    "Average length: not especially long or short given what the prompt asks; adequate for a full response, neither wordy nor particularly concise.",
+    "Moderately long: on the longer side, but could still have more added before it is fully detailed or rambling.",
+    "Verbose: particularly lengthy, wordy and/or extensive with extra details given what the prompt requested, whether from repetition or from rich detail.",
 ]
 
 STS_6 = [
@@ -123,12 +123,13 @@ class HelpSteer2Verbosity(_HelpSteer2):
     spec = SourceSpec(
         name="helpsteer2_verbosity", hf_id="nvidia/HelpSteer2", primitive="score", license="cc-by-4.0",
         domain="llm-judging", task_family="response-quality", k=5,
-        description="Rate the verbosity of an assistant response relative to the prompt (HelpSteer2 verbosity, 0–4).",
+        description="Rate the length of an assistant response relative to what the prompt asked for (HelpSteer2 verbosity, 0 succinct – 4 verbose).",
+        notes="v0.1.1: level descriptions replaced with the paper's verbatim scale; v0.1 wrongly framed 0/1 as 'too short' and 2 as 'appropriate'.",
     )
     label_column = "verbosity"
     attribute = "verbosity"
     levels = VERBOSITY_5
-    instructions = "How verbose is `response` relative to what `prompt` asked for?"
+    instructions = "How long is `response` relative to what `prompt` asked for?"
 
 
 class STSB(HFAdapter):

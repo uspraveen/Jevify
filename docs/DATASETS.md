@@ -24,7 +24,7 @@
 | `clinc150` | choice | 151 | assistant | 150 intents **plus an explicit out-of-scope option** (Jev's recommended `other`) | cc-by-3.0 |
 | `massive` | choice | 60 | assistant | voice-assistant intents, Amazon | cc-by-4.0 |
 | `ledgar` | choice | 100 | legal | contract clauses → 100 provision types; long-tail, domain text | cc-by-4.0 |
-| `go_emotions` | choice | 28 | social | fine-grained emotion, single-label rows only | apache-2.0 |
+| `go_emotions` | choice | 28 | social | fine-grained emotion; **rater vote shares as soft labels** (v0.1.1) | apache-2.0 |
 | `mmlu` | choice | 4 | knowledge | knowledge retention across tiers | mit |
 | `arc_challenge` | choice | 3–5 | knowledge | variable option count per item | cc-by-sa-4.0 |
 | `mnli` | choice | 3 | nli | the classic 3-way judgment; test = validation_matched | other (research) |
@@ -32,7 +32,7 @@
 | `sst5` | score | 5 | reviews | fine-grained sentiment | unspecified (SST) |
 | `yelp5` | score | 5 | reviews | star ratings; naturally noisy ordinal labels | other (Yelp research) |
 | `helpsteer2_helpfulness` | score | 5 | llm-judging | rating assistant responses (0–4 Likert) | cc-by-4.0 |
-| `helpsteer2_verbosity` | score | 5 | llm-judging | a more objective ordinal attribute | cc-by-4.0 |
+| `helpsteer2_verbosity` | score | 5 | llm-judging | response length relative to the prompt, NVIDIA's verbatim 0–4 scale (fixed in v0.1.1) | cc-by-4.0 |
 | `stsb` | score | 6 | nli | semantic similarity on the official 0–5 scale | cc-by-sa-4.0 |
 | `measuring_hate_speech` | score | 3 | safety | **annotator vote shares over 3 levels — calibration gold** | cc-by-4.0 |
 | `boolq` | noul | 2 | reading | grounded yes/no over a passage | cc-by-sa-3.0 |
@@ -65,3 +65,12 @@
   an extra config once mined.
 - Non-English data. Jev is English-first; so is v0.1 of the benchmark.
 - Any synthetic data. jev-bench is the yardstick no LLM wrote; synthetic data is for training.
+
+## Changelog
+
+- **v0.1.1 (2026-09-21)** — after a manual audit of Jev's errors: `helpsteer2_verbosity` level descriptions replaced
+  with the paper's verbatim scale (v0.1 wrongly framed low levels as defects and level 2 as "appropriate");
+  `helpsteer2_helpfulness` wording aligned verbatim; `go_emotions` rebuilt from the raw per-rater annotations with
+  vote shares as `soft_label` (fourth calibration-gold config; mean rater agreement with the plurality label 0.66).
+  Test/validation/train rows for these three configs changed; all other configs are byte-identical to v0.1.
+- **v0.1 (2026-09-20)** — initial release, 22 configs.

@@ -104,18 +104,38 @@ def fig_reliability(ev: dict[str, dict[str, Any]], out: Path, n_bins: int = 10, 
     return _save(fig, out / "reliability")
 
 
+def bootstrap_ci(conf: np.ndarray, correct: np.ndarray, n_boot: int = 300, seed: int = 0) -> tuple[tuple[float, float], tuple[float, float]]:
+    """95% bootstrap intervals for (accuracy, ECE)."""
+    rng = np.random.default_rng(seed)
+    n = len(conf)
+    accs, eces = [], []
+    for _ in range(n_boot):
+        idx = rng.integers(0, n, n)
+        accs.append(correct[idx].mean()); eces.append(_ece(conf[idx], correct[idx]))
+    return (float(np.percentile(accs, 2.5)), float(np.percentile(accs, 97.5))), (float(np.percentile(eces, 2.5)), float(np.percentile(eces, 97.5)))
+
+
 def fig_calibration_map(ev: dict[str, dict[str, Any]], out: Path, model: str) -> Path:
     plt = _mpl()
-    fig, ax = plt.subplots(figsize=(7.2, 5.2))
+    fig, ax = plt.subplots(figsize=(7.4, 5.4))
     pts = []
     for src, d in ev.items():
-        acc = d["correct"].mean()
-        ece = _ece(d["conf"], d["correct"])
+        acc = float(d["correct"].mean()); ece = _ece(d["conf"], d["correct"])
+        (alo, ahi), (elo, ehi) = bootstrap_ci(d["conf"], d["correct"])
+        c = PRIM_COLOR[d["primitive"]]
+        ax.plot([alo, ahi], [ece, ece], color=c, lw=0.9, alpha=0.55, zorder=2)
+        ax.plot([acc, acc], [elo, ehi], color=c, lw=0.9, alpha=0.55, zorder=2)
+        ax.scatter(acc, ece, s=34, color=c, zorder=3, linewidths=0.8, edgecolors=SURFACE)
         pts.append((src, acc, ece, d["primitive"]))
-        ax.scatter(acc, ece, s=34, color=PRIM_COLOR[d["primitive"]], zorder=3, linewidths=0.8, edgecolors=SURFACE)
-    ax.set_xlabel("accuracy"); ax.set_ylabel("expected calibration error (lower is better)")
+    ymax = max(0.4, max(p[2] for p in pts) + 0.03)
+    # ideal region: high accuracy, low calibration error
+    ax.add_patch(plt.Rectangle((0.85, 0), 0.30, 0.07, facecolor="#1baf7a", alpha=0.07, edgecolor="none", zorder=0))
+    ax.text(0.853, 0.078, "accurate + calibrated", fontsize=7.5, color="#1baf7a", va="bottom")
+    ax.annotate("", xy=(1.03, 0.02), xytext=(0.62, 0.30), arrowprops={"arrowstyle": "-|>", "color": GRID, "lw": 1.0}, zorder=0)
+    ax.text(0.615, 0.305, "better", fontsize=7.5, color=INK2, va="bottom")
+    ax.set_xlabel("accuracy (95% bootstrap interval)"); ax.set_ylabel("expected calibration error (lower is better)")
     ax.set_title(f"{model}: accuracy vs calibration, one point per jev-bench config", loc="left", pad=14)
-    ax.set_xlim(0.25, 1.12); ax.set_ylim(0, max(0.4, max(p[2] for p in pts) + 0.03))
+    ax.set_xlim(0.25, 1.12); ax.set_ylim(0, ymax)
     from matplotlib.lines import Line2D
     prims = [q for q in ("choice", "score", "noul") if any(d["primitive"] == q for d in ev.values())]
     ax.legend(handles=[Line2D([0], [0], marker="o", color=PRIM_COLOR[q], lw=0, markersize=6, label=q) for q in prims],
@@ -125,49 +145,33 @@ def fig_calibration_map(ev: dict[str, dict[str, Any]], out: Path, model: str) ->
     return _save(fig, out / "calibration_map")
 
 
-def fig_risk_coverage(ev: dict[str, dict[str, Any]], out: Path, model: str = "") -> Path:
+def fig_vs_cardinality(ev: dict[str, dict[str, Any]], out: Path, model: str, k_of: dict[str, int]) -> Path | None:
+    """Accuracy and ECE against the number of allowed answers, per primitive.
+    Cross-dataset, so difficulty is confounded — a hypothesis view, not a result."""
     plt = _mpl()
-    prims = ["choice", "score", "noul"]
-    fig, axes = plt.subplots(1, 3, figsize=(11.5, 3.8))
-    for ax, prim in zip(axes, prims):
-        srcs = sorted([s for s in ev if ev[s]["primitive"] == prim], key=lambda s: -ev[s]["correct"].mean())
-        ramp = BLUE_RAMP[1:] if prim == "choice" else BLUE_RAMP[2:]
-        ends = []
-        for i, src in enumerate(srcs):
-            d = ev[src]
-            order = np.argsort(-d["conf"], kind="stable")
-            err = 1 - d["correct"][order]
-            cov = np.arange(1, len(err) + 1) / len(err)
-            risk = np.cumsum(err) / np.arange(1, len(err) + 1)
-            color = ramp[min(i * len(ramp) // max(len(srcs), 1), len(ramp) - 1)]
-            ax.plot(cov, risk, lw=1.4, color=color, zorder=2)
-            ends.append((src, 1.0, float(risk[-1])))
-        ax.set_title(prim, loc="left")
-        ax.set_xlabel("coverage (fraction of records acted on)"); ax.set_xlim(0, 1.42); ax.set_ylim(0, None)
-        ax.set_xticks([0, 0.25, 0.5, 0.75, 1.0]); ax.tick_params(length=0)
-        _end_labels(fig, ax, ends)
-    axes[0].set_ylabel("error rate on the covered records")
-    fig.suptitle(f"{model}: error rate vs coverage when acting only above a confidence cutoff (ranked by confidence)",
-                 x=0.01, ha="left", fontsize=10)
-    fig.tight_layout(rect=(0, 0, 1, 0.94))
-    return _save(fig, out / "risk_coverage")
-
-
-def _end_labels(fig, ax, ends: list[tuple[str, float, float]], fontsize: float = 6.8) -> None:
-    """Right-of-line labels, nudged vertically until no two overlap (measured)."""
-    fig.canvas.draw()
-    renderer = fig.canvas.get_renderer()
-    placed = []
-    for src, x, y in sorted(ends, key=lambda e: e[2]):
-        for dy in (0, 5, -5, 9, -9, 14, -14, 19, -19, 24, -24):
-            ann = ax.annotate(src, (x, y), xytext=(4, dy), textcoords="offset points", fontsize=fontsize, color=INK2, va="center")
-            box = ann.get_window_extent(renderer).expanded(1.0, 1.15)
-            if not any(box.overlaps(b) for b in placed):
-                placed.append(box)
-                break
-            ann.remove()
-        else:
-            placed.append(ax.annotate(src, (x, y), xytext=(4, 0), textcoords="offset points", fontsize=fontsize, color=INK2, va="center").get_window_extent(renderer))
+    pts = [(src, k_of[src], float(d["correct"].mean()), _ece(d["conf"], d["correct"]), d["primitive"]) for src, d in ev.items() if src in k_of]
+    if not pts:
+        return None
+    fig, axes = plt.subplots(1, 2, figsize=(10, 3.9))
+    for ax, name in zip(axes, ("accuracy", "expected calibration error")):
+        col = 2 if name == "accuracy" else 3
+        for src, k, acc, ece, prim in pts:
+            ax.scatter(k, (acc, ece)[col - 2], s=30, color=PRIM_COLOR[prim], zorder=3, linewidths=0.8, edgecolors=SURFACE)
+        ax.set_xscale("log"); ax.set_xlabel("number of allowed answers (K, log scale)"); ax.set_ylabel(name)
+        ax.set_xticks([2, 3, 5, 10, 28, 60, 100, 151]); ax.set_xticklabels(["2", "3", "5", "10", "28", "60", "100", "151"])
+        ax.set_xlim(1.7, 230); ax.tick_params(length=0)
+    fig.suptitle(f"{model}: performance vs decision-set size (cross-dataset; difficulty is confounded)", x=0.01, ha="left", fontsize=10)
+    from matplotlib.lines import Line2D
+    fig.legend(handles=[Line2D([0], [0], marker="o", color=PRIM_COLOR[q], lw=0, markersize=6, label=q) for q in ("choice", "score", "noul")],
+               loc="upper right", ncol=3, fontsize=8, bbox_to_anchor=(0.99, 1.0))
+    fig.tight_layout(rect=(0, 0, 1, 0.93))   # layout first, then measure and place labels
+    for ax, col in zip(axes, (2, 3)):
+        singles = [(src, k, (acc, ece)[col - 2]) for src, k, acc, ece, prim in pts if k > 2]
+        two = [(acc, ece)[col - 2] for src, k, acc, ece, prim in pts if k == 2]
+        if two:   # one label for the K=2 cluster, placed by the same overlap-avoiding routine
+            singles.append((f"{len(two)} noul configs (K=2)", 2, float(min(two) if col == 2 else max(two))))
+        _annotate_without_overlap(fig, ax, singles, fontsize=6.5)
+    return _save(fig, out / "vs_cardinality")
 
 
 def fig_human_vs_model(ev: dict[str, dict[str, Any]], out: Path, model: str, n_bins: int = 10) -> Path | None:
@@ -322,7 +326,19 @@ def _save(fig, stem: Path) -> Path:
 def make_all(records_root: Path, preds_path: Path, out: Path, model: str, split: str = "test") -> list[Path]:
     ev = load_eval(records_root, preds_path, split)
     made = [fig_reliability(ev, out), fig_calibration_map(ev, out, model), fig_risk_coverage(ev, out, model)]
-    for f in (fig_human_vs_model(ev, out, model), fig_latency(ev, out, model)):
+    k_of = _k_from_records(records_root, ev, split)
+    for f in (fig_human_vs_model(ev, out, model), fig_latency(ev, out, model), fig_vs_cardinality(ev, out, model, k_of)):
         if f:
             made.append(f)
     return made
+
+
+def _k_from_records(records_root: Path, ev: dict[str, Any], split: str) -> dict[str, int]:
+    """Median number of allowed answers per source (2 for noul)."""
+    out = {}
+    for src in ev:
+        path = records_root / "data" / src / f"{split}.jsonl"
+        ks = [len(r.option_keys()) for r in read_jsonl(path, limit=200)]
+        if ks:
+            out[src] = int(np.median(ks))
+    return out

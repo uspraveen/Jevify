@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 from ..record import BenchRecord, Split
-from ._base import HFAdapter, SourceSpec, humanize
+from ._base import DEFAULT_SEED, Adapter, HFAdapter, SourceSpec, hf_dataset, humanize
 
 NLI_CRITERIA = {
     "entailment": "The hypothesis is definitely true given the premise.",
@@ -108,25 +108,67 @@ class Ledgar(HFAdapter):
                            label=names[row["label"]])
 
 
-class GoEmotions(HFAdapter):
-    """GoEmotions (single-label rows only): 27 emotions + neutral on Reddit comments."""
+EMOTIONS = ["admiration", "amusement", "anger", "annoyance", "approval", "caring", "confusion", "curiosity", "desire",
+            "disappointment", "disapproval", "disgust", "embarrassment", "excitement", "fear", "gratitude", "grief", "joy",
+            "love", "nervousness", "optimism", "pride", "realization", "relief", "remorse", "sadness", "surprise", "neutral"]
+
+
+class GoEmotions(Adapter):
+    """GoEmotions rebuilt from the *raw* per-rater annotations (3–5 raters per
+    comment). ``soft_label`` = each emotion's share of all rater votes, so the
+    benchmark carries the disagreement instead of hiding it behind one label.
+    The hard label is the plurality emotion; ties go to the more frequent
+    emotion overall. Comments any rater marked 'very unclear' are dropped."""
     spec = SourceSpec(
-        name="go_emotions", hf_id="google-research-datasets/go_emotions", hf_config="simplified", primitive="choice", license="apache-2.0",
-        domain="social", task_family="emotion", k=28,
-        description="Which emotion does a Reddit comment primarily express (27 emotions + neutral).",
-        notes="Multi-label rows are dropped; only comments with exactly one gold emotion are kept.",
+        name="go_emotions", hf_id="google-research-datasets/go_emotions", hf_config="raw", primitive="choice", license="apache-2.0",
+        domain="social", task_family="emotion", k=28, has_soft_labels=True,
+        description="Which emotion does a Reddit comment primarily express (27 emotions + neutral)? soft_label = rater vote shares.",
+        caps={"train": 8000, "validation": 500, "test": 1000},
+        notes="v0.1.1: rebuilt from the raw config with rater vote shares as soft labels (v0.1 used the single-label 'simplified' subset).",
     )
-    label_column = None  # multi-label column; sample uniformly, filter in convert
+    label_column = "label"
+
+    def __init__(self, min_raters: int = 3, seed: int = DEFAULT_SEED) -> None:
+        self.min_raters = min_raters
+        self.seed = seed
+        self._splits: dict[str, list[dict[str, Any]]] | None = None
+
+    def _aggregate(self) -> None:
+        import random
+
+        ds = hf_dataset(self.spec.hf_id, self.spec.hf_config, "train")
+        df = ds.select_columns(["id", "text", "rater_id", "example_very_unclear", *EMOTIONS]).to_pandas()
+        rows: list[dict[str, Any]] = []
+        overall = df[EMOTIONS].sum()
+        for cid, g in df.groupby("id", sort=True):
+            if len(g) < self.min_raters or bool(g["example_very_unclear"].any()):
+                continue
+            votes = g[EMOTIONS].sum()
+            total = float(votes.sum())
+            if total == 0:
+                continue
+            dist = {e: float(votes[e]) / total for e in EMOTIONS}
+            top = max(EMOTIONS, key=lambda e: (votes[e], overall[e]))
+            rows.append({"id": cid, "text": g["text"].iloc[0], "dist": dist, "label": top,
+                         "n_raters": int(len(g)), "agreement": float(votes[top]) / len(g)})
+        rng = random.Random(self.seed)
+        rng.shuffle(rows)
+        n_test, n_val = int(0.1 * len(rows)), int(0.05 * len(rows))
+        self._splits = {"test": rows[:n_test], "validation": rows[n_test:n_test + n_val], "train": rows[n_test + n_val:]}
+
+    def load(self, split: Split):
+        if self._splits is None:
+            self._aggregate()
+        assert self._splits is not None
+        return self._splits[split]
 
     def convert(self, row: dict[str, Any], split: Split, idx: int) -> BenchRecord | None:
-        if len(row["labels"]) != 1:
-            return None
-        names = self._hf_split("train").features["labels"].feature.names
         return self.record(split, idx, state=row["text"],
                            question={"type": "choice",
                                      "instructions": "Which emotion does the comment primarily express?",
-                                     "criteria": {n: None for n in names}},
-                           label=names[row["labels"][0]], reddit_id=row.get("id"))
+                                     "criteria": {e: None for e in EMOTIONS}},
+                           label=row["label"], soft_label=row["dist"],
+                           reddit_id=row["id"], n_raters=row["n_raters"], rater_agreement=row["agreement"])
 
 
 class MMLU(HFAdapter):
