@@ -24,17 +24,29 @@ from .heads import DecisionHeads, HeadConfig, evaluate_loss
 
 
 def apply_lora(model, r: int = 16, alpha: int = 32, dropout: float = 0.05,
-               targets: Sequence[str] | None = None):
-    """Wrap the backbone in LoRA adapters and freeze everything else."""
+               targets: Sequence[str] | str | None = None):
+    """Wrap the backbone in LoRA adapters and freeze everything else.
+
+    ``targets`` is either a list of module-name suffixes or a full-path regex. The regex
+    form is what scopes adaptation to one half of a VLM: peft matches a suffix list
+    against the end of a module path, and names like ``q_proj`` live on both the vision
+    tower and the decoder, so a suffix list cannot express "the encoder only"
+    (see ``jevify.engine.vision_backbone.lora_pattern``).
+    """
     from peft import LoraConfig, get_peft_model
 
-    if targets is None:
-        # the projections every decoder family shares; missing names are ignored by peft
-        targets = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
-    names = {n.split(".")[-1] for n, _ in model.named_modules()}
-    targets = [t for t in targets if t in names] or ["q_proj", "v_proj"]
+    if isinstance(targets, str):
+        target_modules: Any = targets                   # peft reads a str as a regex
+        shown = targets
+    else:
+        if targets is None:
+            # the projections every decoder family shares; missing names are ignored by peft
+            targets = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+        names = {n.split(".")[-1] for n, _ in model.named_modules()}
+        target_modules = [t for t in targets if t in names] or ["q_proj", "v_proj"]
+        shown = sorted(target_modules)
     cfg = LoraConfig(r=r, lora_alpha=alpha, lora_dropout=dropout, bias="none",
-                     task_type="CAUSAL_LM", target_modules=list(targets))
+                     task_type="CAUSAL_LM", target_modules=target_modules)
     peft_model = get_peft_model(model, cfg)
     # storing activations for every layer's backward is what actually fills an 80 GB card
     # here; checkpointing trades ~30% compute for a large multiple of memory
@@ -44,7 +56,7 @@ def apply_lora(model, r: int = 16, alpha: int = 32, dropout: float = 0.05,
         peft_model.enable_input_require_grads()      # PEFT needs this for checkpointing to pass grads
     trainable = sum(p.numel() for p in peft_model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in peft_model.parameters())
-    print(f"[tier2] LoRA on {sorted(targets)}: {trainable:,} trainable of {total:,} ({100*trainable/total:.2f}%)", flush=True)
+    print(f"[tier2] LoRA on {shown}: {trainable:,} trainable of {total:,} ({100*trainable/total:.2f}%)", flush=True)
     return peft_model, trainable
 
 

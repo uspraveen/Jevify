@@ -233,6 +233,27 @@ def run_vision(model_id: str, run_id: str, out_dir: Path | str, *, sources: Sequ
         "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu"})
 
 
+
+def describe_vision(model_id: str, *, trust_remote_code: bool = False) -> dict[str, Any]:
+    """Inventory a VLM's vision stage without scoring anything.
+
+    Loaded on CPU: this answers a structural question, so it should not need a GPU or
+    wait behind one.
+    """
+    import torch
+
+    from .engine.vision_backbone import describe
+
+    try:
+        from transformers import AutoModelForImageTextToText as _AutoVLM
+    except ImportError:                                  # pragma: no cover - older transformers
+        from transformers import AutoModelForVision2Seq as _AutoVLM
+
+    model = _AutoVLM.from_pretrained(model_id, dtype=torch.float32, trust_remote_code=trust_remote_code,
+                                     token=os.environ.get("HF_TOKEN"))
+    return {"model_id": model_id, **describe(model)}
+
+
 # --------------------------------------------------------------------------- CLI
 def main(argv: Sequence[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="jevify.train",
@@ -264,12 +285,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--max-pixels", type=int, default=0)
     ap.add_argument("--trust-remote-code", action="store_true")
+    ap.add_argument("--describe", action="store_true",
+                    help="vision: print the model's vision-stage inventory and exit")
     a = ap.parse_args(argv)
 
     out_dir = Path(a.out) / a.run_id
     held = [s for s in a.heldout.split(",") if s] or None
     common = dict(model_id=a.model_id, run_id=a.run_id, out_dir=out_dir,
                   trust_remote_code=a.trust_remote_code)
+
+    if a.tier == "vision" and a.describe:
+        print(json.dumps(describe_vision(a.model_id, trust_remote_code=a.trust_remote_code), indent=1))
+        return 0
 
     if a.tier == "vision":
         run_vision(**common, sources=[s for s in a.sources.split(",") if s] or None, split=a.split,
