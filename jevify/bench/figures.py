@@ -624,3 +624,71 @@ def fig_recipe_ladder(models: dict[str, list[dict[str, Any]]], out: Path) -> Pat
               "and nothing to Gemma; Gemma instead needs the temperature. A single fixed recipe would mis-rank these models.")
     _footer(fig)
     return _save(fig, out / "recipe_ladder")
+
+
+def fig_confidence_vs_agreement(records, preds: dict[str, Any], out: Path, model: str, source: str = "chaosnli") -> Path:
+    """Does the model's confidence know how contested an item is?
+
+    x = share of human annotators on the majority label, y = the model's own confidence.
+    A calibrated decision model should slope upward; a flat cloud means the confidence
+    carries no information about ambiguity.
+    """
+    plt = _mpl()
+    H, M, correct = [], [], []
+    for r in records:
+        p = preds.get(r.id)
+        if p is None or p.error:
+            continue
+        keys = r.option_keys()
+        H.append(max(r.soft_label[k] for k in keys))
+        M.append(max(p.probabilities[k] for k in keys))
+        correct.append(p.answer == str(r.label))
+    H, M, correct = np.array(H), np.array(M), np.array(correct)
+    r_p = float(np.corrcoef(H, M)[0, 1])
+    fig, axes = plt.subplots(1, 2, figsize=(10.6, 4.4), gridspec_kw={"width_ratios": [1.25, 1]})
+
+    ax = axes[0]
+    ax.plot([0, 1], [0, 1], color=GRID, lw=1, zorder=1)
+    ax.scatter(H, M, s=7, color=PRIM_COLOR["choice"], alpha=0.16, linewidths=0, zorder=2)
+    edges = np.linspace(H.min(), 1.0, 9)
+    xs, ys = [], []
+    for lo, hi in zip(edges[:-1], edges[1:]):
+        m = (H >= lo) & (H < hi) if hi < 1.0 else (H >= lo)
+        if m.sum() >= 15:
+            xs.append(H[m].mean()); ys.append(M[m].mean())
+    ax.plot(xs, ys, color="#eb6834", lw=2.2, zorder=4)
+    ax.scatter(xs, ys, s=30, color="#eb6834", zorder=5, edgecolors=SURFACE, linewidths=0.8)
+    ax.set_xlabel("human agreement (share of 100 annotators on the majority label)")
+    ax.set_ylabel(f"{model} confidence")
+    ax.set_xlim(0.3, 1.0); ax.set_ylim(0, 1.02); ax.tick_params(length=0)
+    ax.set_title(f"one point per item  ·  Pearson r = {r_p:.3f}", loc="left")
+    ax.annotate("confidence = human agreement", xy=(0.86, 0.86), xytext=(0.72, 0.52), fontsize=7.5, color=INK2,
+                ha="center", arrowprops={"arrowstyle": "-", "color": GRID, "lw": 0.8})
+
+    ax = axes[1]
+    bands = [(0.33, 0.5, "humans split\n(<50%)"), (0.5, 0.7, "contested\n(50–70%)"),
+             (0.7, 0.9, "clear\n(70–90%)"), (0.9, 1.01, "consensus\n(≥90%)")]
+    labels, conf, acc, ns = [], [], [], []
+    for lo, hi, name in bands:
+        m = (H >= lo) & (H < hi)
+        if m.sum() < 10:
+            continue
+        labels.append(name + chr(10) + f"n={int(m.sum()):,}"); conf.append(M[m].mean()); acc.append(correct[m].mean()); ns.append(int(m.sum()))
+    x = np.arange(len(labels)); w = 0.38
+    ax.bar(x - w / 2, conf, w, color=PRIM_COLOR["choice"], label="model confidence", edgecolor=SURFACE, linewidth=0.6)
+    ax.bar(x + w / 2, acc, w, color="#eb6834", label="model accuracy", edgecolor=SURFACE, linewidth=0.6)
+    for xi, (c, a, n) in enumerate(zip(conf, acc, ns)):
+        ax.text(xi - w / 2, c, f"{c:.2f}", ha="center", va="bottom", fontsize=7.5, color=INK2)
+        ax.text(xi + w / 2, a, f"{a:.2f}", ha="center", va="bottom", fontsize=7.5, color=INK2)
+    ax.set_xticks(x); ax.set_xticklabels(labels, fontsize=7.8)
+    ax.set_ylim(0, 1.12); ax.set_ylabel("mean over items"); ax.tick_params(length=0)
+    ax.legend(loc="upper left", fontsize=7.5)
+    ax.set_title("confidence stays flat while accuracy collapses", loc="left")
+
+    fig.tight_layout(rect=_layout(fig, 2))
+    _headline(fig, f"{model}: does its confidence know when humans disagree?",
+              f"{source} — every item labelled by 100 annotators. A decision model's confidence should fall as human "
+              f"agreement falls. Here it does not: r = {r_p:.3f}, and the model is more confident than the human "
+              f"majority on {(M > H).mean():.0%} of items.")
+    _footer(fig)
+    return _save(fig, out / "confidence_vs_agreement")
