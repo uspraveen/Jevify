@@ -36,7 +36,10 @@ PROJECTOR_HINTS = ("multi_modal_projector", "mm_projector", "merger", "connector
                    "vision_projection", "image_projection", "projector")
 
 # Linear names worth adapting inside a ViT-style encoder (families differ in which exist).
-VISION_LINEARS = ("q_proj", "k_proj", "v_proj", "out_proj", "o_proj", "qkv", "proj", "fc1", "fc2")
+# attention and MLP projections across encoder families: SigLIP/CLIP (q/k/v/out_proj, fc1/fc2),
+# Qwen-VL towers (fused qkv, proj, linear_fc1/linear_fc2 -- the same names its projector uses)
+VISION_LINEARS = ("q_proj", "k_proj", "v_proj", "out_proj", "o_proj", "qkv", "proj", "fc1", "fc2",
+                  "linear_fc1", "linear_fc2")
 DECODER_LINEARS = ("q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj")
 
 
