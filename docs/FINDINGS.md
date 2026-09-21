@@ -224,12 +224,35 @@ backbone knows and relearns a scorer from 8,685 examples.
 **6.3 The fix is to correct the model's prior, not replace it.**
 `score_i = w·lm_i + f([h_dec, h_i, h_dec ⊙ h_i])` with `f`'s last layer zero-initialized, so training
 provably *starts at Tier 0* — a unit test asserts an untrained residual head reproduces Tier 0's
-distribution to 1e-4. Result on Qwen3.5-2B: trained +0.080, **held-out −0.000**, better calibrated
-in both regimes.
+distribution to 1e-4. Result on Qwen3.5-2B, one seed: trained +0.080, **held-out −0.000**, better
+calibrated in both regimes.
 
-**6.3b It replicates, and strengthens, on Qwen3.5-4B.** Held-out **+0.035** (0.714 → 0.749) and
-trained **+0.039** (0.641 → 0.680), better calibrated in both. At 2B the residual erased the
-regression; at 4B it turns it into a gain.
+**6.3a Five seeds: the held-out result is seed-dependent, and the published run was the top of
+the distribution.** Same features, same data, same early stopping; only head initialization and
+data order vary:
+
+| Qwen3.5-2B residual, seed | held-out acc | held-out ECE | trained acc | trained ECE |
+|---|---|---|---|---|
+| 0 | 0.626 | 0.097 | 0.630 | 0.058 |
+| 1 | 0.636 | 0.089 | 0.627 | 0.061 |
+| 2 | 0.542 | 0.193 | 0.643 | 0.083 |
+| 3 | 0.534 | 0.189 | 0.642 | 0.078 |
+| 4 | 0.555 | 0.157 | 0.635 | 0.079 |
+| **mean ± sd** | **0.579 ± 0.049** | **0.145 ± 0.050** | 0.635 ± 0.007 | 0.072 ± 0.011 |
+| published run | 0.631 | 0.090 | 0.632 | 0.061 |
+| Tier 0, for reference | 0.628 | 0.097 | 0.552 | 0.100 |
+
+Trained-source behaviour is stable. Held-out behaviour is bimodal: two seeds match Tier 0, three
+regress by ~0.09 *and* become overconfident on unseen sources — the replacement head's failure
+mode, milder. Early stopping selects on validation loss over *trained* sources, which says nothing
+about which basin the head landed in for unseen ones. The corrected statement of 6.3: the residual
+halves the replacement head's held-out damage on average (−0.049 vs −0.098) and keeps the trained
+gain; it does not remove the regression. The "−0.000" that headlined the first version of this
+document was one seed. This is what the seed study was for.
+
+**6.3b It replicates, and strengthens, on Qwen3.5-4B — one seed, so read it with 6.3a.** Held-out
+**+0.035** (0.714 → 0.749) and trained **+0.039** (0.641 → 0.680), better calibrated in both. Seeds
+for the 4B head are running.
 
 **6.4 Both heads chose to keep the prior at full strength.** Learned LM weights came out
 **0.95 / 0.98 / 1.01** on 2B and **0.96 / 0.97 / 1.01** on 4B for choice / score / noul — two
@@ -322,7 +345,19 @@ seed study in Section 6 is what bounds how much of a 0.02 difference is noise.
 
 One general lesson survives either way: with LoRA capacity, a small change in learning rate moves
 calibration by more than the entire Tier 0 → Tier 1 step did. Calibration under fine-tuning is a
-hyperparameter question before it is an objective question.
+hyperparameter question before it is an objective question. *Caveat added after 6.3a: the three arms
+differ by ~0.02 on held-out metrics, inside the ±0.05 the Tier 1 seed study found, so which arm is
+best is not resolved by one seed each. Seeds for both LoRA arms are running.*
+
+**7.6 At 4B the LoRA gains accuracy and calibration together, and does not overfit after one
+pass.** Qwen3.5-4B, the original recipe (lr 1e-4, 3 epochs): validation loss 0.720 → **0.633** →
+0.785, so the best epoch is the *second* — at 2B every epoch after the first was worse. Held-out
+accuracy **0.769** (Tier 0: 0.714) with held-out ECE **0.107** (Tier 0: 0.139); trained accuracy
+0.739, above Jev's 0.694 on those sources. Macro over all 22 configs: **0.747 accuracy, 0.110 ECE,
+0.347 TVD** — the first open model above Jev's 0.733 on the overall number, with Jev still ahead on
+the six held-out sources (0.835 vs 0.769). One seed; effect sizes (+0.049 macro over the 4B residual
+head, +0.085 over Tier 0) are larger than the Tier 1 seed spread, but the 4B Tier 2 spread itself is
+unmeasured.
 
 *Reproduce: `python -m jevify.train tier2 --model-id Qwen/Qwen3.5-2B --run-id qwen35-2b-t2`, then
 `scripts/process_tier1.py --run-id qwen35-2b-t2 --tier0 qwen35-2b`. Results: `results/qwen35-2b-t2/`.*

@@ -47,37 +47,45 @@ Meanwhile it is excellent and well calibrated on crisp, grounded questions (ARC 
 ![Jev: confidence vs human agreement on ChaosNLI](results/figures/confidence_vs_agreement.png)
 
 **2 · Evaluating on held-out *records* instead of held-out *sources* would have shipped the
-wrong architecture.** A trained head that replaces the model's own scorer gains +0.077 accuracy
-on sources it trained on and loses **−0.098** on sources it never saw. Making it a
-zero-initialized residual on that scorer — so training provably starts at Tier 0 — keeps the gain
-(+0.080) and erases the regression (−0.000). Two independently trained heads, on Qwen3.5-2B and
-Qwen3.5-4B, both learn to keep the model's prior at full strength — LM weights **0.95 / 0.98 / 1.01**
-and **0.96 / 0.97 / 1.01** — which is itself the evidence that replacing it was wrong.
+wrong architecture — and evaluating on one seed nearly shipped an overclaim.** A trained head that
+replaces the model's own scorer gains +0.077 accuracy on sources it trained on and loses **−0.098**
+on sources it never saw. Making it a zero-initialized residual on that scorer — so training provably
+starts at Tier 0 — keeps the gain (+0.080). The first version of this README said it also "erased
+the regression (−0.000)". **Five seeds say otherwise:** held-out accuracy is **0.579 ± 0.049** —
+two seeds match Tier 0 (0.628), three regress by ~0.09 and turn overconfident on unseen sources —
+while trained-source accuracy is stable at 0.635 ± 0.007. The residual head halves the damage of
+replacement on average; it does not remove it, and the published run was the top of its own
+distribution. The learned LM weights (**0.95 / 0.98 / 1.01** at 2B, **0.96 / 0.97 / 1.01** at 4B)
+still say the model's prior is worth keeping at full strength.
 
 ![Tier 1: trained vs held-out sources](results/figures/tier1_story.png)
 
-**3 · Jevified open models now beat Jev on calibration and on human agreement, and are within
-3.5 points on accuracy.** Qwen3.5-4B with residual heads: macro accuracy **0.698 vs Jev's 0.733**,
-**ECE 0.089 vs 0.113**, **TVD to human label distributions 0.360 vs 0.432**, and Score accuracy
-0.507 vs 0.503. Qwen3.5-2B reaches ECE **0.069**, the best of anything tested. The finding in (2)
-replicates on both backbones — at 2B the residual erases the regression, at 4B it turns it into a
-**+0.035** gain on held-out sources.
+**3 · An open 4B now beats Jev on the overall number — and Jev still wins where it counts most.**
+Qwen3.5-4B with LoRA and residual heads (Tier 2): macro accuracy **0.747 vs Jev's 0.733**, macro
+ECE 0.110 vs 0.113, Noul accuracy 0.903 vs 0.881, Score accuracy 0.529 vs 0.503, TVD to human
+label distributions 0.347 vs 0.432. The qualifier is the split: on the six sources it never
+trained on, Jev leads **0.835 to 0.769**; the open model's overall edge comes from the sixteen it
+did train on. One seed. Without touching the backbone, Qwen3.5-4B with residual heads alone
+reaches 0.698 / ECE 0.089 / TVD 0.360; the 2B head's ECE of 0.069 is the best of anything tested
+but, per (2), seed-dependent on unseen sources.
 
 **4 · Structure generalizes; knowledge does not.** Heads trained with ≤16 options transfer
 unchanged to K=151 (clinc150 moves −0.008). What collapses under replacement is knowledge
 (arc_challenge −0.199, mmlu −0.119 *even when trained*) and ordinal scales never seen
 (measuring_hate_speech −0.482).
 
-**5 · LoRA buys the accuracy a frozen backbone cannot — and the learning rate decides whether it
-keeps the calibration.** Tier 2 (rank-16 LoRA trained jointly with the residual heads, one A40,
-2.5 h) lifts Qwen3.5-2B from 0.632 to **0.690** macro accuracy and fixes the Tier 1 weak spot
-outright: the held-out ordinal scale gains **+0.17** accuracy *and* gets better calibrated. At LoRA
-lr 1e-4 it paid for that with Jev-like overconfidence on ambiguous questions (ChaosNLI ECE 0.077 →
-0.215; Jev: 0.222). At **3e-5** it gains *more* accuracy and keeps the calibration: held-out ECE
-**0.086**, equal to Jev, and TVD to human label distributions **0.332** — the best of any model
-tested. Training against the human distributions instead (soft labels) was the hypothesis I
-expected to win and it lost: TVD 0.433, no better than Jev. Both arms overfit after one pass.
-[· detail](docs/FINDINGS.md#7-tier-2-letting-the-backbone-move)
+**5 · LoRA buys the accuracy a frozen backbone cannot, and at 4B it buys calibration too.**
+Tier 2 (rank-16 LoRA trained jointly with the residual heads, one A40) lifts Qwen3.5-2B from
+0.632 to **0.690** macro accuracy and Qwen3.5-4B from 0.698 to **0.747**, and fixes the Tier 1 weak
+spot outright: the held-out ordinal scale gains **+0.17** accuracy *and* gets better calibrated.
+At 2B the gain came with Jev-like overconfidence on ambiguous questions (ChaosNLI ECE 0.077 →
+0.215; Jev: 0.222); a lower LoRA learning rate (3e-5) gave more accuracy *and* held-out ECE 0.086,
+and training on human label distributions instead did not help (TVD 0.433, Jev's number). But
+those three arms are one seed each and sit within the ±0.05 the seed study found, so which arm is
+"best" is unresolved until their seeds finish. What holds regardless: at 4B the LoRA improves
+held-out accuracy (0.714 → 0.769) and held-out ECE (0.139 → 0.107) at once, the 4B does not
+overfit after one pass the way the 2B does (its best epoch is the second), and the 2B arms all
+overfit after one. [· detail](docs/FINDINGS.md#7-tier-2-letting-the-backbone-move)
 
 **6 · Instruction tuning does hurt calibration — 1.3–1.8× worse raw ECE — but it is almost
 entirely a temperature problem.** Gemma-4-E2B-it starts at ECE 0.361 and lands at 0.158 after one
@@ -230,7 +238,9 @@ per-config metrics, recipe and figures.
 - [x] Vision-encoder budget sweep: accuracy and calibration degrade together, budget saturation measured
 - [x] Tier 2: LoRA jointly with residual heads — +0.058 macro accuracy at 2B; at lr 3e-5 the best held-out ECE and human-agreement of any model; overfits after one pass
 - [x] Tier 2 ablation: learning rate vs hard-label loss — the learning rate was the cause of the overconfidence; soft-label training is a negative result on human agreement
-- [ ] Tier 2 at 4B (running); soft labels at the low learning rate; five-seed error bars on Tier 1
+- [x] Five-seed error bars on Tier 1: held-out generalization is seed-dependent (0.579 ± 0.049); README corrected
+- [x] Tier 2 at 4B: macro 0.747, above Jev's 0.733; Jev still leads on held-out sources
+- [ ] Seeds on the Tier 2 arms and the 4B head (running); soft labels at the low learning rate
 - [ ] Vision-scoped LoRA on AI2D (the perceptual weak spot); more ordinal scales; Tier 1 at 7B+
 - [ ] Label-first synthetic data pipeline; HF Space; model zoo
 
