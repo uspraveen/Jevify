@@ -28,10 +28,13 @@ class POPE(HFAdapter):
         description="Is the named object present in the image? The standard VLM hallucination probe.",
         caps={"train": 0, "validation": 500, "test": 2000},
         notes="Evaluation only. `category` (random / popular / adversarial) is kept in meta so "
-              "hallucination can be read per difficulty.",
+              "hallucination can be read per difficulty. POPE ships one split; a tenth of it is "
+              "carved off as validation so the Noul recipe can be fitted without touching test.",
     )
     label_column = "answer"
     split_map = {"test": "test"}
+    carve_validation_from = "test"
+    carve_frac = 0.1
 
     def convert(self, row: dict[str, Any], split: Split, idx: int) -> BenchRecord | None:
         ans = str(row["answer"]).strip().lower()
