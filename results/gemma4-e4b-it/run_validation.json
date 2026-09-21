@@ -1,0 +1,38 @@
+{
+ "run_id": "gemma4-e4b-it-validation",
+ "model_id": "google/gemma-4-E4B-it",
+ "gpu": "A100-80GB",
+ "split": "validation",
+ "sources": null,
+ "limit": 200,
+ "recipe": {
+  "mode": "index",
+  "chat": true,
+  "permutations": 2,
+  "prior_weight": 0.0,
+  "temperature": {
+   "choice": 1.0,
+   "score": 1.0,
+   "noul": 1.0
+  },
+  "bias": {
+   "noul": 0.0
+  }
+ },
+ "chat_applied": true,
+ "n_new": 4120,
+ "n_total": 4120,
+ "load_s": 85.4,
+ "wall_s": 361.8,
+ "est_cost_usd": 0.251,
+ "torch": "2.14.0+cu130",
+ "device": "NVIDIA A100-SXM4-80GB",
+ "scorer_stats": {
+  "tokenize_s": 34.76,
+  "single_s": 236.26,
+  "multi_s": 0.0,
+  "items": 6123
+ },
+ "attn_impl": "sdpa",
+ "dtype": "torch.bfloat16"
+}

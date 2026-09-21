@@ -82,13 +82,34 @@ From 22,773 test records plus a manual audit of its errors
 ## Roadmap
 
 - [x] jev-bench v0.1.1, Jev 1.13.0 baseline, figures, label audit, behavioral probes
-- [x] Tier 0 engine + server + offline recipe search (tests pass on CPU with a 135M model)
-- [ ] Tier 0 sweep on Modal: K2-Horizon-0.9B, Qwen3.5 0.8B–9B (base and instruct), Gemma 4 E2B/E4B/12B,
-      SmolLM3-3B, Olmo-3-7B, Apertus-4B — scored against Jev on the same records, latency measured
-      from the same vantage point
-- [ ] Tier 1: frozen backbone + decision heads trained with proper scoring rules on cached features
+- [x] Tier 0 engine + server + offline recipe search
+- [x] Tier 0 sweep: 9 open checkpoints scored on all 22,773 test records against Jev
+- [x] Tier 1 residual decision heads, with held-out-source generalization measured
+- [ ] Tier 1 on more backbones; more diverse ordinal scales in training
 - [ ] Tier 2: LoRA where Tier 1 leaves a gap the benchmark can see
 - [ ] Label-first synthetic data pipeline; HF Space; model zoo; VLM backbones; vision-tower autoresearch
+
+## Tier 1: what trained heads buy, and what they cost
+
+A head that **replaces** the LM head gains +0.077 accuracy on sources it trained on and
+loses −0.098 on sources held out of training. Measured only in-distribution it looks like a
+win; it is not one. The damage is knowledge (`arc_challenge` −0.199, `mmlu` −0.119 *even
+when trained*) and unseen ordinal scales (`measuring_hate_speech` −0.482) — the head throws
+away what the backbone knows and relearns a scorer from 8.6k examples. Structure, by
+contrast, generalizes fine: `clinc150` at K=151, with heads trained at K≤16, barely moves.
+
+A head that **corrects** it instead — `score_i = w·lm_i + f([h_dec, h_i, h_dec ⊙ h_i])`,
+with `f` zero-initialized so training starts exactly at Tier 0 — keeps the gain and erases
+the regression:
+
+| Qwen3.5-2B | held-out acc | held-out ECE | trained acc | trained ECE |
+|---|---|---|---|---|
+| Tier 0 (recipe refit without held-out sources) | 0.628 | 0.097 | 0.552 | 0.100 |
+| Tier 1, heads replace | 0.522 | 0.155 | 0.627 | 0.056 |
+| **Tier 1, heads residual** | **0.631** | **0.090** | **0.632** | **0.061** |
+
+The head chose to keep the model's prior at full strength (learned LM weights 0.95 / 0.98 /
+1.01 for choice / score / noul). → [full write-up](reports/tier1/README.md)
 
 ## Why tiers, and why no RL
 

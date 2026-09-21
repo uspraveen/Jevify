@@ -54,7 +54,9 @@ def main() -> int:
             continue
         run = json.loads((d / "run.json").read_text()) if (d / "run.json").exists() else {}
         recipe = json.loads((d / "recipe.json").read_text(encoding="utf-8")) if (d / "recipe.json").exists() else {}
-        entries.append({"run": d.name, "label": run.get("model_id", d.name), "tier": "Tier 0", "params": "",
+        tier = f"Tier {run.get('tier', 0)}" + ("" if not run.get("tier") else (" residual" if run.get("residual") else " replace"))
+        entries.append({"run": d.name, "label": run.get("model_id", d.name) + ("" if not run.get("tier") else f" [{d.name}]"),
+                        "tier": tier, "params": "",
                         "metrics": json.loads((d / "test_metrics.json").read_text(encoding="utf-8")),
                         "preds": d / "test_predictions.jsonl", "cost": run.get("est_cost_usd"), "gpu": run.get("gpu"),
                         "chat": run.get("chat_applied"), "recipe": recipe.get("recipe")})
@@ -63,7 +65,7 @@ def main() -> int:
         s = summarize(e["metrics"], prim_of)
         e["summary"] = s
         rows.append(e)
-    rows.sort(key=lambda e: -e["summary"]["macro"]["acc"])
+    rows.sort(key=lambda e: (e["tier"] == "API" and -2 or 0, -e["summary"]["macro"]["acc"]))
 
     NL = chr(10)
     cols = ["model", "tier", "macro acc", "macro ECE", "macro Brier", "sel@90", "choice acc", "score acc", "noul acc", "TVD→human", "GPU", "test cost"]
