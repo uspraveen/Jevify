@@ -28,7 +28,7 @@ def _rec(i, color, label, prim="choice"):
     elif prim == "noul":
         q = {"type": "noul", "instructions": "Is `image` red?"}
     else:
-        q = {"type": "score", "instructions": "How red is `image`?", "criteria": {"0": "not at all", "1": "somewhat", "2": "fully"}}
+        q = {"type": "score", "instructions": "How red is `image`?", "criteria": ["not at all", "somewhat", "fully"]}
     return BenchRecord(id=f"toy/train/{i}", source="toy", primitive=prim, split="train",
                        state={"image": _img(color)}, question=q, label=label)
 

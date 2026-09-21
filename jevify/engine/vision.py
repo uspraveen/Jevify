@@ -50,7 +50,9 @@ def load_image(x: Any):
         if x.startswith(("http://", "https://")):
             import urllib.request
 
-            with urllib.request.urlopen(x, timeout=30) as r:
+            # many image hosts (Wikimedia among them) answer Python's default agent with 403
+            req = urllib.request.Request(x, headers={"User-Agent": "jevify/0.1 (+https://github.com/uspraveen/Jevify)"})
+            with urllib.request.urlopen(req, timeout=30) as r:
                 return Image.open(io.BytesIO(r.read())).convert("RGB")
         return Image.open(x).convert("RGB")
     raise TypeError(f"cannot read an image from {type(x).__name__}")
