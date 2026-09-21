@@ -61,7 +61,15 @@ def main() -> int:
         recipe = json.loads((d / "recipe.json").read_text(encoding="utf-8")) if (d / "recipe.json").exists() else {}
         suffix = "" if not run.get("tier") else (" residual" if run.get("residual") else " replace")
         tier = f"Tier {run.get('tier', 0)}{suffix}"
-        entries.append({"run": d.name, "label": run.get("model_id", d.name) + ("" if not run.get("tier") else f" ({tier})"),
+        # two runs of the same tier on the same backbone must not share a label: name the
+        # hyperparameters that differ from the defaults (a low-LR or soft-label Tier 2 arm)
+        variant = []
+        if run.get("tier") == 2 and run.get("lora_lr") not in (None, 1e-4):
+            variant.append(f"lr {run['lora_lr']:g}")
+        if run.get("soft_labels"):
+            variant.append("soft labels")
+        shown = tier + (", " + ", ".join(variant) if variant else "")
+        entries.append({"run": d.name, "label": run.get("model_id", d.name) + ("" if not run.get("tier") else f" ({shown})"),
                         "tier": tier, "params": "",
                         "metrics": json.loads((d / "test_metrics.json").read_text(encoding="utf-8")),
                         "preds": d / "test_predictions.jsonl", "cost": run.get("est_cost_usd"),
