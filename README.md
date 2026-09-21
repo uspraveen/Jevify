@@ -78,14 +78,19 @@ unchanged to K=151 (clinc150 moves −0.008). What collapses under replacement i
 Tier 2 (rank-16 LoRA trained jointly with the residual heads, one A40) lifts Qwen3.5-2B from
 0.632 to **0.690** macro accuracy and Qwen3.5-4B from 0.698 to **0.747**, and fixes the Tier 1 weak
 spot outright: the held-out ordinal scale gains **+0.17** accuracy *and* gets better calibrated.
-At 2B the gain came with Jev-like overconfidence on ambiguous questions (ChaosNLI ECE 0.077 →
-0.215; Jev: 0.222); a lower LoRA learning rate (3e-5) gave more accuracy *and* held-out ECE 0.086,
-and training on human label distributions instead did not help (TVD 0.433, Jev's number). But
-those three arms are one seed each and sit within the ±0.05 the seed study found, so which arm is
-"best" is unresolved until their seeds finish. What holds regardless: at 4B the LoRA improves
-held-out accuracy (0.714 → 0.769) and held-out ECE (0.139 → 0.107) at once, the 4B does not
-overfit after one pass the way the 2B does (its best epoch is the second), and the 2B arms all
-overfit after one. [· detail](docs/FINDINGS.md#7-tier-2-letting-the-backbone-move)
+The learning rate decides the calibration, and three seeds per arm agree: at 3e-5 the 2B model is
+better than at 1e-4 on the sources it never trained on — accuracy **0.716 ± 0.003** vs 0.700 ± 0.002,
+ECE **0.083 ± 0.004** vs 0.104 ± 0.014 — at the same trained-source accuracy, and its agreement with
+human label distributions (TVD 0.339) is the best of any model tested (Jev 0.432). Two things the
+seeds took away: training on human label distributions did not help (TVD 0.433), and the low
+learning rate does *not* rescue the ambiguous-question calibration the LoRA costs — ChaosNLI ECE
+ranges 0.16–0.33 across seeds in both arms, at Jev's level (0.222) and far from the Tier 1
+residual's 0.077. One thing they added: Tier 2's held-out accuracy is seed-stable (±0.003) where
+Tier 1's was bimodal (±0.049) — partly because every LoRA run stops after one or two passes, the
+regime in which (2) showed the head is stable too. At 4B the LoRA improves held-out accuracy
+(0.714 → 0.769) and held-out ECE (0.139 → 0.107) at once and does not overfit after one pass;
+that run is one seed at the high learning rate.
+[· detail](docs/FINDINGS.md#7-tier-2-letting-the-backbone-move)
 
 **6 · Instruction tuning does hurt calibration — 1.3–1.8× worse raw ECE — but it is almost
 entirely a temperature problem.** Gemma-4-E2B-it starts at ECE 0.361 and lands at 0.158 after one
@@ -268,7 +273,8 @@ per-config metrics, recipe and figures.
 - [x] Five-seed error bars on Tier 1: held-out generalization is seed-dependent (0.579 ± 0.049); README corrected
 - [x] Tier 2 at 4B: macro 0.747, above Jev's 0.733; Jev still leads on held-out sources
 - [x] Vision served at Jev speed: recipe-fitted Qwen3-VL-2B published; 68–79 ms per image question on one A40
-- [ ] Seeds on the Tier 2 arms and the 4B head (running); soft labels at the low learning rate
+- [x] Seeds on the Tier 2 arms: the learning-rate result holds (3 seeds each); LoRA held-out accuracy is seed-stable
+- [ ] Soft labels at the low learning rate; the low learning rate at 4B
 - [ ] Vision Tier 2: LoRA confined to the tower vs the decoder vs both (running); more ordinal scales; Tier 1 at 7B+
 - [ ] Label-first synthetic data pipeline; HF Space; model zoo
 

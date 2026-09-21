@@ -332,22 +332,51 @@ separate arms, same seed, same data, same held-out sources:
 | **soft labels** (human distributions where they exist), lr 1e-4 | 0.674 | 0.116 | 0.672 | 0.139 | 0.433 |
 | Tier 1 residual, for reference | 0.632 | 0.069 | 0.631 | 0.090 | 0.374 |
 
-**The learning rate was the cause; the loss was not.** At 3e-5 the LoRA arm gains *more*
-accuracy than at 1e-4 and recovers the calibration: held-out ECE 0.086 is better than the Tier 1
-residual and equal to Jev, and TVD to human distributions 0.332 is the best of any model tested
-(Jev: 0.432). Soft-label training, the hypothesis I wrote as "most likely" in the previous
-revision, is a negative result: it improves ECE exactly where the distributions were used in
-training (GoEmotions 0.242 → 0.084) but *worsens* agreement with human distributions overall — TVD
-0.433, identical to Jev's, and 0.099 → 0.280 on `civil_comments` — which is the one metric it was
-built to optimize. Why it fails on the Noul source is not yet understood, and the obvious
-combination (soft labels at the low learning rate) has not been run. Every arm is one seed; the
-seed study in Section 6 is what bounds how much of a 0.02 difference is noise.
+**The learning rate was the cause; the loss was not — and three seeds per arm say the same.**
+Soft-label training, the hypothesis I wrote as "most likely" in the previous revision, is a
+negative result: it improves ECE exactly where the distributions were used in training
+(GoEmotions 0.242 → 0.084) but *worsens* agreement with human distributions overall — TVD 0.433,
+identical to Jev's, and 0.099 → 0.280 on `civil_comments` — which is the one metric it was built
+to optimize. Why it fails on the Noul source is not yet understood, and the obvious combination
+(soft labels at the low learning rate) has not been run.
+
+The two hard-label arms were then run at two more seeds each (init, data order, slot
+subsampling). Mean ± sd over three seeds, Jev and the five-seed Tier 1 residual for reference:
+
+| Qwen3.5-2B, Tier 2 arm | held-out acc | held-out ECE | trained acc | trained ECE | macro acc | macro ECE | TVD→human | ChaosNLI ECE |
+|---|---|---|---|---|---|---|---|---|
+| LoRA lr 1e-4, 3 epochs | 0.700 ± 0.002 | 0.104 ± 0.014 | 0.681 ± 0.013 | 0.118 ± 0.004 | 0.686 ± 0.010 | 0.114 ± 0.007 | 0.360 (0.344–0.370) | 0.262 (0.197–0.376) |
+| LoRA **lr 3e-5**, 2 epochs | **0.716 ± 0.003** | **0.083 ± 0.004** | 0.679 ± 0.010 | **0.107 ± 0.006** | **0.690 ± 0.008** | **0.100 ± 0.005** | **0.339** (0.323–0.363) | 0.228 (0.159–0.328) |
+| Tier 1 residual, 5 seeds (6.3a) | 0.579 ± 0.049 | 0.145 ± 0.050 | 0.635 ± 0.007 | 0.072 ± 0.011 | | | 0.374 (published seed) | 0.077 (published seed) |
+| Jev 1.13.0 | 0.835 | 0.090 | 0.694 | 0.122 | 0.733 | 0.113 | 0.432 | 0.222 |
+
+Three things survive the seeds, and one does not.
+
+*Survives:* the low learning rate is better on the sources the model never trained on —
++0.016 accuracy with both spreads at 0.003 or less, and ECE 0.083 against 0.104 — at the same
+trained-source accuracy. Every low-LR seed keeps the LM weight at 0.99; every high-LR seed
+pulls it to 0.975, the direction 6.3a associates with held-out damage.
+
+*Survives, and is new:* **Tier 2's held-out accuracy is seed-stable where Tier 1's was
+bimodal** — ±0.002 and ±0.003 against ±0.049. Part of that is the schedule: every Tier 2 run
+stops after its first or second pass, and 6.3a's intervention shows that a short schedule alone
+stabilizes the Tier 1 head (0.621 ± 0.004 with a cap of six epochs). Whether a LoRA that
+trains longer would rediscover the bimodality is untested.
+
+*Survives as a direction, not a magnitude:* human-distribution agreement. All three low-LR
+seeds beat all three high-LR seeds on the mean, but the ranges overlap (0.363 vs 0.344), so the
+honest statement is "≈0.02 better, every seed under Jev's 0.432".
+
+*Does not survive:* the previous revision's claim that the low learning rate "recovers the
+calibration" on ambiguous questions. ChaosNLI ECE spans 0.159–0.328 within the low-LR arm and
+0.197–0.376 within the other; the means (0.228, 0.262) sit at Jev's 0.222 and far from the Tier
+1 residual's 0.077. The LoRA's cost on contested items is real, seed-independent, and not
+removed by the learning rate. The one-seed comparison (0.196 vs 0.215) was noise.
 
 One general lesson survives either way: with LoRA capacity, a small change in learning rate moves
 calibration by more than the entire Tier 0 → Tier 1 step did. Calibration under fine-tuning is a
-hyperparameter question before it is an objective question. *Caveat added after 6.3a: the three arms
-differ by ~0.02 on held-out metrics, inside the ±0.05 the Tier 1 seed study found, so which arm is
-best is not resolved by one seed each. Seeds for both LoRA arms are running.*
+hyperparameter question before it is an objective question. *(`results/qwen35-2b-t2{,-s1,-s2}/`,
+`results/qwen35-2b-t2-lowlr{,-s1,-s2}/`)*
 
 **7.6 At 4B the LoRA gains accuracy and calibration together, and does not overfit after one
 pass.** Qwen3.5-4B, the original recipe (lr 1e-4, 3 epochs): validation loss 0.720 → **0.633** →
@@ -540,7 +569,8 @@ this for any recipe-fitted run.
 - **Why does soft-label training hurt agreement with human distributions on Noul?** It helps on
   GoEmotions and fails on `civil_comments` (7.5). Soft labels at the low learning rate, and a look at
   what the Noul head actually predicts under soft targets, are the next two runs.
-- **Does the LoRA learning-rate result hold at 4B?** In progress.
+- **Does the LoRA learning-rate result hold at 4B?** At 2B it holds across three seeds (7.5); the 4B
+  run used the high learning rate and one seed.
 - **Does a vision-scoped LoRA help where a decoder-scoped one cannot?** Section 8 makes the
   tower addressable but does not adapt it. The natural test is AI2D, the weakest source by a
   wide margin (0.652) and the one whose difficulty is most plausibly perceptual rather than
