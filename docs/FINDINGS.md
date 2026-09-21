@@ -331,32 +331,53 @@ hyperparameter question before it is an objective question.
 
 ## 8. Engineering findings
 
-**7.1 One answer-cue convention keeps every candidate single-token across every tokenizer tested.**
+**8.1 One answer-cue convention keeps every candidate single-token across every tokenizer tested.**
 `"Answer: "` followed by a bare candidate keeps digits, letters, two-letter identifiers and yes/no
 to one token in Qwen3.5, Gemma 4, K2-Horizon, SmolLM3, Olmo 3 and Apertus. With a leading-space
 candidate instead, Score digits silently became two tokens. Identifiers are then *discovered* per
 tokenizer (A–Z, then single-token AA–ZZ), so Choice up to K=255 stays on the batched path.
 
-**7.2 Tree attention is exact where it is supported, and must be verified per architecture.** Scoring
+**8.2 Tree attention is exact where it is supported, and must be verified per architecture.** Scoring
 every candidate in one sequence under a block-diagonal mask matches naive recompute to 2e-5 in fp32.
 In bf16 the difference reaches 0.04 in probability, so the engine's self-check runs in probability
 space and falls back to cache expansion on any architecture that ignores a custom 4D mask. Large-K
 items went 0.41 s → 0.15 s on an L4.
 
-**7.3 The LM head over every position is the hidden memory cost.** A 32×1500-token batch over
+**8.3 The LM head over every position is the hidden memory cost.** A 32×1500-token batch over
 Qwen's 250k vocab is a 24 GB logits tensor — an OOM that looks like a batch-size problem. Computing
 logits only at needed positions fixed it.
 
-**7.4 A feature extractor must reuse the scorer's exact tokenization.** Re-encoding the prompt text
+**8.4 A feature extractor must reuse the scorer's exact tokenization.** Re-encoding the prompt text
 put the decision position at the cue's trailing space instead of the merged `" A"` token one position
 earlier — a ~0.5 nat disagreement that would have silently poisoned the residual. The two paths are
 now pinned together by a test.
 
-**7.5 Silent data bugs are the expensive ones.** The Modal job's dataset download never included
+**8.5 Silent data bugs are the expensive ones.** The Modal job's dataset download never included
 `train.jsonl`, so the first Tier 1 job trained on **zero records** and reported a plausible-looking
 validation loss. A smoke run with tiny caps caught it before any real spend.
 
-**7.6 Cost.** The entire study — nine Tier 0 checkpoints, two Tier 1 variants, all 22,773 records
+**8.6 A serving path reproduces the research readout, once the same tokenization bug was fixed a
+second time.** ``VLLMScorer`` runs the Tier 0 readout on vLLM — ``allowed_token_ids`` masks every
+token but the K identifiers and the processed log-probs are then exactly the log-softmax over
+them. On 60 identical records the first version disagreed with the HF path by a median 0.04 in
+probability (max 0.13) on both a hybrid and a pure-attention backbone — so not kernel numerics.
+It was 8.4 again: the cue ends in a space, "Answer: " + "A" tokenizes with the space *merged into
+the candidate*, and the HF scorer's joint tokenization feeds the model "…Answer:" and scores " A".
+Fed as text, vLLM saw "…Answer: " and predicted what follows a standalone space while the logit
+read was still " A". Feeding the joint tokenization's ids instead brings the two paths to a
+median |Δp| of 0.007 (Qwen3.5-2B) and 0.011 (SmolLM3-3B), max 0.03–0.06, 59/60 identical argmax —
+inside the ±0.01–0.02 jitter the Jev API shows on *identical* calls. The same 122 prompts,
+including 151-option ones, score in 2.2 s.
+
+**8.7 The cacheable prompt order costs accuracy.** Putting the question and options *before* the
+state makes the repeated part of the prompt a prefix a serving engine can cache, so a repeated
+question would cost only its state tokens. Measured on Qwen3.5-2B over the full validation split:
+**−0.042 macro accuracy** — ARC 0.80 → 0.50, MMLU −0.12, MNLI −0.115 — with ECE roughly unchanged.
+Answer choices shown before the passage they refer to is a known weakness of small models. So the
+order is an option (``Recipe.state_last``), not the default; the state-first order is already
+cache-friendly for the "one state, many questions" pattern, which is how the API is shaped.
+
+**8.8 Cost.** The entire study — nine Tier 0 checkpoints, two Tier 1 variants, all 22,773 records
 each — ran for about **$11** of GPU on Modal (L4 for ≤1B, A100-80GB above), plus roughly $0.15 of
 Jev API calls for 37,573 requests.
 
@@ -368,7 +389,7 @@ The open questions used to end by asking whether a System One question survives
 when the option semantics live in an image. It does, and more of the text findings come
 with it than we expected.
 
-**8.1 A VLM Jevifies without changing the contract.** `state` carries PIL images, the
+**9.1 A VLM Jevifies without changing the contract.** `state` carries PIL images, the
 question is the same typed object, and the answer set is the same single-token identifiers.
 Qwen3-VL-2B-Instruct, no training, 4,244 records:
 
@@ -378,18 +399,18 @@ Qwen3-VL-2B-Instruct, no training, 4,244 records:
 | `aokvqa` (knowledge VQA) | choice K=4 | 744 | 0.793 | 0.124 | 0.331 | — |
 | `ai2d` (science diagrams) | choice | 1,500 | 0.652 | 0.175 | 0.510 | — |
 
-**8.2 The primitive ordering transfers intact.** In text we found Noul roughly twice as
+**9.2 The primitive ordering transfers intact.** In text we found Noul roughly twice as
 well calibrated as 2-way Choice. In vision, with a different model, different data and a
 different modality, the same ordering appears: Noul 0.083, Choice 0.124 and 0.175. Whatever
 makes an absolute yes/no question easier to calibrate than a relative one is not a property
 of text.
 
-**8.3 Nearly a quarter of a "2B" VLM is vision.** The inventory `describe()` returns for
+**9.3 Nearly a quarter of a "2B" VLM is vision.** The inventory `describe()` returns for
 Qwen3-VL-2B: a 407M-parameter, 24-layer `Qwen3VLVisionModel` tower (19.1% of the model) plus
 a 75.5M projector (3.6%) — 22.7% in front of a 1.65B decoder. Tier 0 and Tier 1 read the
 decoder, so that entire stage is upstream of anything the decision head can fix.
 
-**8.4 Starving the encoder degrades accuracy and calibration together — the model knows it
+**9.4 Starving the encoder degrades accuracy and calibration together — the model knows it
 knows less.** Same records, same prompt, same decoder; only the pixel budget moves. 400
 records per source:
 
@@ -407,7 +428,7 @@ we tested. On POPE specifically, the most starved encoder (42 tokens) is still b
 calibrated (0.109) than either Choice task at *any* budget. A hallucination-prone setting did
 not produce confident hallucination; it produced appropriate doubt.
 
-**8.5 The budget saturates, and only the measured token count reveals it.** Budgets of 512 and
+**9.5 The budget saturates, and only the measured token count reveals it.** Budgets of 512 and
 1024 patches both yield 280 median tokens, and score within noise of each other — the images
 are simply smaller than the budget. A deployment reading its own config would believe it had
 doubled the visual signal. This is why `pixel_budget()` reports what applied and
@@ -418,13 +439,13 @@ doubled the visual signal. This is why `pixel_budget()` reports what applied and
 caps, so the two tables are not directly comparable. Within the sweep, every budget sees the
 identical records, which is the comparison that matters.*
 
-**8.6 Scoping LoRA to a vision tower cannot be expressed with suffix names.** peft matches
+**9.6 Scoping LoRA to a vision tower cannot be expressed with suffix names.** peft matches
 `target_modules` against the end of a module path, and `q_proj` is a suffix on both halves of
 a VLM. A suffix list meaning "adapt the encoder" silently adapts the whole model — the kind of
 mistake that produces a result rather than an error. `lora_pattern()` returns a full-path regex
 instead, and a test asserts the vision pattern matches nothing under the decoder.
 
-**8.7 What we deliberately did not build.** Swapping one vision tower for another. The
+**9.7 What we deliberately did not build.** Swapping one vision tower for another. The
 projector is trained against a specific encoder's output geometry, so the swap succeeds
 mechanically and destroys the model. Doing it honestly means retraining the projector, which is
 a larger job than Jevification and a different claim.
