@@ -121,6 +121,23 @@ tokens, which only the *measured* token count reveals.
 
 ![What the vision encoder's budget buys](results/vision-budget/vision_budget.png)
 
+**11 · Jev's flat latency curve is arithmetic, not architecture — and a serving path gives our
+engine the same shape.** Jev's round trip barely moves with the number of options (186 ms at K=4,
+219 ms at K=151). Controlled probes with the server's own clock say why: **~75 ms fixed + ~5.5 µs
+per input token**, linear to 27,000 tokens, with option tokens costing exactly what state tokens
+cost — no cache, no fixed window, no batching wait. 151 options are ~1,300 tokens, ~7 ms. The
+answer is a template filled in one pass (2,570 "output" tokens in 128 ms), not a decode. Our
+research path paid ~120 µs per token on an A40, so the same options cost it 150 ms; the same model
+on the same GPU through vLLM pays ~48 µs, halves the fixed floor and runs 4–5× more records per
+second. Below K≈60 a 2B on our A40 now answers in ~46 ms — 4× under Jev's round trip.
+[· probes](results/jev-latency-probe/README.md) · [detail](docs/FINDINGS.md#1-what-jev-actually-does)
+
+![Same model, same GPU: research path vs serving path](results/latency/latency_before_after.png)
+
+The original ladder (research path, four sizes, three tiers) is kept as
+[`results/latency/latency_ladder.png`](results/latency/latency_ladder.png); Jev's server-time fit is
+[`results/jev-latency-probe/server_time_vs_tokens.png`](results/jev-latency-probe/server_time_vs_tokens.png).
+
 ## Try it
 
 **Playground:** [https://uspraveenraj--jevify-playground.modal.run](https://uspraveenraj--jevify-playground.modal.run) — ask a Jevified open model typed questions and watch the
@@ -238,6 +255,7 @@ per-config metrics, recipe and figures.
 - [x] Vision-encoder budget sweep: accuracy and calibration degrade together, budget saturation measured
 - [x] Tier 2: LoRA jointly with residual heads — +0.058 macro accuracy at 2B; at lr 3e-5 the best held-out ECE and human-agreement of any model; overfits after one pass
 - [x] Tier 2 ablation: learning rate vs hard-label loss — the learning rate was the cause of the overconfidence; soft-label training is a negative result on human agreement
+- [x] Latency: Jev's server-time law measured; vLLM serving path with the same numbers, 4-5x throughput
 - [x] Five-seed error bars on Tier 1: held-out generalization is seed-dependent (0.579 ± 0.049); README corrected
 - [x] Tier 2 at 4B: macro 0.747, above Jev's 0.733; Jev still leads on held-out sources
 - [ ] Seeds on the Tier 2 arms and the 4B head (running); soft labels at the low learning rate
