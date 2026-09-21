@@ -8,6 +8,9 @@ For one rendered question we extract
   option's line in the prompt, so it carries what the option *means* rather than which
   identifier token names it. This is the difference from Tier 0, which can only use the
   LM head's logit for the identifier.
+- ``lm``: that Tier 0 log-score itself, read from the same forward pass (every candidate
+  is a single token by construction), so a head can be trained as a *residual* on the
+  model's own prior instead of replacing it.
 
 Everything is stored fp16 and option-subsampled at training time (``max_slots``), which
 is what keeps the cache small and the head K-agnostic: it scores each option
@@ -30,6 +33,7 @@ from .template import CUE, Rendered, render, to_chat
 class SlotBatch:
     decision: torch.Tensor          # (B, H)
     slots: torch.Tensor             # (B, S, H) padded
+    lm: torch.Tensor                # (B, S) Tier 0 log-scores, padded
     mask: torch.Tensor              # (B, S) bool, True where a slot is real
     label: torch.Tensor             # (B,) index into the kept slots
     primitive: list[str]
@@ -37,7 +41,7 @@ class SlotBatch:
     keys: list[list[str]]           # answer key per kept slot
 
     def to(self, device: str) -> "SlotBatch":
-        return SlotBatch(self.decision.to(device), self.slots.to(device), self.mask.to(device),
+        return SlotBatch(self.decision.to(device), self.slots.to(device), self.lm.to(device), self.mask.to(device),
                          self.label.to(device), self.primitive, self.ids, self.keys)
 
 
@@ -105,12 +109,17 @@ class FeatureExtractor:
         crit = question["criteria"]
         return [f"{k}" if not crit.get(k) else f"{k} — {crit[k]}"[:120] for k in rd.keys]
 
-    def _plan(self, r: BenchRecord, max_slots: int, rng, identifiers) -> tuple[str, list[int], list[str], int]:
+    def _plan(self, r: BenchRecord, max_slots: int, rng, identifiers):
+        """Tokenize exactly as the Tier 0 scorer does, so the decision position and the
+        candidate tokens are the same ones Tier 0 scores. Re-encoding the prompt text
+        instead would read logits at the cue's trailing space and silently disagree."""
         rd = render(r.state, r.question, identifiers=identifiers)
         prefix = self._prefix(rd)
         ids = self.scorer.tokenizer(prefix, add_special_tokens=True)["input_ids"]
         if len(ids) > self.scorer.max_prefix_tokens:
             prefix = self.scorer.tokenizer.decode(ids[-self.scorer.max_prefix_tokens:], skip_special_tokens=True)
+        tok = self.scorer.tokenize(prefix, rd.candidates)
+        cand_tokens = [c[0] for c in tok.cand_ids]      # single-token by construction
         keys = list(rd.keys)
         keep = list(range(len(keys)))
         if max_slots and len(keys) > max_slots:
@@ -119,9 +128,10 @@ class FeatureExtractor:
             pick = rng.choice(others, size=max_slots - 1, replace=False)
             keep = sorted([gold] + [int(i) for i in pick])
         needles = self._needles(rd, r.question)
-        pos = _line_end_positions(self.scorer, prefix, [needles[i] for i in keep])
+        last = len(tok.prefix_ids) - 1
+        pos = [min(p, last) for p in _line_end_positions(self.scorer, prefix, [needles[i] for i in keep])]
         kept = [keys[i] for i in keep]
-        return prefix, pos, kept, kept.index(str(r.label))
+        return tok.prefix_ids, pos, kept, kept.index(str(r.label)), [cand_tokens[i] for i in keep]
 
     @torch.inference_mode()
     def extract(self, records: Sequence[BenchRecord], *, max_slots: int = 0, rng: np.random.Generator | None = None,
@@ -129,25 +139,31 @@ class FeatureExtractor:
         rng = rng or np.random.default_rng(0)
         ids_list = identifiers or self.scorer.identifiers()
         plans = [self._plan(r, max_slots, rng, ids_list) for r in records]
+        pad = self.scorer.pad_id
         out: list[dict[str, Any]] = []
         order = sorted(range(len(plans)), key=lambda i: len(plans[i][0]))   # group similar lengths
         for start in range(0, len(order), batch_size):
             chunk = [order[j] for j in range(start, min(start + batch_size, len(order)))]
-            enc = self.scorer.tokenizer([plans[i][0] for i in chunk], add_special_tokens=True,
-                                        padding=True, padding_side="right", return_tensors="pt")
+            width = max(len(plans[i][0]) for i in chunk)
+            ids = torch.full((len(chunk), width), pad, dtype=torch.long)
+            attn = torch.zeros((len(chunk), width), dtype=torch.long)
+            for row, i in enumerate(chunk):                    # right padding: real tokens keep their positions
+                seq = plans[i][0]
+                ids[row, : len(seq)] = torch.tensor(seq)
+                attn[row, : len(seq)] = 1
             self._captured = None
-            self.scorer.model(input_ids=enc["input_ids"].to(self.scorer.device),
-                              attention_mask=enc["attention_mask"].to(self.scorer.device), use_cache=False)
+            res = self.scorer.model(input_ids=ids.to(self.scorer.device), attention_mask=attn.to(self.scorer.device),
+                                    use_cache=False)
             hs = self._captured
             assert hs is not None, "forward hook did not fire"
-            lengths = enc["attention_mask"].sum(-1).tolist()
             for row, i in enumerate(chunk):
-                _, pos, keys, label = plans[i]
-                last = int(lengths[row]) - 1
-                pos = [min(p, last) for p in pos]
+                seq, pos, keys, label, cand = plans[i]
+                last = len(seq) - 1
+                logp = torch.log_softmax(res.logits[row, last].float(), dim=-1)
                 out.append({"id": records[i].id, "source": records[i].source, "primitive": records[i].primitive,
                             "decision": hs[row, last].to(torch.float16).cpu().numpy(),
                             "slots": hs[row, torch.tensor(pos, device=hs.device)].to(torch.float16).cpu().numpy(),
+                            "lm": logp[torch.tensor(cand, device=logp.device)].to(torch.float32).cpu().numpy(),
                             "keys": keys, "label": label})
         by_id = {r["id"]: r for r in out}
         return [by_id[r.id] for r in records if r.id in by_id]
@@ -163,9 +179,10 @@ def save_features(path, rows: list[dict[str, Any]]) -> int:
     dec = np.stack([r["decision"] for r in rows])
     counts = np.array([len(r["keys"]) for r in rows], dtype=np.int32)
     slots = np.concatenate([r["slots"] for r in rows], axis=0)
+    lm = np.concatenate([r["lm"] for r in rows], axis=0)
     labels = np.array([r["label"] for r in rows], dtype=np.int32)
     meta = [{"id": r["id"], "source": r["source"], "primitive": r["primitive"], "keys": r["keys"]} for r in rows]
-    np.savez_compressed(path, decision=dec, slots=slots, counts=counts, labels=labels, meta=json.dumps(meta))
+    np.savez_compressed(path, decision=dec, slots=slots, lm=lm, counts=counts, labels=labels, meta=json.dumps(meta))
     return len(rows)
 
 
@@ -178,7 +195,8 @@ def load_features(path) -> list[dict[str, Any]]:
     rows, off = [], 0
     for i, m in enumerate(meta):
         n = int(counts[i])
-        rows.append({**m, "decision": z["decision"][i], "slots": slots[off:off + n], "label": int(z["labels"][i])})
+        rows.append({**m, "decision": z["decision"][i], "slots": slots[off:off + n], "lm": z["lm"][off:off + n],
+                     "label": int(z["labels"][i])})
         off += n
     return rows
 
@@ -189,13 +207,15 @@ def collate(rows: Sequence[dict[str, Any]]) -> SlotBatch:
     H = rows[0]["decision"].shape[-1]
     dec = torch.zeros(B, H)
     slots = torch.zeros(B, S, H)
+    lm = torch.full((B, S), -20.0)
     mask = torch.zeros(B, S, dtype=torch.bool)
     label = torch.zeros(B, dtype=torch.long)
     for i, r in enumerate(rows):
         n = len(r["keys"])
         dec[i] = torch.from_numpy(r["decision"].astype(np.float32))
         slots[i, :n] = torch.from_numpy(r["slots"].astype(np.float32))
+        lm[i, :n] = torch.from_numpy(np.asarray(r["lm"], dtype=np.float32))
         mask[i, :n] = True
         label[i] = r["label"]
-    return SlotBatch(dec, slots, mask, label, [r["primitive"] for r in rows], [r["id"] for r in rows],
+    return SlotBatch(dec, slots, lm, mask, label, [r["primitive"] for r in rows], [r["id"] for r in rows],
                      [r["keys"] for r in rows])

@@ -35,7 +35,7 @@ def _bench_root() -> Path:
 
     root = Path("/runs/jev-bench")
     snapshot_download(BENCH, repo_type="dataset", local_dir=str(root), token=os.environ.get("HF_TOKEN"),
-                      allow_patterns=["data/*/test.jsonl", "data/*/validation.jsonl", "manifest.json"])
+                      allow_patterns=["data/*/test.jsonl", "data/*/validation.jsonl", "data/*/train.jsonl", "manifest.json"])
     return root
 
 
@@ -222,7 +222,7 @@ HELDOUT_SOURCES = ["clinc150", "arc_challenge", "yelp5", "measuring_hate_speech"
 def _tier1_impl(gpu_name: str, model_id: str, run_id: str, layer: int = -1, chat: bool = True,
                 train_per_source: int = 600, val_per_source: int = 150, max_slots: int = 16, dim: int = 512,
                 epochs: int = 20, lr: float = 3e-4, batch: int = 8, trust_remote_code: bool = False,
-                heldout: str = "") -> dict:
+                heldout: str = "", test_per_source: int = 0, residual: bool = True) -> dict:
     import numpy as np
     import torch
 
@@ -254,7 +254,7 @@ def _tier1_impl(gpu_name: str, model_id: str, run_id: str, layer: int = -1, chat
 
     train_recs = load("train", train_per_source, exclude=held)
     val_recs = load("validation", val_per_source, exclude=held)
-    test_recs = load("test", 0)
+    test_recs = load("test", test_per_source)
     print(f"[{run_id}] {model_id} on {gpu_name}: {len(train_recs)} train / {len(val_recs)} val / {len(test_recs)} test; "
           f"heldout={held}", flush=True)
 
@@ -265,7 +265,7 @@ def _tier1_impl(gpu_name: str, model_id: str, run_id: str, layer: int = -1, chat
     feat_s = time.time() - t_feat
     print(f"[{run_id}] features in {feat_s:.0f}s", flush=True)
 
-    cfg = HeadConfig(hidden=fx.hidden, dim=dim, layer=layer, backbone=model_id)
+    cfg = HeadConfig(hidden=fx.hidden, dim=dim, layer=layer, backbone=model_id, residual=residual)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     t_train = time.time()
     heads, info = train_heads(train_rows, val_rows, cfg, epochs=epochs, lr=lr, device=device, verbose=True)
@@ -297,7 +297,8 @@ def _tier1_impl(gpu_name: str, model_id: str, run_id: str, layer: int = -1, chat
     elapsed = time.time() - t0
     meta = {"run_id": run_id, "model_id": model_id, "gpu": gpu_name, "tier": 1, "layer": layer, "chat_applied": fx.chat,
             "heldout_sources": held, "n_train": len(train_rows), "n_val": len(val_rows), "n_test": len(test_rows),
-            "max_slots": max_slots, "dim": dim, "epochs": epochs, "lr": lr,
+            "max_slots": max_slots, "dim": dim, "epochs": epochs, "lr": lr, "residual": residual,
+            "lm_weight": [round(float(x), 3) for x in heads.lm_weight.detach().cpu()],
             "best_epoch": info["best_epoch"], "best_val_loss": round(info["best_val_loss"], 4),
             "feature_s": round(feat_s), "train_s": round(train_s), "wall_s": round(elapsed, 1),
             "est_cost_usd": round(elapsed / 3600 * RATE_PER_HOUR.get(gpu_name, 2.5), 3),
@@ -322,10 +323,10 @@ def tier1_a100(*args, **kwargs) -> dict:
 def tier1(model_id: str, run_id: str, gpu: str = "A100-80GB", layer: int = -1, chat: bool = True,
           train_per_source: int = 600, val_per_source: int = 150, max_slots: int = 16, dim: int = 512,
           epochs: int = 20, lr: float = 3e-4, batch: int = 8, trust_remote_code: bool = False, heldout: str = "",
-          out: str = "runs"):
+          test_per_source: int = 0, residual: bool = True, out: str = "runs"):
     fn = tier1_a100 if gpu.startswith("A100") else tier1_l4
     info = fn.remote(model_id, run_id, layer, chat, train_per_source, val_per_source, max_slots, dim, epochs, lr,
-                     batch, trust_remote_code, heldout)
+                     batch, trust_remote_code, heldout, test_per_source, residual)
     local = Path(out) / run_id
     local.mkdir(parents=True, exist_ok=True)
     (local / "test_predictions.jsonl").write_bytes(fetch.remote(run_id, "test_predictions.jsonl"))

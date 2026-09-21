@@ -3,8 +3,11 @@
 One shared projection feeds two scorers, mirroring what the behavioral probes showed
 about Jev — the primitives are different instruments, not one softmax with three skins:
 
-- Choice and Score share a *relative* slot scorer: ``score_i = f([h_dec, h_i, h_dec ⊙ h_i])``
-  then a softmax over the allowed answers. It scores each option independently of how many
+- Choice and Score share a *relative* slot scorer, applied as a **residual on the model's
+  own Tier 0 log-score**: ``score_i = w · lm_i + f([h_dec, h_i, h_dec ⊙ h_i])`` then a softmax
+  over the allowed answers. ``f`` is zero-initialized, so training starts exactly at Tier 0
+  and the head can only add to it — without this the head discards the LM head's knowledge
+  and regresses on unseen knowledge tasks (measured: arc_challenge -0.199, mmlu -0.119). It scores each option independently of how many
   there are, so a head trained with 16 options applies unchanged at K=151.
 - Noul gets its own *absolute* scorer: ``P(yes) = σ(g([h_dec, h_yes, h_dec ⊙ h_yes]))``,
   which is the semantics Jev's Noul has and which a softmax over {yes, no} does not.
@@ -38,6 +41,7 @@ class HeadConfig:
     dropout: float = 0.1
     layer: int = -1           # which backbone layer the features came from
     backbone: str = ""
+    residual: bool = True     # start from the Tier 0 log-score and learn a correction
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -54,6 +58,14 @@ class DecisionHeads(nn.Module):
         # per-primitive temperature, learned jointly (log-parameterized so it stays positive)
         self.log_temp = nn.Parameter(torch.zeros(3))
         self.prim_index = {"choice": 0, "score": 1, "noul": 2}
+        # residual: weight on the Tier 0 log-score per primitive, and a zero-initialized
+        # correction so the model *is* Tier 0 at step 0
+        self.lm_weight = nn.Parameter(torch.ones(3) if cfg.residual else torch.zeros(3))
+        self.lm_bias = nn.Parameter(torch.zeros(3))
+        if cfg.residual:
+            for scorer in (self.slot_scorer, self.noul_scorer):
+                nn.init.zeros_(scorer[-1].weight)
+                nn.init.zeros_(scorer[-1].bias)
 
     def _pair(self, dec: torch.Tensor, slots: torch.Tensor) -> torch.Tensor:
         d = self.proj(dec).unsqueeze(1).expand(-1, slots.shape[1], -1)
@@ -63,11 +75,14 @@ class DecisionHeads(nn.Module):
     def forward(self, batch: SlotBatch) -> dict[str, torch.Tensor]:
         """Returns per-row logits over the row's slots (choice/score) or a yes-logit (noul)."""
         feat = self._pair(batch.decision, batch.slots)
-        rel = self.slot_scorer(feat).squeeze(-1).masked_fill(~batch.mask, NEG)
-        absolute = self.noul_scorer(feat).squeeze(-1)
+        prim_ix = torch.tensor([self.prim_index[p] for p in batch.primitive], device=batch.decision.device)
+        w = self.lm_weight[prim_ix].unsqueeze(-1)
+        b = self.lm_bias[prim_ix].unsqueeze(-1)
+        base = w * batch.lm + b if self.cfg.residual else torch.zeros_like(batch.lm)
+        rel = (self.slot_scorer(feat).squeeze(-1) + base).masked_fill(~batch.mask, NEG)
+        absolute = self.noul_scorer(feat).squeeze(-1) + base
         temps = self.log_temp.exp()
-        out = {"relative": rel, "absolute": absolute, "temps": temps}
-        return out
+        return {"relative": rel, "absolute": absolute, "temps": temps}
 
     def distributions(self, batch: SlotBatch) -> list[torch.Tensor]:
         """Probability vector per row, in that row's slot order."""

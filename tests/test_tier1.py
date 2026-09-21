@@ -99,3 +99,36 @@ def test_noul_is_absolute_not_softmax(extractor):
     assert out["absolute"].shape[1] == 2
     p = predict_rows(model, rows)["n/1"]
     assert abs(p["1"] + p["0"] - 1) < 1e-5
+
+
+def test_lm_scores_captured_and_match_tier0(extractor):
+    """The LM log-score read from the feature pass must equal Tier 0's own scoring."""
+    from jevify.engine.template import render, to_chat
+    rec = BenchRecord("c/0", "c", "choice", "test", "I landed in berlin yesterday.", CHOICE_Q, "berlin")
+    row = extractor.extract([rec])[0]
+    rd = render(rec.state, rec.question, identifiers=extractor.scorer.identifiers())
+    prefix = to_chat(rd.prefix, extractor.scorer.tokenizer) if extractor.chat else rd.prefix
+    ref = extractor.scorer.score_many([(prefix, rd.candidates)])[0]
+    assert len(row["lm"]) == len(ref)
+    for a, b in zip(row["lm"], ref):
+        assert abs(float(a) - b) < 2e-3, (row["lm"], ref)
+
+
+def test_residual_head_starts_at_tier0(extractor):
+    """With residual=True and a zero-initialized correction, an untrained head must
+    reproduce the Tier 0 distribution exactly."""
+    import torch
+    from jevify.engine.features import collate
+    rows = extractor.extract([BenchRecord("c/0", "c", "choice", "test", "I flew to tokyo.", CHOICE_Q, "tokyo")])
+    model = DecisionHeads(HeadConfig(hidden=extractor.hidden, dim=32, dropout=0.0, residual=True))
+    p = predict_rows(model, rows)["c/0"]
+    tier0 = torch.softmax(torch.tensor(rows[0]["lm"], dtype=torch.float32), dim=-1)
+    for k, ref in zip(rows[0]["keys"], tier0):
+        assert abs(p[k] - float(ref)) < 1e-4, (p, tier0)
+
+
+def test_non_residual_head_ignores_lm(extractor):
+    rows = extractor.extract([BenchRecord("c/0", "c", "choice", "test", "I flew to tokyo.", CHOICE_Q, "tokyo")])
+    model = DecisionHeads(HeadConfig(hidden=extractor.hidden, dim=32, dropout=0.0, residual=False))
+    p = predict_rows(model, rows)["c/0"]
+    assert max(p.values()) < 0.9, "a fresh non-residual head should be near-uniform"
