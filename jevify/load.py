@@ -61,7 +61,10 @@ class JevifiedModel:
     def _ask_vision(self, state: Any, qs: dict[str, Any]) -> dict[str, Any]:
         """Images in `state` (PIL, path, URL, data URI or bytes) reach the model through its
         processor; everything after the logits is the text path's recipe and wire format."""
+        from .engine.vision import resolve_images
+
         engine = self.engine
+        state = resolve_images(state)                      # download / decode each image once per request
         items, plan = [], []
         for qid, qd in qs.items():
             it, rd = engine.scorer.item(state, qd, mode=engine.recipe.mode)

@@ -80,6 +80,29 @@ def split_images(state: Any) -> tuple[Any, list[Any]]:
     return walk(state), images
 
 
+def resolve_images(state: Any) -> Any:
+    """The same state with every image reference replaced by the loaded PIL image.
+
+    A request asks several questions about one state; without this, a URL in the state is
+    downloaded and decoded once *per question*. Resolving once makes the later per-question
+    ``split_images`` a no-op on already-loaded images.
+    """
+    def walk(node: Any, key: str | None = None) -> Any:
+        if _is_image(node):
+            return node
+        if isinstance(node, (bytes, bytearray)):
+            return load_image(node)
+        if isinstance(node, str) and key and key.lower() in IMAGE_KEYS and _looks_like_image_ref(node):
+            return load_image(node)
+        if isinstance(node, dict):
+            return {k: walk(v, k) for k, v in node.items()}
+        if isinstance(node, list):
+            return [walk(v, key) for v in node]
+        return node
+
+    return walk(state)
+
+
 def _looks_like_image_ref(s: str) -> bool:
     return s.startswith(("http://", "https://", "data:")) or s.lower().endswith(
         (".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"))

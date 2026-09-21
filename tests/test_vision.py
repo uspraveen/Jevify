@@ -139,3 +139,19 @@ def test_ask_answers_questions_about_an_image(scorer):
     assert out["q2"]["choice"] in ("red", "blue", "green") and abs(sum(out["q2"]["probabilities"].values()) - 1) < 1e-3
     assert set(out["q3"]["legend"]) == {"0", "1", "2"} and 0.0 <= out["q3"]["score"] <= 2.0
     assert scorer.last_input_tokens > 0                     # the processor's count, for `usage`
+
+
+def test_resolve_images_loads_each_reference_once(tmp_path, monkeypatch):
+    from jevify.engine import vision as V
+
+    path = tmp_path / "a.png"; _img("red").save(path)
+    calls = {"n": 0}
+    real = V.load_image
+    def counting(x):
+        calls["n"] += 1
+        return real(x)
+    monkeypatch.setattr(V, "load_image", counting)
+    resolved = V.resolve_images({"image": str(path), "note": "text", "extras": [{"figure": str(path)}]})
+    assert calls["n"] == 2 and V._is_image(resolved["image"]) and V._is_image(resolved["extras"][0]["figure"])
+    text_state, images = V.split_images(resolved)         # a later split finds loaded images: no more loads
+    assert calls["n"] == 2 and len(images) == 2 and text_state["image"] == "<image 1>"
