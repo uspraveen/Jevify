@@ -645,10 +645,14 @@ def fig_models_map(rows: list[dict[str, Any]], out: Path, title: str = "Jevified
     plt = _mpl()
     fig, ax = plt.subplots(figsize=(7.4, 5.2))
     pts = []
-    style = {"API": ("#eb6834", "D", 74), "Tier 0": (PRIM_COLOR["choice"], "o", 42), "Tier 1": ("#1baf7a", "^", 62)}
+    # marker shape is the primary encoding for tier (it survives print and colour blindness);
+    # colour is the redundant one
+    style = {"API": ("#eb6834", "D", 74), "Tier 0": (PRIM_COLOR["choice"], "o", 42),
+             "Tier 1": ("#1baf7a", "^", 62), "Tier 2": ("#7b4fbf", "s", 54)}
     for e in rows:
         s = e["summary"]["macro"]
-        kind = "API" if e.get("tier") == "API" else ("Tier 1" if str(e.get("tier", "")).startswith("Tier 1") else "Tier 0")
+        t = str(e.get("tier", ""))
+        kind = "API" if t == "API" else ("Tier 2" if t.startswith("Tier 2") else "Tier 1" if t.startswith("Tier 1") else "Tier 0")
         color, marker, size = style[kind]
         ax.scatter(s["acc"], s["ece"], s=size, color=color, marker=marker, zorder=3, linewidths=0.8, edgecolors=SURFACE)
         label = e["label"].split("/")[-1] if "/" in e["label"] else e["label"]
@@ -660,7 +664,8 @@ def fig_models_map(rows: list[dict[str, Any]], out: Path, title: str = "Jevified
     from matplotlib.lines import Line2D
     ax.legend(handles=[Line2D([0], [0], marker="D", color="#eb6834", lw=0, markersize=7, label="Jev 1.13.0 (API)"),
                        Line2D([0], [0], marker="o", color=PRIM_COLOR["choice"], lw=0, markersize=6, label="Jevified, Tier 0 (no training)"),
-                       Line2D([0], [0], marker="^", color="#1baf7a", lw=0, markersize=7, label="Jevified, Tier 1 (trained heads)")],
+                       Line2D([0], [0], marker="^", color="#1baf7a", lw=0, markersize=7, label="Jevified, Tier 1 (trained heads)"),
+                       Line2D([0], [0], marker="s", color="#7b4fbf", lw=0, markersize=6.5, label="Jevified, Tier 2 (LoRA + heads)")],
               loc="upper right", fontsize=8)
     fig.tight_layout(rect=_layout(fig, 2))
     _headline(fig, title, "Every model scored on the same 22,773 test records. Tier 0 = zero training: prompt + logit readout + a recipe fitted on validation only. Down and to the right is better.")

@@ -236,7 +236,64 @@ sentiment/quality flavour, so an unseen scale gets mapped onto them.
 
 ---
 
-## 7. Engineering findings
+## 7. Tier 2: letting the backbone move
+
+Tier 1 froze the backbone and asked a head to read judgment out of hidden states that were
+never trained to hold it. Tier 2 adds LoRA — rank 16 on every attention and MLP projection,
+10.9M trainable parameters, 0.58% of the model — trained jointly with the same zero-initialized
+residual heads. Qwen3.5-2B, the same 5,885 training records, the same six held-out sources,
+2.5 hours on one A40.
+
+**7.1 It overfits after a single pass.** Validation loss went 0.774 → 0.835 → 0.863 across three
+epochs while training loss fell 0.568 → 0.351 → 0.173. Early stopping kept epoch 0. Whatever a 2B
+backbone can learn about *deciding* from 5,885 records, it learns in one pass; after that it
+memorizes them. The published checkpoint is that single pass, taken at a learning rate that was
+still ramping up. The learned LM weights are 0.98 / 0.98 / 0.99 — still, as at Tier 1, ≈ 1.
+
+**7.2 Even one pass buys accuracy the head could not — on held-out sources too.** Same
+protocol as Section 6 (Tier 0 refitted without the held-out sources, for fairness):
+
+| Qwen3.5-2B | held-out acc | held-out ECE | held-out Brier | trained acc | trained ECE | trained Brier |
+|---|---|---|---|---|---|---|
+| Tier 0 | 0.628 | 0.097 | 0.436 | 0.552 | 0.100 | 0.506 |
+| Tier 1 replace | 0.522 | 0.155 | 0.550 | 0.627 | 0.056 | 0.446 |
+| Tier 1 residual | 0.631 | **0.090** | 0.459 | 0.632 | **0.061** | 0.439 |
+| **Tier 2 (LoRA + residual)** | **0.697** | 0.109 | **0.384** | **0.680** | 0.119 | **0.420** |
+| Jev 1.13.0 | 0.835 | 0.090 | 0.235 | 0.694 | 0.122 | 0.391 |
+
++0.066 held-out accuracy over the residual head, and the Brier score — a strictly proper score
+that charges for both miscalibration and missed answers — improves on both splits. On the
+sources it trained on, a 2B model is now within 0.014 accuracy of Jev. Macro over all 22 configs:
+accuracy **0.685** (from 0.632), Score accuracy **0.508** — the best of any model tested, Jev
+included.
+
+**7.3 What moved is the Tier 1 weak spot: ordinal scales.** Section 6 left held-out *ordinal*
+generalization as the open problem. It is where LoRA helps most: `measuring_hate_speech`, a
+held-out ordinal scale, gains **+0.219** accuracy *and* drops from ECE 0.106 to 0.037;
+`strategyqa_grounded` improves on both axes; `sst5` +0.128; `helpsteer2_verbosity` ECE halves.
+
+**7.4 What it costs is the base model's humility on ambiguous questions.** ECE rises on nearly
+every Choice source: ChaosNLI 0.077 → **0.215** (Jev: 0.222), GoEmotions 0.069 → 0.242, `mmlu`,
+`mnli`, `clinc150`, `ledgar` all +0.10 or more. Macro ECE goes 0.069 → 0.116 — now marginally
+*worse* than Jev's 0.113. The residual head had preserved the base model's uncertainty where
+humans disagree; letting the backbone move erased it. On the models map the Tier 2 point sits
+between the Tier 1 residual and Jev: **LoRA moves an open model toward Jev's profile — Jev's
+accuracy, and Jev's overconfidence on ambiguity.**
+
+**7.5 Why, most likely — and the next experiment.** The training loss is cross-entropy, RPS or
+binary cross-entropy against the *hard* label index, even on the three training sources that
+carry human vote distributions. A frozen-backbone head lacks the capacity to become overconfident
+against a prior it holds at w ≈ 1; LoRA has exactly that capacity, and a hard-label objective on
+items where 40% of annotators disagreed with the label rewards it. Training the LoRA pass against
+the human distribution where one exists is the obvious next run, and the one most likely to keep
+7.3 without paying 7.4.
+
+*Reproduce: `python -m jevify.train tier2 --model-id Qwen/Qwen3.5-2B --run-id qwen35-2b-t2`, then
+`scripts/process_tier1.py --run-id qwen35-2b-t2 --tier0 qwen35-2b`. Results: `results/qwen35-2b-t2/`.*
+
+---
+
+## 8. Engineering findings
 
 **7.1 One answer-cue convention keeps every candidate single-token across every tokenizer tested.**
 `"Answer: "` followed by a bare candidate keeps digits, letters, two-letter identifiers and yes/no
@@ -269,9 +326,9 @@ Jev API calls for 37,573 requests.
 
 ---
 
-## 8. Vision: does any of this transfer?
+## 9. Vision: does any of this transfer?
 
-Section 9 of the previous revision ended by asking whether a System One question survives
+The open questions used to end by asking whether a System One question survives
 when the option semantics live in an image. It does, and more of the text findings come
 with it than we expected.
 
@@ -338,7 +395,7 @@ a larger job than Jevification and a different claim.
 
 ---
 
-## 9. Open questions
+## 10. Open questions
 
 - **How far does the residual finding go?** It replicates on two backbones (2B, 4B) with one seed
   each, and strengthens with scale. Whether it holds at 7B+ and across families is untested.
@@ -347,8 +404,10 @@ a larger job than Jevification and a different claim.
 - **Is the held-out set difficulty-matched?** It is not — it contains several of Jev's strongest
   configs, which is why Jev scores *higher* on held-out (0.835) than on trained (0.694) sources.
   Compare models within a column, never across. A matched split would be a better protocol.
-- **Tier 2 (LoRA)** remains untested: whether letting the backbone move buys anything the residual
-  head does not.
+- **Can LoRA keep its accuracy gain without Jev's overconfidence?** Section 7 trains against hard
+  labels; three training sources carry human vote distributions that go unused. A proper score
+  against those distributions is the experiment. Also untested: LoRA at 4B, and a lower learning
+  rate given that one pass already overfits.
 - **Does a vision-scoped LoRA help where a decoder-scoped one cannot?** Section 8 makes the
   tower addressable but does not adapt it. The natural test is AI2D, the weakest source by a
   wide margin (0.652) and the one whose difficulty is most plausibly perceptual rather than
