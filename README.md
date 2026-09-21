@@ -198,6 +198,10 @@ calibration-gold configs — lower is better, and it is the number Jev's own cla
 
 ![models](results/leaderboard/models_map.png)
 
+Per config, for every model at once — Jev's Score row is the dark one:
+
+![ECE per config, every model](results/leaderboard/heatmap_ece.png)
+
 Refresh with `python scripts/leaderboard.py`; every row has `results/<run>/` with its predictions,
 per-config metrics, recipe and figures.
 
