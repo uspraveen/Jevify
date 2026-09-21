@@ -497,10 +497,14 @@ def _legend_prims(fig, ev, loc="upper left"):
     fig.legend(handles=handles, loc=loc, ncol=len(prims), fontsize=8, bbox_to_anchor=(0.99, 0.995) if loc == "upper right" else (0.01, 0.995))
 
 
-def _annotate_without_overlap(fig, ax, pts: list[tuple[str, float, float]], fontsize: float = 7.2) -> None:
+def _annotate_without_overlap(fig, ax, pts: list[tuple[str, float, float]], fontsize: float = 7.2,
+                              obstacles: list[tuple[float, float]] | None = None) -> None:
     """Place each label at the first candidate offset whose rendered bbox overlaps
     neither an already-placed label, a data point, nor the axes edge. Far offsets
-    get a thin leader line. Measured with the real renderer, not guessed."""
+    get a thin leader line. Measured with the real renderer, not guessed.
+
+    ``obstacles`` are extra data coordinates to keep labels off -- on a line chart, every
+    plotted point, so a label does not land on a neighbouring series."""
     fig.canvas.draw()
     renderer = fig.canvas.get_renderer()
     placed = []
@@ -508,6 +512,9 @@ def _annotate_without_overlap(fig, ax, pts: list[tuple[str, float, float]], font
     for _, x, y in pts:
         px, py = ax.transData.transform((x, y))
         point_boxes.append(_box(px - 5, py - 5, px + 5, py + 5))
+    for x, y in obstacles or []:
+        px, py = ax.transData.transform((x, y))
+        point_boxes.append(_box(px - 4, py - 4, px + 4, py + 4))
     near = [(5, 3), (5, -9), (-5, 3), (-5, -9), (5, 11), (-5, 11)]
     far = [(14, 16), (14, -18), (-14, 16), (-14, -18), (22, 28), (22, -30), (-22, 28), (-22, -30), (30, 40), (-30, 40)]
     # a label that had to move away from its point gets a thin line back to it; without
@@ -874,51 +881,71 @@ def fig_confidence_vs_agreement(records, preds: dict[str, Any], out: Path, model
 
 
 def fig_latency_ladder(rows: list[dict[str, Any]], jev: dict[str, Any], ladder: list, out: Path, device: str) -> Path:
-    """Single-request latency against answer-set size, one line per model/tier, Jev's API as reference.
+    """Single-request latency against answer-set size, as three small multiples.
 
-    Log-log: K spans 2 to 151 and latency spans an order of magnitude, and on log axes a
-    power law is a straight line whose slope says how the cost scales with the answer set.
+    One panel per question a deployer actually asks -- which size, which tier, which recipe --
+    each with at most five lines, Jev's measured API round trip drawn in every panel as the
+    reference. Twelve lines in one panel was unreadable. Log-log: K spans 2 to 151 and latency
+    an order of magnitude, and a power law is a straight line whose slope is the scaling.
     """
     plt = _mpl()
     ks = [k for _, _, k in ladder]
-    fig, ax = plt.subplots(figsize=(7.6, 4.8))
-    palette = {"Tier 0": BLUE_RAMP, "Tier 1": ["#1baf7a", "#128a5f"], "Tier 2": ["#7b4fbf", "#5a3691"]}
-    used: dict[str, int] = {}
-    ends = []
-    for r in rows:
-        tier = r["tier"]
-        i = used.get(tier, 0); used[tier] = i + 1
-        ramp = palette.get(tier, BLUE_RAMP)
-        color = ramp[min(len(ramp) - 1, 2 + i * 2)] if tier == "Tier 0" else ramp[i % len(ramp)]
-        ys = [r["single"][src]["p50_ms"] for src, _, _ in ladder]
-        ls = "-" if r["permutations"] == 2 else (0, (4, 2))
-        label = f"{r['model']}" + (f", {r['permutations']} perm" if r["tier"] == "Tier 0" else "")
-        ax.plot(ks, ys, marker="o", markersize=4.5, lw=1.8, color=color, ls=ls, zorder=3)
-        ends.append((label, ks[-1], ys[-1], color))
-    if jev:
-        jys = [jev[src]["p50_ms"] if src in jev else np.nan for src, _, _ in ladder]
-        ax.plot(ks, jys, marker="D", markersize=4.5, lw=1.8, color="#eb6834", zorder=3)
-        ends.append(("Jev 1.13.0 API round trip", ks[-1], float(np.nanmax([v for v in jys if not np.isnan(v)][-1:] or [np.nan])), "#eb6834"))
-    ax.set_xscale("log"); ax.set_yscale("log")
-    ax.set_xticks(ks); ax.set_xticklabels([str(k) for k in ks], fontsize=8); ax.minorticks_off()
-    ax.set_xlabel("answer-set size K (log)"); ax.set_ylabel("median latency per request, ms (log)")
-    ax.grid(True, which="major", color=GRID, lw=0.7, zorder=0)
-    for side in ("top", "right"):
-        ax.spines[side].set_visible(False)
-    # direct labels at the right end, nudged apart in log space
-    ends.sort(key=lambda e: e[2])
-    last_y = None
-    for label, x, y, color in ends:
-        yy = y
-        if last_y is not None and yy / last_y < 1.18:
-            yy = last_y * 1.18
-        ax.annotate(label, (x, y), xytext=(8, 0), textcoords="offset points", fontsize=7.6, color=color, va="center",
-                    xycoords="data", annotation_clip=False)
-        last_y = yy
-    ax.set_xlim(ks[0] * 0.85, ks[-1] * 1.15)
-    fig.tight_layout(rect=(0, 0.22 / fig.get_figheight(), 0.72, 1 - 0.62 / fig.get_figheight()))
+
+    def series(r):
+        return [r["single"][src]["p50_ms"] for src, _, _ in ladder]
+
+    def find(model_sub, tier, perms):
+        for r in rows:
+            if model_sub in r["model"] and r["tier"] == tier and r["permutations"] == perms:
+                return r
+        return None
+
+    sizes = [r for r in rows if r["tier"] == "Tier 0" and r["permutations"] == 1]
+    base = next((r for r in sizes if "2B" in r["model"]), sizes[0] if sizes else None)
+    base_name = base["model"].split(" (")[0] if base else ""
+    tiers = [r for r in rows if r["model"].startswith(base_name) and r["permutations"] == 1]
+    perms = [r for r in rows if r["tier"] == "Tier 0" and any(x in r["model"] for x in ("2B", "4B"))]
+
+    panels = [
+        ("Backbone size  (Tier 0, one option order)", sizes,
+         lambda r: r["model"].split(" (")[0], [BLUE_RAMP[1], BLUE_RAMP[3], BLUE_RAMP[5], BLUE_RAMP[7]]),
+        (f"Tier  ({base_name}, one option order)", tiers,
+         lambda r: r["tier"] + {"Tier 0": " (readout)", "Tier 1": " (+ heads)", "Tier 2": " (+ merged LoRA)"}.get(r["tier"], ""),
+         [BLUE_RAMP[4], "#1baf7a", "#7b4fbf"]),
+        ("Recipe  (one vs two option orders averaged)", perms,
+         lambda r: f"{r['model'].split(' (')[0]}, {r['permutations']} order{'s' if r['permutations'] > 1 else ''}",
+         [BLUE_RAMP[2], BLUE_RAMP[2], BLUE_RAMP[6], BLUE_RAMP[6]]),
+    ]
+    fig, axes = plt.subplots(1, 3, figsize=(13.2, 4.6), sharey=True)
+    jys = [jev[src]["p50_ms"] if src in jev else np.nan for src, _, _ in ladder] if jev else None
+    for ax, (title, rs, name, colors) in zip(axes, panels):
+        pts = []
+        for i, r in enumerate(rs):
+            ys = series(r)
+            ls = (0, (4, 2)) if (title.startswith("Recipe") and r["permutations"] == 1) else "-"
+            ax.plot(ks, ys, marker="o", markersize=4, lw=1.7, color=colors[i % len(colors)], ls=ls, zorder=3)
+            pts.append((name(r), ks[-1], ys[-1]))
+        if jys is not None:
+            ax.plot(ks, jys, marker="D", markersize=4.5, lw=1.7, color="#eb6834", zorder=3)
+            pts.append(("Jev API round trip", ks[-1], jys[-1]))
+        ax.set_xscale("log"); ax.set_yscale("log")
+        ax.set_xticks(ks); ax.set_xticklabels([str(k) for k in ks], fontsize=8); ax.minorticks_off()
+        ax.set_xlim(ks[0] * 0.8, ks[-1] * 1.25)
+        ax.set_xlabel("answer-set size K (log)", fontsize=9)
+        ax.set_title(title, loc="left", fontsize=9.5, color=INK)
+        ax.grid(True, which="major", color=GRID, lw=0.7, zorder=0)
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
+        ax.tick_params(colors=INK2, labelsize=8)
+        yt = [100, 200, 500, 1000]
+        ax.set_yticks(yt); ax.set_yticklabels([str(v) for v in yt], fontsize=8)
+        lines_pts = [(x, y) for line in ax.get_lines() for x, y in zip(line.get_xdata(), line.get_ydata())
+                     if np.isfinite(y)]
+        _annotate_without_overlap(fig, ax, pts, fontsize=7.4, obstacles=lines_pts)
+    axes[0].set_ylabel("median latency per request, ms (log)", fontsize=9)
+    fig.tight_layout(rect=(0, 0.20 / fig.get_figheight(), 1, 1 - 0.62 / fig.get_figheight()))
     _headline(fig, f"Latency per request vs answer-set size, one {device}",
-              "One record at a time through the served path; every option is scored, so K is the cost axis. "
-              "Dashed = single option order, solid = two permutations averaged. Jev's line is its API round trip as observed by our client.")
+              "One record at a time through the served path. Every option is scored, so K is the cost axis; the option text is in the prompt, "
+              "so prefill grows with K. Jev's line is its API round trip as observed by our client -- network included.")
     _footer(fig)
     return _save(fig, out / "latency_ladder")
