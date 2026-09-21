@@ -6,6 +6,7 @@ but not for training. Nothing here imports Modal: every entry point takes an exp
 bench root and output directory, so the same code runs on a laptop, a lab GPU box or a
 rented A100, and ``modal_app.py`` calls these functions instead of keeping a second copy.
 
+    python -m jevify.train tier0  --model-id Qwen/Qwen3.5-2B --run-id qwen35-2b --split test
     python -m jevify.train tier1  --model-id Qwen/Qwen3.5-2B --run-id qwen35-2b-t1r
     python -m jevify.train tier2  --model-id Qwen/Qwen3.5-2B --run-id qwen35-2b-t2
     python -m jevify.train vision --model-id Qwen/Qwen3-VL-2B-Instruct --run-id qwen3vl-2b
@@ -87,6 +88,46 @@ def _finish(out_dir: Path, meta: dict[str, Any]) -> dict[str, Any]:
     (out_dir / "run.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
     print(json.dumps(meta), flush=True)
     return meta
+
+
+# --------------------------------------------------------------------------- Tier 0
+def run_tier0(model_id: str, run_id: str, out_dir: Path | str, root: Path | str, *, sources: Sequence[str] | None = None,
+              split: str = "test", limit: int = 0, mode: str = "index", chat: bool = True, permutations: int = 2,
+              batch: int = 16, cand_chunk: int = 64, trust_remote_code: bool = False, resume: bool = True,
+              seed: int = 0) -> dict[str, Any]:
+    """No training: prompt, logit readout over the answer set, raw log-scores kept for a recipe.
+
+    Resumable: predictions already on disk are skipped, so a killed run continues where it
+    stopped rather than starting over.
+    """
+    import torch
+
+    from .engine.predict import Recipe, Tier0Engine
+    from .engine.readout import HFScorer
+    from .runners.base import done_ids, write_predictions
+
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = out_dir / f"{split}_predictions.jsonl"
+    recs = load_split(Path(root), split, limit, sources=list(sources) if sources else None)
+    skip = done_ids(out) if resume and out.exists() else set()
+    todo = [r for r in recs if r.id not in skip]
+    print(f"[{run_id}] {model_id}: {len(todo)} records ({len(skip)} already done)", flush=True)
+
+    t0 = time.time()
+    scorer = HFScorer(model_id, dtype=torch.bfloat16, batch_size=batch, cand_chunk=cand_chunk,
+                      trust_remote_code=trust_remote_code, hf_token=os.environ.get("HF_TOKEN"))
+    t_load = time.time() - t0
+    engine = Tier0Engine(scorer, Recipe(mode=mode, chat=chat, permutations=permutations))
+    n = write_predictions(out, engine.score_records(todo, batch=batch), append=bool(skip), progress_every=250)
+    return _finish(out_dir, {
+        "run_id": run_id, "model_id": model_id, "tier": 0, "split": split, "sources": list(sources) if sources else None,
+        "limit": limit, "recipe": engine.recipe.as_dict(), "chat_applied": engine.chat, "n_new": n, "n_total": len(recs),
+        "load_s": round(t_load, 1), "wall_s": round(time.time() - t0, 1), "torch": torch.__version__,
+        "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
+        "scorer_stats": {k: (round(v, 2) if isinstance(v, float) else v) for k, v in scorer.stats.items()},
+        "attn_impl": getattr(scorer.model.config, "_attn_implementation", None),
+        "dtype": str(next(scorer.model.parameters()).dtype)})
 
 
 # --------------------------------------------------------------------------- Tier 1
@@ -272,7 +313,7 @@ def describe_vision(model_id: str, *, trust_remote_code: bool = False) -> dict[s
 def main(argv: Sequence[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="jevify.train",
                                  description="Jevify a model: Tier 1, Tier 2, or a vision Tier 0 pass.")
-    ap.add_argument("tier", choices=["tier1", "tier2", "vision"])
+    ap.add_argument("tier", choices=["tier0", "tier1", "tier2", "vision"])
     ap.add_argument("--model-id", required=True)
     ap.add_argument("--run-id", required=True)
     ap.add_argument("--out", default="runs", help="parent directory for <run-id>/")
@@ -294,7 +335,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     ap.add_argument("--grad-accum", type=int, default=2)
     ap.add_argument("--replace", action="store_true", help="tier1: heads replace the LM score (default: residual)")
     ap.add_argument("--heldout", default="", help="comma-separated; defaults to the standard six")
-    ap.add_argument("--sources", default="", help="vision: comma-separated source names")
+    ap.add_argument("--sources", default="", help="tier0/vision: comma-separated source names")
+    ap.add_argument("--mode", default="index", help="tier0: how options are presented (index|...)")
+    ap.add_argument("--permutations", type=int, default=2, help="tier0: option-order permutations to average")
+    ap.add_argument("--cand-chunk", type=int, default=64)
+    ap.add_argument("--no-resume", action="store_true", help="tier0: ignore predictions already on disk")
     ap.add_argument("--split", default="test")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--max-pixels", type=int, default=0)
@@ -318,6 +363,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     root = Path(a.bench) if a.bench else bench_root(Path(a.out) / "jev-bench", a.bench_repo)
+    if a.tier == "tier0":
+        run_tier0(**common, root=root, sources=[s for s in a.sources.split(",") if s] or None, split=a.split,
+                  limit=a.limit, mode=a.mode, chat=not a.no_chat, permutations=a.permutations,
+                  batch=a.batch or 16, cand_chunk=a.cand_chunk, resume=not a.no_resume)
+        return 0
     if a.tier == "tier1":
         run_tier1(**common, root=root, layer=a.layer, chat=not a.no_chat,
                   train_per_source=a.train_per_source or 600, val_per_source=a.val_per_source or 150,
