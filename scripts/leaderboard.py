@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -52,6 +53,10 @@ def main() -> int:
         # a Jevified run always carries run.json; results/jev-1.13.0 (the baseline, added
         # explicitly above) and results/leaderboard do not, and neither is a model row
         if not (d / "test_metrics.json").exists() or not (d / "run.json").exists():
+            continue
+        if re.search(r"-s\d+$", d.name):
+            # seed replicates (<run>-s1, -s2, ...) are reported as a spread in their own
+            # section, not as five rows of the same model
             continue
         run = json.loads((d / "run.json").read_text())
         if run.get("modality") == "vision":
