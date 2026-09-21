@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="987.84pt" height="535.68pt" viewBox="0 0 987.84 535.68" xmlns="http://www.w3.org/2000/svg" version="1.1">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="987.84pt" height="613.44pt" viewBox="0 0 987.84 613.44" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-09-21T12:37:39.184831</dc:date>
+    <dc:date>2026-09-21T15:50:03.658406</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -21,8 +21,8 @@
  </defs>
  <g id="figure_1">
   <g id="patch_1">
-   <path d="M 0 535.68 
-L 987.84 535.68 
+   <path d="M 0 613.44 
+L 987.84 613.44 
 L 987.84 0 
 L 0 0 
 z
@@ -30,148 +30,148 @@ z
   </g>
   <g id="axes_1">
    <g id="patch_2">
-    <path d="M 130.175 437.935772 
-L 932.975135 437.935772 
-L 932.975135 65.906835 
-L 130.175 65.906835 
+    <path d="M 167.615 515.695772 
+L 934.360415 515.695772 
+L 934.360415 65.235964 
+L 167.615 65.235964 
 z
 " style="fill: #fcfcfb"/>
    </g>
-   <g clip-path="url(#pb996720d26)">
+   <g clip-path="url(#pedf6d66d5f)">
     <image xlink:href="data:image/png;base64,
-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" id="imagec08faab84b" transform="scale(1 -1) translate(0 -371.52)" x="130.32" y="-66.24" width="802.8" height="371.52"/>
+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g+nNojDEOHD3XPaHkhVdu7J5QcvjU/OfQwtyPgvHwobmvgTHGWF6a+yDs273YPaHkg1840j2h7F0/c3H3hJIjp7sX1F203L2gZm3+x9nYuaV7Qc3Jle4FNfsfn//z8fyfzgAAAIALgkgBAAAARBApAAAAgAgiBQAAABBBpAAAAAAiiBQAAABABJECAAAAiCBSAAAAABFECgAAACCCSAEAAABEECkAAACACCIFAAAAEEGkAAAAACKIFAAAAEAEkQIAAACIIFIAAAAAEUQKAAAAIIJIAQAAAEQQKQAAAIAIIgUAAAAQQaQAAAAAIogUAAAAQASRAgAAAIggUgAAAAARRAoAAAAggkgBAAAARBApAAAAgAgiBQAAABBBpAAAAAAiiBQAAABABJECAAAAiCBSAAAAABFECgAAACCCSAEAAABEECkAAACACCIFAAAAEGHhz794bL17RMX7/v6/uyeU3fneW7snlDzntrd3Tyj5yIfe2z2h7Pc+8OnuCSXPvPbm7gll73/zNd0TSk6vTv0oGLu3beieULY29yEY/3z3ie4JZc++ZKl7Qsnhk2vdE0qed9nG7glll2yZ+1700KHV7gllV10693W8ffP83yEfOHque0LJ3Q+f7Z5Q8vMv2to9oWz+qwAAAAC4IIgUAAAAQASRAgAAAIggUgAAAAARRAoAAAAggkgBAAAARBApAAAAgAgiBQAAABBBpAAAAAAiiBQAAABABJECAAAAiCBSAAAAABFECgAAACCCSAEAAABEECkAAACACCIFAAAAEEGkAAAAACKIFAAAAEAEkQIAAACIIFIAAAAAEUQKAAAAIIJIAQAAAEQQKQAAAIAIIgUAAAAQQaQAAAAAIogUAAAAQASRAgAAAIggUgAAAAARRAoAAAAggkgBAAAARBApAAAAgAgiBQAAABBBpAAAAAAiiBQAAABABJECAAAAiCBSAAAAABEWD59Y695Q8ol33to9oeypE90Lan7zne/pnlDy+e+c7J5Q9h8f+IXuCSU/ODz3fWiMMU6cXe+eUHLFxYvdE0ou39G9oO43Pn6oe0LJLddt7p5QdtPe5e4JJb556vecSxe6J5Q88FT3grrLdsx9JWzd2L2g7umTc18HZ8/N/U534mz3grq5r2IAAADggiFSAAAAABFECgAAACCCSAEAAABEECkAAACACCIFAAAAEEGkAAA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" id="image6e47a6f37a" transform="scale(1 -1) translate(0 -450)" x="167.76" y="-65.52" width="766.8" height="450"/>
    </g>
    <g id="matplotlib.axis_1">
     <g id="xtick_1">
      <g id="line2d_1"/>
      <g id="text_1">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(113.878338 482.031822) rotate(-48)">arc_challenge</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(150.498913 559.791822) rotate(-48)">arc_challenge</text>
      </g>
     </g>
     <g id="xtick_2">
      <g id="line2d_2"/>
      <g id="text_2">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(158.191306 473.344552) rotate(-48)">banking77</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(193.17303 551.104552) rotate(-48)">banking77</text>
      </g>
     </g>
     <g id="xtick_3">
      <g id="line2d_3"/>
      <g id="text_3">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(200.274564 467.133626) rotate(-48)">chaosnli</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(233.617437 544.893626) rotate(-48)">chaosnli</text>
      </g>
     </g>
     <g id="xtick_4">
      <g id="line2d_4"/>
      <g id="text_4">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(236.383824 467.557497) rotate(-48)">clinc150</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(268.087846 545.317497) rotate(-48)">clinc150</text>
      </g>
     </g>
     <g id="xtick_5">
      <g id="line2d_5"/>
      <g id="text_5">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(262.340449 479.257012) rotate(-48)">go_emotions</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(292.40562 557.017012) rotate(-48)">go_emotions</text>
      </g>
     </g>
     <g id="xtick_6">
      <g id="line2d_6"/>
      <g id="text_6">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(314.236842 462.147496) rotate(-48)">ledgar</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(342.663162 539.907496) rotate(-48)">ledgar</text>
      </g>
     </g>
     <g id="xtick_7">
      <g id="line2d_7"/>
      <g id="text_7">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(346.261561 467.107709) rotate(-48)">massive</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(373.04903 544.867709) rotate(-48)">massive</text>
      </g>
     </g>
     <g id="xtick_8">
      <g id="line2d_8"/>
      <g id="text_8">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(388.794224 460.397668) rotate(-48)">mmlu</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(413.942842 538.157668) rotate(-48)">mmlu</text>
      </g>
     </g>
     <g id="xtick_9">
      <g id="line2d_9"/>
      <g id="text_9">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(428.639491 456.672283) rotate(-48)">mnli</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(452.149258 534.432283) rotate(-48)">mnli</text>
      </g>
     </g>
     <g id="xtick_10">
      <g id="line2d_10"/>
      <g id="text_10">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(419.8173 506.997586) rotate(-48)">helpsteer2_helpfulness</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(441.688216 584.757586) rotate(-48)">helpsteer2_helpfulness</text>
      </g>
     </g>
     <g id="xtick_11">
      <g id="line2d_11"/>
      <g id="text_11">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(461.456422 501.279923) rotate(-48)">helpsteer2_verbosity</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(481.688488 579.039923) rotate(-48)">helpsteer2_verbosity</text>
      </g>
     </g>
     <g id="xtick_12">
      <g id="line2d_12"/>
      <g id="text_12">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(490.056029 510.044109) rotate(-48)">measuring_hate_speech</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(508.649244 587.804109) rotate(-48)">measuring_hate_speech</text>
      </g>
     </g>
     <g id="xtick_13">
      <g id="line2d_13"/>
      <g id="text_13">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(575.052557 456.172792) rotate(-48)">sst5</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(592.00692 533.932792) rotate(-48)">sst5</text>
      </g>
     </g>
     <g id="xtick_14">
      <g id="line2d_14"/>
      <g id="text_14">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(611.550247 456.165644) rotate(-48)">stsb</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(626.86576 533.925644) rotate(-48)">stsb</text>
      </g>
     </g>
     <g id="xtick_15">
      <g id="line2d_15"/>
      <g id="text_15">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(644.729718 459.843375) rotate(-48)">yelp5</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(658.40638 537.603375) rotate(-48)">yelp5</text>
      </g>
     </g>
     <g id="xtick_16">
      <g id="line2d_16"/>
      <g id="text_16">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(681.147615 459.924471) rotate(-48)">boolq</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(693.185426 537.684471) rotate(-48)">boolq</text>
      </g>
     </g>
     <g id="xtick_17">
      <g id="line2d_17"/>
      <g id="text_17">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(693.666508 486.548099) rotate(-48)">civil_comments</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(704.065468 564.308099) rotate(-48)">civil_comments</text>
      </g>
     </g>
     <g id="xtick_18">
      <g id="line2d_18"/>
      <g id="text_18">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(730.770932 485.866728) rotate(-48)">fever_evidence</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(739.531041 563.626728) rotate(-48)">fever_evidence</text>
      </g>
     </g>
     <g id="xtick_19">
      <g id="line2d_19"/>
      <g id="text_19">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(791.51089 458.935062) rotate(-48)">paws</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(798.632148 536.695062) rotate(-48)">paws</text>
      </g>
     </g>
     <g id="xtick_20">
      <g id="line2d_20"/>
      <g id="text_20">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(815.127899 473.232982) rotate(-48)">sms_spam</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(820.610307 550.992982) rotate(-48)">sms_spam</text>
      </g>
     </g>
     <g id="xtick_21">
      <g id="line2d_21"/>
      <g id="text_21">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(832.971148 493.94369) rotate(-48)">strategyqa_closed</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(836.814705 571.70369) rotate(-48)">strategyqa_closed</text>
      </g>
     </g>
     <g id="xtick_22">
      <g id="line2d_22"/>
      <g id="text_22">
-      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(861.861325 502.385165) rotate(-48)">strategyqa_grounded</text>
+      <text style="font-size: 7.2px; font-family: 'DejaVu Sans'; fill: #52514e" transform="translate(864.066031 580.145165) rotate(-48)">strategyqa_grounded</text>
      </g>
     </g>
    </g>
@@ -179,1097 +179,1313 @@ iVBORw0KGgoAAAANSUhEUgAABFsAAAIECAYAAADGqCEQAAAVOUlEQVR4nO3a2Y/dd33G8e9hziyecWa8
     <g id="ytick_1">
      <g id="line2d_23"/>
      <g id="text_23">
-      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="126.675" y="82.080692" transform="rotate(-0 126.675 82.080692)">Jev 1.13.0</text>
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="81.371892" transform="rotate(-0 164.115 81.371892)">Jev 1.13.0</text>
      </g>
     </g>
     <g id="ytick_2">
      <g id="line2d_24"/>
      <g id="text_24">
-      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="126.675" y="108.654485" transform="rotate(-0 126.675 108.654485)">Qwen3.5-4B (Tier 1 residual)</text>
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="107.869824" transform="rotate(-0 164.115 107.869824)">Qwen3.5-4B (Tier 1 residual)</text>
      </g>
     </g>
     <g id="ytick_3">
      <g id="line2d_25"/>
      <g id="text_25">
-      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="126.675" y="135.22798" transform="rotate(-0 126.675 135.22798)">Qwen3.5-2B (Tier 2 residual)</text>
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="134.36746" transform="rotate(-0 164.115 134.36746)">Qwen3.5-2B (Tier 2 residual, lr 3e-05)</text>
      </g>
     </g>
     <g id="ytick_4">
      <g id="line2d_26"/>
      <g id="text_26">
-      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="126.675" y="161.801179" transform="rotate(-0 126.675 161.801179)">Qwen3.5-4B</text>
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="160.864799" transform="rotate(-0 164.115 160.864799)">Qwen3.5-9B</text>
      </g>
     </g>
     <g id="ytick_5">
      <g id="line2d_27"/>
      <g id="text_27">
-      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="126.675" y="188.374971" transform="rotate(-0 126.675 188.374971)">gemma-4-E4B-it</text>
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="187.362732" transform="rotate(-0 164.115 187.362732)">Qwen3.5-2B (Tier 2 residual)</text>
      </g>
     </g>
     <g id="ytick_6">
      <g id="line2d_28"/>
      <g id="text_28">
-      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="126.675" y="214.948467" transform="rotate(-0 126.675 214.948467)">Qwen3.5-2B (Tier 1 residual)</text>
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="213.86007" transform="rotate(-0 164.115 213.86007)">Qwen3.5-4B</text>
      </g>
     </g>
     <g id="ytick_7">
      <g id="line2d_29"/>
      <g id="text_29">
-      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="126.675" y="241.521962" transform="rotate(-0 126.675 241.521962)">Qwen3.5-2B (Tier 1 replace)</text>
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="240.358003" transform="rotate(-0 164.115 240.358003)">gemma-4-E4B-it</text>
      </g>
     </g>
     <g id="ytick_8">
      <g id="line2d_30"/>
      <g id="text_30">
-      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="126.675" y="268.095458" transform="rotate(-0 126.675 268.095458)">gemma-4-E2B-it</text>
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="266.855639" transform="rotate(-0 164.115 266.855639)">Qwen3.5-2B (Tier 1 residual)</text>
      </g>
     </g>
     <g id="ytick_9">
      <g id="line2d_31"/>
      <g id="text_31">
-      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="126.675" y="294.668656" transform="rotate(-0 126.675 294.668656)">Qwen3.5-2B</text>
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="293.353275" transform="rotate(-0 164.115 293.353275)">K2-Horizon-7B</text>
      </g>
     </g>
     <g id="ytick_10">
      <g id="line2d_32"/>
      <g id="text_32">
-      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="126.675" y="321.242449" transform="rotate(-0 126.675 321.242449)">SmolLM3-3B</text>
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="319.85091" transform="rotate(-0 164.115 319.85091)">Qwen3.5-2B (Tier 1 replace)</text>
      </g>
     </g>
     <g id="ytick_11">
      <g id="line2d_33"/>
      <g id="text_33">
-      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="126.675" y="347.815647" transform="rotate(-0 126.675 347.815647)">Qwen3.5-0.8B</text>
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="346.348546" transform="rotate(-0 164.115 346.348546)">gemma-4-E2B-it</text>
      </g>
     </g>
     <g id="ytick_12">
      <g id="line2d_34"/>
      <g id="text_34">
-      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="126.675" y="374.389143" transform="rotate(-0 126.675 374.389143)">Qwen3.5-0.8B-Base</text>
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="372.845885" transform="rotate(-0 164.115 372.845885)">Qwen3.5-2B</text>
      </g>
     </g>
     <g id="ytick_13">
      <g id="line2d_35"/>
      <g id="text_35">
-      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="126.675" y="400.962935" transform="rotate(-0 126.675 400.962935)">K2-Horizon-0.9B</text>
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="399.343818" transform="rotate(-0 164.115 399.343818)">SmolLM3-3B</text>
      </g>
     </g>
     <g id="ytick_14">
      <g id="line2d_36"/>
      <g id="text_36">
-      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="126.675" y="427.536134" transform="rotate(-0 126.675 427.536134)">gemma-4-E2B</text>
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="425.841156" transform="rotate(-0 164.115 425.841156)">Qwen3.5-0.8B</text>
+     </g>
+    </g>
+    <g id="ytick_15">
+     <g id="line2d_37"/>
+     <g id="text_37">
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="452.338792" transform="rotate(-0 164.115 452.338792)">Qwen3.5-0.8B-Base</text>
+     </g>
+    </g>
+    <g id="ytick_16">
+     <g id="line2d_38"/>
+     <g id="text_38">
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="478.836725" transform="rotate(-0 164.115 478.836725)">K2-Horizon-0.9B</text>
+     </g>
+    </g>
+    <g id="ytick_17">
+     <g id="line2d_39"/>
+     <g id="text_39">
+      <text style="font-size: 7.6px; font-family: 'DejaVu Sans'; text-anchor: end; fill: #52514e" x="164.115" y="505.334064" transform="rotate(-0 164.115 505.334064)">gemma-4-E2B</text>
      </g>
     </g>
    </g>
-   <g id="line2d_37">
-    <path d="M 458.593237 437.935772 
-L 458.593237 65.906835 
-" clip-path="url(#pb996720d26)" style="fill: none; stroke: #fcfcfb; stroke-width: 2.2; stroke-linecap: square"/>
+   <g id="line2d_40">
+    <path d="M 481.283579 515.695772 
+L 481.283579 65.235964 
+" clip-path="url(#pedf6d66d5f)" style="fill: none; stroke: #fcfcfb; stroke-width: 2.2; stroke-linecap: square"/>
    </g>
-   <g id="line2d_38">
-    <path d="M 677.538728 437.935772 
-L 677.538728 65.906835 
-" clip-path="url(#pb996720d26)" style="fill: none; stroke: #fcfcfb; stroke-width: 2.2; stroke-linecap: square"/>
-   </g>
-   <g id="text_37">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="148.420458" y="80.830106" transform="rotate(-0 148.420458 80.830106)">0.01</text>
-   </g>
-   <g id="text_38">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="184.911373" y="80.830106" transform="rotate(-0 184.911373 80.830106)">0.09</text>
-   </g>
-   <g id="text_39">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="221.402288" y="80.830106" transform="rotate(-0 221.402288 80.830106)">0.22</text>
+   <g id="line2d_41">
+    <path d="M 690.395965 515.695772 
+L 690.395965 65.235964 
+" clip-path="url(#pedf6d66d5f)" style="fill: none; stroke: #fcfcfb; stroke-width: 2.2; stroke-linecap: square"/>
    </g>
    <g id="text_40">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="257.893203" y="80.830106" transform="rotate(-0 257.893203 80.830106)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="80.121306" transform="rotate(-0 185.041032 80.121306)">0.01</text>
    </g>
    <g id="text_41">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="294.384119" y="80.830106" transform="rotate(-0 294.384119 80.830106)">0.38</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="219.893096" y="80.121306" transform="rotate(-0 219.893096 80.121306)">0.09</text>
    </g>
    <g id="text_42">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="330.875034" y="80.830106" transform="rotate(-0 330.875034 80.830106)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="80.121306" transform="rotate(-0 254.745161 80.121306)">0.22</text>
    </g>
    <g id="text_43">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="367.365949" y="80.830106" transform="rotate(-0 367.365949 80.830106)">0.09</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="289.597225" y="80.121306" transform="rotate(-0 289.597225 80.121306)">0.03</text>
    </g>
    <g id="text_44">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="403.856864" y="80.830106" transform="rotate(-0 403.856864 80.830106)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="324.449289" y="80.121306" transform="rotate(-0 324.449289 80.121306)">0.38</text>
    </g>
    <g id="text_45">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="440.347779" y="80.830106" transform="rotate(-0 440.347779 80.830106)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="359.301354" y="80.121306" transform="rotate(-0 359.301354 80.121306)">0.12</text>
    </g>
    <g id="text_46">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="476.838695" y="80.830106" transform="rotate(-0 476.838695 80.830106)">0.23</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="394.153418" y="80.121306" transform="rotate(-0 394.153418 80.121306)">0.09</text>
    </g>
    <g id="text_47">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="513.32961" y="80.830106" transform="rotate(-0 513.32961 80.830106)">0.23</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="80.121306" transform="rotate(-0 429.005482 80.121306)">0.03</text>
    </g>
    <g id="text_48">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="549.820525" y="80.830106" transform="rotate(-0 549.820525 80.830106)">0.24</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="80.121306" transform="rotate(-0 463.857547 80.121306)">0.03</text>
    </g>
    <g id="text_49">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="586.31144" y="80.830106" transform="rotate(-0 586.31144 80.830106)">0.19</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="80.121306" transform="rotate(-0 498.709611 80.121306)">0.23</text>
    </g>
    <g id="text_50">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="622.802356" y="80.830106" transform="rotate(-0 622.802356 80.830106)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="533.561675" y="80.121306" transform="rotate(-0 533.561675 80.121306)">0.23</text>
    </g>
    <g id="text_51">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="659.293271" y="80.830106" transform="rotate(-0 659.293271 80.830106)">0.17</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="568.41374" y="80.121306" transform="rotate(-0 568.41374 80.121306)">0.24</text>
    </g>
    <g id="text_52">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="695.784186" y="80.830106" transform="rotate(-0 695.784186 80.830106)">0.02</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="80.121306" transform="rotate(-0 603.265804 80.121306)">0.19</text>
    </g>
    <g id="text_53">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="732.275101" y="80.830106" transform="rotate(-0 732.275101 80.830106)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="80.121306" transform="rotate(-0 638.117868 80.121306)">0.12</text>
    </g>
    <g id="text_54">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="768.766016" y="80.830106" transform="rotate(-0 768.766016 80.830106)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="80.121306" transform="rotate(-0 672.969933 80.121306)">0.17</text>
    </g>
    <g id="text_55">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="805.256932" y="80.830106" transform="rotate(-0 805.256932 80.830106)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="707.821997" y="80.121306" transform="rotate(-0 707.821997 80.121306)">0.02</text>
    </g>
    <g id="text_56">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="841.747847" y="80.830106" transform="rotate(-0 841.747847 80.830106)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="80.121306" transform="rotate(-0 742.674061 80.121306)">0.04</text>
    </g>
    <g id="text_57">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="878.238762" y="80.830106" transform="rotate(-0 878.238762 80.830106)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="80.121306" transform="rotate(-0 777.526126 80.121306)">0.03</text>
    </g>
    <g id="text_58">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="914.729677" y="80.830106" transform="rotate(-0 914.729677 80.830106)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="80.121306" transform="rotate(-0 812.37819 80.121306)">0.04</text>
    </g>
    <g id="text_59">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="148.420458" y="107.403602" transform="rotate(-0 148.420458 107.403602)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="80.121306" transform="rotate(-0 847.230254 80.121306)">0.07</text>
    </g>
    <g id="text_60">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="184.911373" y="107.403602" transform="rotate(-0 184.911373 107.403602)">0.11</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="882.082319" y="80.121306" transform="rotate(-0 882.082319 80.121306)">0.04</text>
    </g>
    <g id="text_61">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="221.402288" y="107.403602" transform="rotate(-0 221.402288 107.403602)">0.13</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="80.121306" transform="rotate(-0 916.934383 80.121306)">0.06</text>
    </g>
    <g id="text_62">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="257.893203" y="107.403602" transform="rotate(-0 257.893203 107.403602)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="106.618941" transform="rotate(-0 185.041032 106.618941)">0.03</text>
    </g>
    <g id="text_63">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="294.384119" y="107.403602" transform="rotate(-0 294.384119 107.403602)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="219.893096" y="106.618941" transform="rotate(-0 219.893096 106.618941)">0.11</text>
    </g>
    <g id="text_64">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="330.875034" y="107.403602" transform="rotate(-0 330.875034 107.403602)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="106.618941" transform="rotate(-0 254.745161 106.618941)">0.13</text>
    </g>
    <g id="text_65">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="367.365949" y="107.403602" transform="rotate(-0 367.365949 107.403602)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="289.597225" y="106.618941" transform="rotate(-0 289.597225 106.618941)">0.06</text>
    </g>
    <g id="text_66">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="403.856864" y="107.403602" transform="rotate(-0 403.856864 107.403602)">0.11</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="324.449289" y="106.618941" transform="rotate(-0 324.449289 106.618941)">0.12</text>
    </g>
    <g id="text_67">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="440.347779" y="107.403602" transform="rotate(-0 440.347779 107.403602)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="359.301354" y="106.618941" transform="rotate(-0 359.301354 106.618941)">0.12</text>
    </g>
    <g id="text_68">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="476.838695" y="107.403602" transform="rotate(-0 476.838695 107.403602)">0.19</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="394.153418" y="106.618941" transform="rotate(-0 394.153418 106.618941)">0.07</text>
    </g>
    <g id="text_69">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="513.32961" y="107.403602" transform="rotate(-0 513.32961 107.403602)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="106.618941" transform="rotate(-0 429.005482 106.618941)">0.11</text>
    </g>
    <g id="text_70">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="549.820525" y="107.403602" transform="rotate(-0 549.820525 107.403602)">0.16</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="106.618941" transform="rotate(-0 463.857547 106.618941)">0.03</text>
    </g>
    <g id="text_71">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="586.31144" y="107.403602" transform="rotate(-0 586.31144 107.403602)">0.14</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="106.618941" transform="rotate(-0 498.709611 106.618941)">0.19</text>
    </g>
    <g id="text_72">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="622.802356" y="107.403602" transform="rotate(-0 622.802356 107.403602)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="533.561675" y="106.618941" transform="rotate(-0 533.561675 106.618941)">0.06</text>
    </g>
    <g id="text_73">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="659.293271" y="107.403602" transform="rotate(-0 659.293271 107.403602)">0.23</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="568.41374" y="106.618941" transform="rotate(-0 568.41374 106.618941)">0.16</text>
    </g>
    <g id="text_74">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="695.784186" y="107.403602" transform="rotate(-0 695.784186 107.403602)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="106.618941" transform="rotate(-0 603.265804 106.618941)">0.14</text>
    </g>
    <g id="text_75">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="732.275101" y="107.403602" transform="rotate(-0 732.275101 107.403602)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="106.618941" transform="rotate(-0 638.117868 106.618941)">0.06</text>
    </g>
    <g id="text_76">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="768.766016" y="107.403602" transform="rotate(-0 768.766016 107.403602)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="106.618941" transform="rotate(-0 672.969933 106.618941)">0.23</text>
    </g>
    <g id="text_77">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="805.256932" y="107.403602" transform="rotate(-0 805.256932 107.403602)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="707.821997" y="106.618941" transform="rotate(-0 707.821997 106.618941)">0.03</text>
    </g>
    <g id="text_78">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="841.747847" y="107.403602" transform="rotate(-0 841.747847 107.403602)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="106.618941" transform="rotate(-0 742.674061 106.618941)">0.04</text>
    </g>
    <g id="text_79">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="878.238762" y="107.403602" transform="rotate(-0 878.238762 107.403602)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="106.618941" transform="rotate(-0 777.526126 106.618941)">0.07</text>
    </g>
    <g id="text_80">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="914.729677" y="107.403602" transform="rotate(-0 914.729677 107.403602)">0.10</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="106.618941" transform="rotate(-0 812.37819 106.618941)">0.04</text>
    </g>
    <g id="text_81">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="148.420458" y="133.977097" transform="rotate(-0 148.420458 133.977097)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="106.618941" transform="rotate(-0 847.230254 106.618941)">0.03</text>
    </g>
    <g id="text_82">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="184.911373" y="133.977097" transform="rotate(-0 184.911373 133.977097)">0.15</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="882.082319" y="106.618941" transform="rotate(-0 882.082319 106.618941)">0.04</text>
    </g>
    <g id="text_83">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="221.402288" y="133.977097" transform="rotate(-0 221.402288 133.977097)">0.21</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="106.618941" transform="rotate(-0 916.934383 106.618941)">0.10</text>
    </g>
    <g id="text_84">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="257.893203" y="133.977097" transform="rotate(-0 257.893203 133.977097)">0.20</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="133.116577" transform="rotate(-0 185.041032 133.116577)">0.05</text>
    </g>
    <g id="text_85">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="294.384119" y="133.977097" transform="rotate(-0 294.384119 133.977097)">0.24</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="219.893096" y="133.116577" transform="rotate(-0 219.893096 133.116577)">0.15</text>
    </g>
    <g id="text_86">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="330.875034" y="133.977097" transform="rotate(-0 330.875034 133.977097)">0.18</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="133.116577" transform="rotate(-0 254.745161 133.116577)">0.20</text>
    </g>
    <g id="text_87">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="367.365949" y="133.977097" transform="rotate(-0 367.365949 133.977097)">0.13</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="289.597225" y="133.116577" transform="rotate(-0 289.597225 133.116577)">0.14</text>
    </g>
    <g id="text_88">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="403.856864" y="133.977097" transform="rotate(-0 403.856864 133.977097)">0.22</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="324.449289" y="133.116577" transform="rotate(-0 324.449289 133.116577)">0.21</text>
    </g>
    <g id="text_89">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="440.347779" y="133.977097" transform="rotate(-0 440.347779 133.977097)">0.15</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="359.301354" y="133.116577" transform="rotate(-0 359.301354 133.116577)">0.13</text>
    </g>
    <g id="text_90">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="476.838695" y="133.977097" transform="rotate(-0 476.838695 133.977097)">0.15</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="394.153418" y="133.116577" transform="rotate(-0 394.153418 133.116577)">0.13</text>
    </g>
    <g id="text_91">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="513.32961" y="133.977097" transform="rotate(-0 513.32961 133.977097)">0.02</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="133.116577" transform="rotate(-0 429.005482 133.116577)">0.14</text>
    </g>
    <g id="text_92">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="549.820525" y="133.977097" transform="rotate(-0 549.820525 133.977097)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="133.116577" transform="rotate(-0 463.857547 133.116577)">0.09</text>
    </g>
    <g id="text_93">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="586.31144" y="133.977097" transform="rotate(-0 586.31144 133.977097)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="133.116577" transform="rotate(-0 498.709611 133.116577)">0.13</text>
    </g>
    <g id="text_94">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="622.802356" y="133.977097" transform="rotate(-0 622.802356 133.977097)">0.09</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="533.561675" y="133.116577" transform="rotate(-0 533.561675 133.116577)">0.05</text>
    </g>
    <g id="text_95">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="659.293271" y="133.977097" transform="rotate(-0 659.293271 133.977097)">0.25</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="568.41374" y="133.116577" transform="rotate(-0 568.41374 133.116577)">0.07</text>
    </g>
    <g id="text_96">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="695.784186" y="133.977097" transform="rotate(-0 695.784186 133.977097)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="133.116577" transform="rotate(-0 603.265804 133.116577)">0.11</text>
    </g>
    <g id="text_97">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="732.275101" y="133.977097" transform="rotate(-0 732.275101 133.977097)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="133.116577" transform="rotate(-0 638.117868 133.116577)">0.09</text>
    </g>
    <g id="text_98">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="768.766016" y="133.977097" transform="rotate(-0 768.766016 133.977097)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="133.116577" transform="rotate(-0 672.969933 133.116577)">0.20</text>
    </g>
    <g id="text_99">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="805.256932" y="133.977097" transform="rotate(-0 805.256932 133.977097)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="707.821997" y="133.116577" transform="rotate(-0 707.821997 133.116577)">0.06</text>
    </g>
    <g id="text_100">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="841.747847" y="133.977097" transform="rotate(-0 841.747847 133.977097)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="133.116577" transform="rotate(-0 742.674061 133.116577)">0.05</text>
    </g>
    <g id="text_101">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="878.238762" y="133.977097" transform="rotate(-0 878.238762 133.977097)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="133.116577" transform="rotate(-0 777.526126 133.116577)">0.03</text>
    </g>
    <g id="text_102">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="914.729677" y="133.977097" transform="rotate(-0 914.729677 133.977097)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="133.116577" transform="rotate(-0 812.37819 133.116577)">0.14</text>
    </g>
    <g id="text_103">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="148.420458" y="160.550593" transform="rotate(-0 148.420458 160.550593)">0.16</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="133.116577" transform="rotate(-0 847.230254 133.116577)">0.02</text>
    </g>
    <g id="text_104">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="184.911373" y="160.550593" transform="rotate(-0 184.911373 160.550593)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="882.082319" y="133.116577" transform="rotate(-0 882.082319 133.116577)">0.05</text>
    </g>
    <g id="text_105">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="221.402288" y="160.550593" transform="rotate(-0 221.402288 160.550593)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="133.116577" transform="rotate(-0 916.934383 133.116577)">0.02</text>
    </g>
    <g id="text_106">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="257.893203" y="160.550593" transform="rotate(-0 257.893203 160.550593)">0.17</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="159.614213" transform="rotate(-0 185.041032 159.614213)">0.24</text>
    </g>
    <g id="text_107">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="294.384119" y="160.550593" transform="rotate(-0 294.384119 160.550593)">0.20</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="219.893096" y="159.614213" transform="rotate(-0 219.893096 159.614213)">0.04</text>
    </g>
    <g id="text_108">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="330.875034" y="160.550593" transform="rotate(-0 330.875034 160.550593)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="159.614213" transform="rotate(-0 254.745161 159.614213)">0.04</text>
    </g>
    <g id="text_109">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="367.365949" y="160.550593" transform="rotate(-0 367.365949 160.550593)">0.09</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="289.597225" y="159.614213" transform="rotate(-0 289.597225 159.614213)">0.09</text>
    </g>
    <g id="text_110">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="403.856864" y="160.550593" transform="rotate(-0 403.856864 160.550593)">0.10</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="324.449289" y="159.614213" transform="rotate(-0 324.449289 159.614213)">0.21</text>
    </g>
    <g id="text_111">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="440.347779" y="160.550593" transform="rotate(-0 440.347779 160.550593)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="359.301354" y="159.614213" transform="rotate(-0 359.301354 159.614213)">0.05</text>
    </g>
    <g id="text_112">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="476.838695" y="160.550593" transform="rotate(-0 476.838695 160.550593)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="394.153418" y="159.614213" transform="rotate(-0 394.153418 159.614213)">0.05</text>
    </g>
    <g id="text_113">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="513.32961" y="160.550593" transform="rotate(-0 513.32961 160.550593)">0.22</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="159.614213" transform="rotate(-0 429.005482 159.614213)">0.16</text>
    </g>
    <g id="text_114">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="549.820525" y="160.550593" transform="rotate(-0 549.820525 160.550593)">0.14</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="159.614213" transform="rotate(-0 463.857547 159.614213)">0.15</text>
    </g>
    <g id="text_115">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="586.31144" y="160.550593" transform="rotate(-0 586.31144 160.550593)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="159.614213" transform="rotate(-0 498.709611 159.614213)">0.08</text>
    </g>
    <g id="text_116">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="622.802356" y="160.550593" transform="rotate(-0 622.802356 160.550593)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="533.561675" y="159.614213" transform="rotate(-0 533.561675 159.614213)">0.22</text>
    </g>
    <g id="text_117">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="659.293271" y="160.550593" transform="rotate(-0 659.293271 160.550593)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="568.41374" y="159.614213" transform="rotate(-0 568.41374 159.614213)">0.17</text>
    </g>
    <g id="text_118">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="695.784186" y="160.550593" transform="rotate(-0 695.784186 160.550593)">0.02</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="159.614213" transform="rotate(-0 603.265804 159.614213)">0.05</text>
    </g>
    <g id="text_119">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="732.275101" y="160.550593" transform="rotate(-0 732.275101 160.550593)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="159.614213" transform="rotate(-0 638.117868 159.614213)">0.04</text>
    </g>
    <g id="text_120">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="768.766016" y="160.550593" transform="rotate(-0 768.766016 160.550593)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="159.614213" transform="rotate(-0 672.969933 159.614213)">0.08</text>
    </g>
    <g id="text_121">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="805.256932" y="160.550593" transform="rotate(-0 805.256932 160.550593)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="707.821997" y="159.614213" transform="rotate(-0 707.821997 159.614213)">0.05</text>
    </g>
    <g id="text_122">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="841.747847" y="160.550593" transform="rotate(-0 841.747847 160.550593)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="159.614213" transform="rotate(-0 742.674061 159.614213)">0.02</text>
    </g>
    <g id="text_123">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="878.238762" y="160.550593" transform="rotate(-0 878.238762 160.550593)">0.16</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="159.614213" transform="rotate(-0 777.526126 159.614213)">0.04</text>
    </g>
    <g id="text_124">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="914.729677" y="160.550593" transform="rotate(-0 914.729677 160.550593)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="159.614213" transform="rotate(-0 812.37819 159.614213)">0.02</text>
    </g>
    <g id="text_125">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="148.420458" y="187.124088" transform="rotate(-0 148.420458 187.124088)">0.13</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="159.614213" transform="rotate(-0 847.230254 159.614213)">0.05</text>
    </g>
    <g id="text_126">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="184.911373" y="187.124088" transform="rotate(-0 184.911373 187.124088)">0.32</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="882.082319" y="159.614213" transform="rotate(-0 882.082319 159.614213)">0.15</text>
    </g>
    <g id="text_127">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="221.402288" y="187.124088" transform="rotate(-0 221.402288 187.124088)">0.02</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="159.614213" transform="rotate(-0 916.934383 159.614213)">0.06</text>
    </g>
    <g id="text_128">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="257.893203" y="187.124088" transform="rotate(-0 257.893203 187.124088)">0.50</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="186.111849" transform="rotate(-0 185.041032 186.111849)">0.08</text>
    </g>
    <g id="text_129">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="294.384119" y="187.124088" transform="rotate(-0 294.384119 187.124088)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="219.893096" y="186.111849" transform="rotate(-0 219.893096 186.111849)">0.15</text>
    </g>
    <g id="text_130">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="330.875034" y="187.124088" transform="rotate(-0 330.875034 187.124088)">0.38</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="186.111849" transform="rotate(-0 254.745161 186.111849)">0.21</text>
    </g>
    <g id="text_131">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="367.365949" y="187.124088" transform="rotate(-0 367.365949 187.124088)">0.28</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="289.597225" y="186.111849" transform="rotate(-0 289.597225 186.111849)">0.20</text>
    </g>
    <g id="text_132">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="403.856864" y="187.124088" transform="rotate(-0 403.856864 187.124088)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="324.449289" y="186.111849" transform="rotate(-0 324.449289 186.111849)">0.24</text>
    </g>
    <g id="text_133">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="440.347779" y="187.124088" transform="rotate(-0 440.347779 187.124088)">0.09</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="359.301354" y="186.111849" transform="rotate(-0 359.301354 186.111849)">0.18</text>
    </g>
    <g id="text_134">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="476.838695" y="187.124088" transform="rotate(-0 476.838695 187.124088)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="394.153418" y="186.111849" transform="rotate(-0 394.153418 186.111849)">0.13</text>
    </g>
    <g id="text_135">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="513.32961" y="187.124088" transform="rotate(-0 513.32961 187.124088)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="186.111849" transform="rotate(-0 429.005482 186.111849)">0.22</text>
    </g>
    <g id="text_136">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="549.820525" y="187.124088" transform="rotate(-0 549.820525 187.124088)">0.17</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="186.111849" transform="rotate(-0 463.857547 186.111849)">0.15</text>
    </g>
    <g id="text_137">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="586.31144" y="187.124088" transform="rotate(-0 586.31144 187.124088)">0.13</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="186.111849" transform="rotate(-0 498.709611 186.111849)">0.15</text>
    </g>
    <g id="text_138">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="622.802356" y="187.124088" transform="rotate(-0 622.802356 187.124088)">0.15</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="533.561675" y="186.111849" transform="rotate(-0 533.561675 186.111849)">0.02</text>
    </g>
    <g id="text_139">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="659.293271" y="187.124088" transform="rotate(-0 659.293271 187.124088)">0.10</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="568.41374" y="186.111849" transform="rotate(-0 568.41374 186.111849)">0.04</text>
    </g>
    <g id="text_140">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="695.784186" y="187.124088" transform="rotate(-0 695.784186 187.124088)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="186.111849" transform="rotate(-0 603.265804 186.111849)">0.04</text>
    </g>
    <g id="text_141">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="732.275101" y="187.124088" transform="rotate(-0 732.275101 187.124088)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="186.111849" transform="rotate(-0 638.117868 186.111849)">0.09</text>
    </g>
    <g id="text_142">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="768.766016" y="187.124088" transform="rotate(-0 768.766016 187.124088)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="186.111849" transform="rotate(-0 672.969933 186.111849)">0.25</text>
    </g>
    <g id="text_143">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="805.256932" y="187.124088" transform="rotate(-0 805.256932 187.124088)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="707.821997" y="186.111849" transform="rotate(-0 707.821997 186.111849)">0.05</text>
    </g>
    <g id="text_144">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="841.747847" y="187.124088" transform="rotate(-0 841.747847 187.124088)">0.09</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="186.111849" transform="rotate(-0 742.674061 186.111849)">0.12</text>
    </g>
    <g id="text_145">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="878.238762" y="187.124088" transform="rotate(-0 878.238762 187.124088)">0.15</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="186.111849" transform="rotate(-0 777.526126 186.111849)">0.05</text>
    </g>
    <g id="text_146">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="914.729677" y="187.124088" transform="rotate(-0 914.729677 187.124088)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="186.111849" transform="rotate(-0 812.37819 186.111849)">0.04</text>
    </g>
    <g id="text_147">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="148.420458" y="213.697584" transform="rotate(-0 148.420458 213.697584)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="186.111849" transform="rotate(-0 847.230254 186.111849)">0.03</text>
    </g>
    <g id="text_148">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="184.911373" y="213.697584" transform="rotate(-0 184.911373 213.697584)">0.09</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="882.082319" y="186.111849" transform="rotate(-0 882.082319 186.111849)">0.07</text>
    </g>
    <g id="text_149">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="221.402288" y="213.697584" transform="rotate(-0 221.402288 213.697584)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="186.111849" transform="rotate(-0 916.934383 186.111849)">0.03</text>
    </g>
    <g id="text_150">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="257.893203" y="213.697584" transform="rotate(-0 257.893203 213.697584)">0.09</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="212.609484" transform="rotate(-0 185.041032 212.609484)">0.16</text>
    </g>
    <g id="text_151">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="294.384119" y="213.697584" transform="rotate(-0 294.384119 213.697584)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="219.893096" y="212.609484" transform="rotate(-0 219.893096 212.609484)">0.06</text>
    </g>
    <g id="text_152">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="330.875034" y="213.697584" transform="rotate(-0 330.875034 213.697584)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="212.609484" transform="rotate(-0 254.745161 212.609484)">0.05</text>
    </g>
    <g id="text_153">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="367.365949" y="213.697584" transform="rotate(-0 367.365949 213.697584)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="289.597225" y="212.609484" transform="rotate(-0 289.597225 212.609484)">0.17</text>
    </g>
    <g id="text_154">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="403.856864" y="213.697584" transform="rotate(-0 403.856864 213.697584)">0.11</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="324.449289" y="212.609484" transform="rotate(-0 324.449289 212.609484)">0.20</text>
    </g>
    <g id="text_155">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="440.347779" y="213.697584" transform="rotate(-0 440.347779 213.697584)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="359.301354" y="212.609484" transform="rotate(-0 359.301354 212.609484)">0.05</text>
    </g>
    <g id="text_156">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="476.838695" y="213.697584" transform="rotate(-0 476.838695 213.697584)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="394.153418" y="212.609484" transform="rotate(-0 394.153418 212.609484)">0.09</text>
    </g>
    <g id="text_157">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="513.32961" y="213.697584" transform="rotate(-0 513.32961 213.697584)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="212.609484" transform="rotate(-0 429.005482 212.609484)">0.10</text>
    </g>
    <g id="text_158">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="549.820525" y="213.697584" transform="rotate(-0 549.820525 213.697584)">0.11</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="212.609484" transform="rotate(-0 463.857547 212.609484)">0.06</text>
    </g>
    <g id="text_159">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="586.31144" y="213.697584" transform="rotate(-0 586.31144 213.697584)">0.10</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="212.609484" transform="rotate(-0 498.709611 212.609484)">0.03</text>
    </g>
    <g id="text_160">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="622.802356" y="213.697584" transform="rotate(-0 622.802356 213.697584)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="533.561675" y="212.609484" transform="rotate(-0 533.561675 212.609484)">0.22</text>
    </g>
    <g id="text_161">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="659.293271" y="213.697584" transform="rotate(-0 659.293271 213.697584)">0.19</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="568.41374" y="212.609484" transform="rotate(-0 568.41374 212.609484)">0.14</text>
    </g>
    <g id="text_162">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="695.784186" y="213.697584" transform="rotate(-0 695.784186 213.697584)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="212.609484" transform="rotate(-0 603.265804 212.609484)">0.07</text>
    </g>
    <g id="text_163">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="732.275101" y="213.697584" transform="rotate(-0 732.275101 213.697584)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="212.609484" transform="rotate(-0 638.117868 212.609484)">0.07</text>
    </g>
    <g id="text_164">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="768.766016" y="213.697584" transform="rotate(-0 768.766016 213.697584)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="212.609484" transform="rotate(-0 672.969933 212.609484)">0.07</text>
    </g>
    <g id="text_165">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="805.256932" y="213.697584" transform="rotate(-0 805.256932 213.697584)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="707.821997" y="212.609484" transform="rotate(-0 707.821997 212.609484)">0.02</text>
    </g>
    <g id="text_166">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="841.747847" y="213.697584" transform="rotate(-0 841.747847 213.697584)">0.01</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="212.609484" transform="rotate(-0 742.674061 212.609484)">0.12</text>
    </g>
    <g id="text_167">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="878.238762" y="213.697584" transform="rotate(-0 878.238762 213.697584)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="212.609484" transform="rotate(-0 777.526126 212.609484)">0.05</text>
    </g>
    <g id="text_168">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="914.729677" y="213.697584" transform="rotate(-0 914.729677 213.697584)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="212.609484" transform="rotate(-0 812.37819 212.609484)">0.03</text>
    </g>
    <g id="text_169">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="148.420458" y="240.271079" transform="rotate(-0 148.420458 240.271079)">0.10</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="212.609484" transform="rotate(-0 847.230254 212.609484)">0.08</text>
    </g>
    <g id="text_170">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="184.911373" y="240.271079" transform="rotate(-0 184.911373 240.271079)">0.10</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="882.082319" y="212.609484" transform="rotate(-0 882.082319 212.609484)">0.16</text>
    </g>
    <g id="text_171">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="221.402288" y="240.271079" transform="rotate(-0 221.402288 240.271079)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="212.609484" transform="rotate(-0 916.934383 212.609484)">0.06</text>
    </g>
    <g id="text_172">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="257.893203" y="240.271079" transform="rotate(-0 257.893203 240.271079)">0.10</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="239.10712" transform="rotate(-0 185.041032 239.10712)">0.13</text>
    </g>
    <g id="text_173">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="294.384119" y="240.271079" transform="rotate(-0 294.384119 240.271079)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="219.893096" y="239.10712" transform="rotate(-0 219.893096 239.10712)">0.32</text>
    </g>
    <g id="text_174">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="330.875034" y="240.271079" transform="rotate(-0 330.875034 240.271079)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="239.10712" transform="rotate(-0 254.745161 239.10712)">0.02</text>
    </g>
    <g id="text_175">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="367.365949" y="240.271079" transform="rotate(-0 367.365949 240.271079)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="289.597225" y="239.10712" transform="rotate(-0 289.597225 239.10712)">0.50</text>
    </g>
    <g id="text_176">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="403.856864" y="240.271079" transform="rotate(-0 403.856864 240.271079)">0.18</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="324.449289" y="239.10712" transform="rotate(-0 324.449289 239.10712)">0.12</text>
    </g>
    <g id="text_177">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="440.347779" y="240.271079" transform="rotate(-0 440.347779 240.271079)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="359.301354" y="239.10712" transform="rotate(-0 359.301354 239.10712)">0.38</text>
    </g>
    <g id="text_178">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="476.838695" y="240.271079" transform="rotate(-0 476.838695 240.271079)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="394.153418" y="239.10712" transform="rotate(-0 394.153418 239.10712)">0.28</text>
    </g>
    <g id="text_179">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="513.32961" y="240.271079" transform="rotate(-0 513.32961 240.271079)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="239.10712" transform="rotate(-0 429.005482 239.10712)">0.08</text>
    </g>
    <g id="text_180">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="549.820525" y="240.271079" transform="rotate(-0 549.820525 240.271079)">0.46</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="239.10712" transform="rotate(-0 463.857547 239.10712)">0.09</text>
    </g>
    <g id="text_181">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="586.31144" y="240.271079" transform="rotate(-0 586.31144 240.271079)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="239.10712" transform="rotate(-0 498.709611 239.10712)">0.07</text>
    </g>
    <g id="text_182">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="622.802356" y="240.271079" transform="rotate(-0 622.802356 240.271079)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="533.561675" y="239.10712" transform="rotate(-0 533.561675 239.10712)">0.07</text>
    </g>
    <g id="text_183">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="659.293271" y="240.271079" transform="rotate(-0 659.293271 240.271079)">0.18</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="568.41374" y="239.10712" transform="rotate(-0 568.41374 239.10712)">0.17</text>
    </g>
    <g id="text_184">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="695.784186" y="240.271079" transform="rotate(-0 695.784186 240.271079)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="239.10712" transform="rotate(-0 603.265804 239.10712)">0.13</text>
    </g>
    <g id="text_185">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="732.275101" y="240.271079" transform="rotate(-0 732.275101 240.271079)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="239.10712" transform="rotate(-0 638.117868 239.10712)">0.15</text>
    </g>
    <g id="text_186">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="768.766016" y="240.271079" transform="rotate(-0 768.766016 240.271079)">0.02</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="239.10712" transform="rotate(-0 672.969933 239.10712)">0.10</text>
    </g>
    <g id="text_187">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="805.256932" y="240.271079" transform="rotate(-0 805.256932 240.271079)">0.02</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="707.821997" y="239.10712" transform="rotate(-0 707.821997 239.10712)">0.08</text>
    </g>
    <g id="text_188">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="841.747847" y="240.271079" transform="rotate(-0 841.747847 240.271079)">0.02</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="239.10712" transform="rotate(-0 742.674061 239.10712)">0.12</text>
    </g>
    <g id="text_189">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="878.238762" y="240.271079" transform="rotate(-0 878.238762 240.271079)">0.02</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="239.10712" transform="rotate(-0 777.526126 239.10712)">0.08</text>
    </g>
    <g id="text_190">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="914.729677" y="240.271079" transform="rotate(-0 914.729677 240.271079)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="239.10712" transform="rotate(-0 812.37819 239.10712)">0.06</text>
    </g>
    <g id="text_191">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="148.420458" y="266.844575" transform="rotate(-0 148.420458 266.844575)">0.11</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="239.10712" transform="rotate(-0 847.230254 239.10712)">0.09</text>
    </g>
    <g id="text_192">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="184.911373" y="266.844575" transform="rotate(-0 184.911373 266.844575)">0.29</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="882.082319" y="239.10712" transform="rotate(-0 882.082319 239.10712)">0.15</text>
    </g>
    <g id="text_193">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="221.402288" y="266.844575" transform="rotate(-0 221.402288 266.844575)">0.26</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="239.10712" transform="rotate(-0 916.934383 239.10712)">0.05</text>
    </g>
    <g id="text_194">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="257.893203" y="266.844575" transform="rotate(-0 257.893203 266.844575)">0.48</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="265.604756" transform="rotate(-0 185.041032 265.604756)">0.04</text>
    </g>
    <g id="text_195">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="294.384119" y="266.844575" transform="rotate(-0 294.384119 266.844575)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="219.893096" y="265.604756" transform="rotate(-0 219.893096 265.604756)">0.09</text>
    </g>
    <g id="text_196">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="330.875034" y="266.844575" transform="rotate(-0 330.875034 266.844575)">0.41</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="265.604756" transform="rotate(-0 254.745161 265.604756)">0.08</text>
    </g>
    <g id="text_197">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="367.365949" y="266.844575" transform="rotate(-0 367.365949 266.844575)">0.29</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="289.597225" y="265.604756" transform="rotate(-0 289.597225 265.604756)">0.09</text>
    </g>
    <g id="text_198">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="403.856864" y="266.844575" transform="rotate(-0 403.856864 266.844575)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="324.449289" y="265.604756" transform="rotate(-0 324.449289 265.604756)">0.07</text>
    </g>
    <g id="text_199">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="440.347779" y="266.844575" transform="rotate(-0 440.347779 266.844575)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="359.301354" y="265.604756" transform="rotate(-0 359.301354 265.604756)">0.07</text>
    </g>
    <g id="text_200">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="476.838695" y="266.844575" transform="rotate(-0 476.838695 266.844575)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="394.153418" y="265.604756" transform="rotate(-0 394.153418 265.604756)">0.08</text>
    </g>
    <g id="text_201">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="513.32961" y="266.844575" transform="rotate(-0 513.32961 266.844575)">0.17</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="265.604756" transform="rotate(-0 429.005482 265.604756)">0.11</text>
    </g>
    <g id="text_202">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="549.820525" y="266.844575" transform="rotate(-0 549.820525 266.844575)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="265.604756" transform="rotate(-0 463.857547 265.604756)">0.05</text>
    </g>
    <g id="text_203">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="586.31144" y="266.844575" transform="rotate(-0 586.31144 266.844575)">0.10</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="265.604756" transform="rotate(-0 498.709611 265.604756)">0.07</text>
    </g>
    <g id="text_204">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="622.802356" y="266.844575" transform="rotate(-0 622.802356 266.844575)">0.14</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="533.561675" y="265.604756" transform="rotate(-0 533.561675 265.604756)">0.07</text>
    </g>
    <g id="text_205">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="659.293271" y="266.844575" transform="rotate(-0 659.293271 266.844575)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="568.41374" y="265.604756" transform="rotate(-0 568.41374 265.604756)">0.11</text>
    </g>
    <g id="text_206">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="695.784186" y="266.844575" transform="rotate(-0 695.784186 266.844575)">0.11</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="265.604756" transform="rotate(-0 603.265804 265.604756)">0.10</text>
    </g>
    <g id="text_207">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="732.275101" y="266.844575" transform="rotate(-0 732.275101 266.844575)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="265.604756" transform="rotate(-0 638.117868 265.604756)">0.05</text>
    </g>
    <g id="text_208">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="768.766016" y="266.844575" transform="rotate(-0 768.766016 266.844575)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="265.604756" transform="rotate(-0 672.969933 265.604756)">0.19</text>
    </g>
    <g id="text_209">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="805.256932" y="266.844575" transform="rotate(-0 805.256932 266.844575)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="707.821997" y="265.604756" transform="rotate(-0 707.821997 265.604756)">0.03</text>
    </g>
    <g id="text_210">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="841.747847" y="266.844575" transform="rotate(-0 841.747847 266.844575)">0.09</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="265.604756" transform="rotate(-0 742.674061 265.604756)">0.05</text>
    </g>
    <g id="text_211">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="878.238762" y="266.844575" transform="rotate(-0 878.238762 266.844575)">0.23</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="265.604756" transform="rotate(-0 777.526126 265.604756)">0.03</text>
    </g>
    <g id="text_212">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="914.729677" y="266.844575" transform="rotate(-0 914.729677 266.844575)">0.16</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="265.604756" transform="rotate(-0 812.37819 265.604756)">0.04</text>
    </g>
    <g id="text_213">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="148.420458" y="293.41807" transform="rotate(-0 148.420458 293.41807)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="265.604756" transform="rotate(-0 847.230254 265.604756)">0.01</text>
    </g>
    <g id="text_214">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="184.911373" y="293.41807" transform="rotate(-0 184.911373 293.41807)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="882.082319" y="265.604756" transform="rotate(-0 882.082319 265.604756)">0.03</text>
    </g>
    <g id="text_215">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="221.402288" y="293.41807" transform="rotate(-0 221.402288 293.41807)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="265.604756" transform="rotate(-0 916.934383 265.604756)">0.08</text>
    </g>
    <g id="text_216">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="257.893203" y="293.41807" transform="rotate(-0 257.893203 293.41807)">0.13</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="292.102392" transform="rotate(-0 185.041032 292.102392)">0.14</text>
    </g>
    <g id="text_217">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="294.384119" y="293.41807" transform="rotate(-0 294.384119 293.41807)">0.17</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="219.893096" y="292.102392" transform="rotate(-0 219.893096 292.102392)">0.04</text>
    </g>
    <g id="text_218">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="330.875034" y="293.41807" transform="rotate(-0 330.875034 293.41807)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="292.102392" transform="rotate(-0 254.745161 292.102392)">0.18</text>
    </g>
    <g id="text_219">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="367.365949" y="293.41807" transform="rotate(-0 367.365949 293.41807)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="289.597225" y="292.102392" transform="rotate(-0 289.597225 292.102392)">0.13</text>
    </g>
    <g id="text_220">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="403.856864" y="293.41807" transform="rotate(-0 403.856864 293.41807)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="324.449289" y="292.102392" transform="rotate(-0 324.449289 292.102392)">0.27</text>
    </g>
    <g id="text_221">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="440.347779" y="293.41807" transform="rotate(-0 440.347779 293.41807)">0.02</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="359.301354" y="292.102392" transform="rotate(-0 359.301354 292.102392)">0.08</text>
    </g>
    <g id="text_222">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="476.838695" y="293.41807" transform="rotate(-0 476.838695 293.41807)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="394.153418" y="292.102392" transform="rotate(-0 394.153418 292.102392)">0.05</text>
    </g>
    <g id="text_223">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="513.32961" y="293.41807" transform="rotate(-0 513.32961 293.41807)">0.14</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="292.102392" transform="rotate(-0 429.005482 292.102392)">0.08</text>
    </g>
    <g id="text_224">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="549.820525" y="293.41807" transform="rotate(-0 549.820525 293.41807)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="292.102392" transform="rotate(-0 463.857547 292.102392)">0.08</text>
    </g>
    <g id="text_225">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="586.31144" y="293.41807" transform="rotate(-0 586.31144 293.41807)">0.11</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="292.102392" transform="rotate(-0 498.709611 292.102392)">0.05</text>
    </g>
    <g id="text_226">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="622.802356" y="293.41807" transform="rotate(-0 622.802356 293.41807)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="533.561675" y="292.102392" transform="rotate(-0 533.561675 292.102392)">0.11</text>
    </g>
    <g id="text_227">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="659.293271" y="293.41807" transform="rotate(-0 659.293271 293.41807)">0.02</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="568.41374" y="292.102392" transform="rotate(-0 568.41374 292.102392)">0.11</text>
    </g>
    <g id="text_228">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="695.784186" y="293.41807" transform="rotate(-0 695.784186 293.41807)">0.02</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="292.102392" transform="rotate(-0 603.265804 292.102392)">0.04</text>
    </g>
    <g id="text_229">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="732.275101" y="293.41807" transform="rotate(-0 732.275101 293.41807)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="292.102392" transform="rotate(-0 638.117868 292.102392)">0.10</text>
    </g>
    <g id="text_230">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="768.766016" y="293.41807" transform="rotate(-0 768.766016 293.41807)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="292.102392" transform="rotate(-0 672.969933 292.102392)">0.13</text>
    </g>
    <g id="text_231">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="805.256932" y="293.41807" transform="rotate(-0 805.256932 293.41807)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="707.821997" y="292.102392" transform="rotate(-0 707.821997 292.102392)">0.03</text>
    </g>
    <g id="text_232">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="841.747847" y="293.41807" transform="rotate(-0 841.747847 293.41807)">0.22</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="292.102392" transform="rotate(-0 742.674061 292.102392)">0.06</text>
    </g>
    <g id="text_233">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="878.238762" y="293.41807" transform="rotate(-0 878.238762 293.41807)">0.18</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="292.102392" transform="rotate(-0 777.526126 292.102392)">0.02</text>
    </g>
    <g id="text_234">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="914.729677" y="293.41807" transform="rotate(-0 914.729677 293.41807)">0.13</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="292.102392" transform="rotate(-0 812.37819 292.102392)">0.05</text>
    </g>
    <g id="text_235">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="148.420458" y="319.991566" transform="rotate(-0 148.420458 319.991566)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="292.102392" transform="rotate(-0 847.230254 292.102392)">0.11</text>
    </g>
    <g id="text_236">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="184.911373" y="319.991566" transform="rotate(-0 184.911373 319.991566)">0.14</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="882.082319" y="292.102392" transform="rotate(-0 882.082319 292.102392)">0.16</text>
    </g>
    <g id="text_237">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="221.402288" y="319.991566" transform="rotate(-0 221.402288 319.991566)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="292.102392" transform="rotate(-0 916.934383 292.102392)">0.03</text>
    </g>
    <g id="text_238">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="257.893203" y="319.991566" transform="rotate(-0 257.893203 319.991566)">0.11</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="318.600028" transform="rotate(-0 185.041032 318.600028)">0.10</text>
    </g>
    <g id="text_239">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="294.384119" y="319.991566" transform="rotate(-0 294.384119 319.991566)">0.21</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="219.893096" y="318.600028" transform="rotate(-0 219.893096 318.600028)">0.10</text>
    </g>
    <g id="text_240">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="330.875034" y="319.991566" transform="rotate(-0 330.875034 319.991566)">0.15</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="318.600028" transform="rotate(-0 254.745161 318.600028)">0.12</text>
    </g>
    <g id="text_241">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="367.365949" y="319.991566" transform="rotate(-0 367.365949 319.991566)">0.09</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="289.597225" y="318.600028" transform="rotate(-0 289.597225 318.600028)">0.10</text>
    </g>
    <g id="text_242">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="403.856864" y="319.991566" transform="rotate(-0 403.856864 319.991566)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="324.449289" y="318.600028" transform="rotate(-0 324.449289 318.600028)">0.04</text>
    </g>
    <g id="text_243">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="440.347779" y="319.991566" transform="rotate(-0 440.347779 319.991566)">0.10</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="359.301354" y="318.600028" transform="rotate(-0 359.301354 318.600028)">0.04</text>
    </g>
    <g id="text_244">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="476.838695" y="319.991566" transform="rotate(-0 476.838695 319.991566)">0.02</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="394.153418" y="318.600028" transform="rotate(-0 394.153418 318.600028)">0.07</text>
    </g>
    <g id="text_245">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="513.32961" y="319.991566" transform="rotate(-0 513.32961 319.991566)">0.18</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="318.600028" transform="rotate(-0 429.005482 318.600028)">0.18</text>
    </g>
    <g id="text_246">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="549.820525" y="319.991566" transform="rotate(-0 549.820525 319.991566)">0.15</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="318.600028" transform="rotate(-0 463.857547 318.600028)">0.03</text>
    </g>
    <g id="text_247">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="586.31144" y="319.991566" transform="rotate(-0 586.31144 319.991566)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="318.600028" transform="rotate(-0 498.709611 318.600028)">0.03</text>
    </g>
    <g id="text_248">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="622.802356" y="319.991566" transform="rotate(-0 622.802356 319.991566)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="533.561675" y="318.600028" transform="rotate(-0 533.561675 318.600028)">0.06</text>
    </g>
    <g id="text_249">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="659.293271" y="319.991566" transform="rotate(-0 659.293271 319.991566)">0.11</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="568.41374" y="318.600028" transform="rotate(-0 568.41374 318.600028)">0.46</text>
    </g>
    <g id="text_250">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="695.784186" y="319.991566" transform="rotate(-0 695.784186 319.991566)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="318.600028" transform="rotate(-0 603.265804 318.600028)">0.06</text>
    </g>
    <g id="text_251">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="732.275101" y="319.991566" transform="rotate(-0 732.275101 319.991566)">0.11</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="318.600028" transform="rotate(-0 638.117868 318.600028)">0.04</text>
    </g>
    <g id="text_252">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="768.766016" y="319.991566" transform="rotate(-0 768.766016 319.991566)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="318.600028" transform="rotate(-0 672.969933 318.600028)">0.18</text>
    </g>
    <g id="text_253">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="805.256932" y="319.991566" transform="rotate(-0 805.256932 319.991566)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="707.821997" y="318.600028" transform="rotate(-0 707.821997 318.600028)">0.03</text>
    </g>
    <g id="text_254">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="841.747847" y="319.991566" transform="rotate(-0 841.747847 319.991566)">0.20</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="318.600028" transform="rotate(-0 742.674061 318.600028)">0.03</text>
    </g>
    <g id="text_255">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="878.238762" y="319.991566" transform="rotate(-0 878.238762 319.991566)">0.25</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="318.600028" transform="rotate(-0 777.526126 318.600028)">0.02</text>
    </g>
    <g id="text_256">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="914.729677" y="319.991566" transform="rotate(-0 914.729677 319.991566)">0.18</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="318.600028" transform="rotate(-0 812.37819 318.600028)">0.02</text>
    </g>
    <g id="text_257">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="148.420458" y="346.565061" transform="rotate(-0 148.420458 346.565061)">0.13</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="318.600028" transform="rotate(-0 847.230254 318.600028)">0.02</text>
    </g>
    <g id="text_258">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="184.911373" y="346.565061" transform="rotate(-0 184.911373 346.565061)">0.15</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="882.082319" y="318.600028" transform="rotate(-0 882.082319 318.600028)">0.02</text>
    </g>
    <g id="text_259">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="221.402288" y="346.565061" transform="rotate(-0 221.402288 346.565061)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="318.600028" transform="rotate(-0 916.934383 318.600028)">0.07</text>
    </g>
    <g id="text_260">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="257.893203" y="346.565061" transform="rotate(-0 257.893203 346.565061)">0.16</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="345.097663" transform="rotate(-0 185.041032 345.097663)">0.11</text>
    </g>
    <g id="text_261">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="294.384119" y="346.565061" transform="rotate(-0 294.384119 346.565061)">0.22</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="219.893096" y="345.097663" transform="rotate(-0 219.893096 345.097663)">0.29</text>
    </g>
    <g id="text_262">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="330.875034" y="346.565061" transform="rotate(-0 330.875034 346.565061)">0.19</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="345.097663" transform="rotate(-0 254.745161 345.097663)">0.26</text>
    </g>
    <g id="text_263">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="367.365949" y="346.565061" transform="rotate(-0 367.365949 346.565061)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="289.597225" y="345.097663" transform="rotate(-0 289.597225 345.097663)">0.48</text>
    </g>
    <g id="text_264">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="403.856864" y="346.565061" transform="rotate(-0 403.856864 346.565061)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="324.449289" y="345.097663" transform="rotate(-0 324.449289 345.097663)">0.03</text>
    </g>
    <g id="text_265">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="440.347779" y="346.565061" transform="rotate(-0 440.347779 346.565061)">0.02</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="359.301354" y="345.097663" transform="rotate(-0 359.301354 345.097663)">0.41</text>
    </g>
    <g id="text_266">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="476.838695" y="346.565061" transform="rotate(-0 476.838695 346.565061)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="394.153418" y="345.097663" transform="rotate(-0 394.153418 345.097663)">0.29</text>
    </g>
    <g id="text_267">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="513.32961" y="346.565061" transform="rotate(-0 513.32961 346.565061)">0.31</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="345.097663" transform="rotate(-0 429.005482 345.097663)">0.05</text>
    </g>
    <g id="text_268">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="549.820525" y="346.565061" transform="rotate(-0 549.820525 346.565061)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="345.097663" transform="rotate(-0 463.857547 345.097663)">0.12</text>
    </g>
    <g id="text_269">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="586.31144" y="346.565061" transform="rotate(-0 586.31144 346.565061)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="345.097663" transform="rotate(-0 498.709611 345.097663)">0.03</text>
    </g>
    <g id="text_270">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="622.802356" y="346.565061" transform="rotate(-0 622.802356 346.565061)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="533.561675" y="345.097663" transform="rotate(-0 533.561675 345.097663)">0.17</text>
    </g>
    <g id="text_271">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="659.293271" y="346.565061" transform="rotate(-0 659.293271 346.565061)">0.13</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="568.41374" y="345.097663" transform="rotate(-0 568.41374 345.097663)">0.12</text>
    </g>
    <g id="text_272">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="695.784186" y="346.565061" transform="rotate(-0 695.784186 346.565061)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="345.097663" transform="rotate(-0 603.265804 345.097663)">0.10</text>
    </g>
    <g id="text_273">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="732.275101" y="346.565061" transform="rotate(-0 732.275101 346.565061)">0.09</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="345.097663" transform="rotate(-0 638.117868 345.097663)">0.14</text>
    </g>
    <g id="text_274">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="768.766016" y="346.565061" transform="rotate(-0 768.766016 346.565061)">0.10</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="345.097663" transform="rotate(-0 672.969933 345.097663)">0.06</text>
    </g>
    <g id="text_275">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="805.256932" y="346.565061" transform="rotate(-0 805.256932 346.565061)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="707.821997" y="345.097663" transform="rotate(-0 707.821997 345.097663)">0.11</text>
    </g>
    <g id="text_276">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="841.747847" y="346.565061" transform="rotate(-0 841.747847 346.565061)">0.16</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="345.097663" transform="rotate(-0 742.674061 345.097663)">0.06</text>
    </g>
    <g id="text_277">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="878.238762" y="346.565061" transform="rotate(-0 878.238762 346.565061)">0.23</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="345.097663" transform="rotate(-0 777.526126 345.097663)">0.12</text>
    </g>
    <g id="text_278">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="914.729677" y="346.565061" transform="rotate(-0 914.729677 346.565061)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="345.097663" transform="rotate(-0 812.37819 345.097663)">0.04</text>
    </g>
    <g id="text_279">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="148.420458" y="373.138557" transform="rotate(-0 148.420458 373.138557)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="345.097663" transform="rotate(-0 847.230254 345.097663)">0.09</text>
    </g>
    <g id="text_280">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="184.911373" y="373.138557" transform="rotate(-0 184.911373 373.138557)">0.13</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="882.082319" y="345.097663" transform="rotate(-0 882.082319 345.097663)">0.23</text>
    </g>
    <g id="text_281">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="221.402288" y="373.138557" transform="rotate(-0 221.402288 373.138557)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="345.097663" transform="rotate(-0 916.934383 345.097663)">0.16</text>
    </g>
    <g id="text_282">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="257.893203" y="373.138557" transform="rotate(-0 257.893203 373.138557)">0.11</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="371.595299" transform="rotate(-0 185.041032 371.595299)">0.12</text>
    </g>
    <g id="text_283">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="294.384119" y="373.138557" transform="rotate(-0 294.384119 373.138557)">0.13</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="219.893096" y="371.595299" transform="rotate(-0 219.893096 371.595299)">0.06</text>
    </g>
    <g id="text_284">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="330.875034" y="373.138557" transform="rotate(-0 330.875034 373.138557)">0.15</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="371.595299" transform="rotate(-0 254.745161 371.595299)">0.08</text>
    </g>
    <g id="text_285">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="367.365949" y="373.138557" transform="rotate(-0 367.365949 373.138557)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="289.597225" y="371.595299" transform="rotate(-0 289.597225 371.595299)">0.13</text>
    </g>
    <g id="text_286">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="403.856864" y="373.138557" transform="rotate(-0 403.856864 373.138557)">0.10</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="324.449289" y="371.595299" transform="rotate(-0 324.449289 371.595299)">0.17</text>
    </g>
    <g id="text_287">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="440.347779" y="373.138557" transform="rotate(-0 440.347779 373.138557)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="359.301354" y="371.595299" transform="rotate(-0 359.301354 371.595299)">0.05</text>
    </g>
    <g id="text_288">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="476.838695" y="373.138557" transform="rotate(-0 476.838695 373.138557)">0.09</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="394.153418" y="371.595299" transform="rotate(-0 394.153418 371.595299)">0.05</text>
    </g>
    <g id="text_289">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="513.32961" y="373.138557" transform="rotate(-0 513.32961 373.138557)">0.28</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="371.595299" transform="rotate(-0 429.005482 371.595299)">0.07</text>
    </g>
    <g id="text_290">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="549.820525" y="373.138557" transform="rotate(-0 549.820525 373.138557)">0.25</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="371.595299" transform="rotate(-0 463.857547 371.595299)">0.02</text>
    </g>
    <g id="text_291">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="586.31144" y="373.138557" transform="rotate(-0 586.31144 373.138557)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="371.595299" transform="rotate(-0 498.709611 371.595299)">0.04</text>
    </g>
    <g id="text_292">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="622.802356" y="373.138557" transform="rotate(-0 622.802356 373.138557)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="533.561675" y="371.595299" transform="rotate(-0 533.561675 371.595299)">0.14</text>
    </g>
    <g id="text_293">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="659.293271" y="373.138557" transform="rotate(-0 659.293271 373.138557)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="568.41374" y="371.595299" transform="rotate(-0 568.41374 371.595299)">0.07</text>
    </g>
    <g id="text_294">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="695.784186" y="373.138557" transform="rotate(-0 695.784186 373.138557)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="371.595299" transform="rotate(-0 603.265804 371.595299)">0.11</text>
    </g>
    <g id="text_295">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="732.275101" y="373.138557" transform="rotate(-0 732.275101 373.138557)">0.18</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="371.595299" transform="rotate(-0 638.117868 371.595299)">0.06</text>
    </g>
    <g id="text_296">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="768.766016" y="373.138557" transform="rotate(-0 768.766016 373.138557)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="371.595299" transform="rotate(-0 672.969933 371.595299)">0.02</text>
    </g>
    <g id="text_297">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="805.256932" y="373.138557" transform="rotate(-0 805.256932 373.138557)">0.14</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="707.821997" y="371.595299" transform="rotate(-0 707.821997 371.595299)">0.02</text>
    </g>
    <g id="text_298">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="841.747847" y="373.138557" transform="rotate(-0 841.747847 373.138557)">0.10</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="371.595299" transform="rotate(-0 742.674061 371.595299)">0.08</text>
    </g>
    <g id="text_299">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="878.238762" y="373.138557" transform="rotate(-0 878.238762 373.138557)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="371.595299" transform="rotate(-0 777.526126 371.595299)">0.04</text>
    </g>
    <g id="text_300">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="914.729677" y="373.138557" transform="rotate(-0 914.729677 373.138557)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="371.595299" transform="rotate(-0 812.37819 371.595299)">0.07</text>
    </g>
    <g id="text_301">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="148.420458" y="399.712052" transform="rotate(-0 148.420458 399.712052)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="371.595299" transform="rotate(-0 847.230254 371.595299)">0.22</text>
    </g>
    <g id="text_302">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="184.911373" y="399.712052" transform="rotate(-0 184.911373 399.712052)">0.11</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="882.082319" y="371.595299" transform="rotate(-0 882.082319 371.595299)">0.18</text>
    </g>
    <g id="text_303">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="221.402288" y="399.712052" transform="rotate(-0 221.402288 399.712052)">0.11</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="371.595299" transform="rotate(-0 916.934383 371.595299)">0.13</text>
    </g>
    <g id="text_304">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="257.893203" y="399.712052" transform="rotate(-0 257.893203 399.712052)">0.19</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="398.092935" transform="rotate(-0 185.041032 398.092935)">0.07</text>
    </g>
    <g id="text_305">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="294.384119" y="399.712052" transform="rotate(-0 294.384119 399.712052)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="219.893096" y="398.092935" transform="rotate(-0 219.893096 398.092935)">0.14</text>
    </g>
    <g id="text_306">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="330.875034" y="399.712052" transform="rotate(-0 330.875034 399.712052)">0.11</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="398.092935" transform="rotate(-0 254.745161 398.092935)">0.04</text>
    </g>
    <g id="text_307">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="367.365949" y="399.712052" transform="rotate(-0 367.365949 399.712052)">0.11</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="289.597225" y="398.092935" transform="rotate(-0 289.597225 398.092935)">0.11</text>
    </g>
    <g id="text_308">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="403.856864" y="399.712052" transform="rotate(-0 403.856864 399.712052)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="324.449289" y="398.092935" transform="rotate(-0 324.449289 398.092935)">0.21</text>
    </g>
    <g id="text_309">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="440.347779" y="399.712052" transform="rotate(-0 440.347779 399.712052)">0.15</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="359.301354" y="398.092935" transform="rotate(-0 359.301354 398.092935)">0.15</text>
    </g>
    <g id="text_310">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="476.838695" y="399.712052" transform="rotate(-0 476.838695 399.712052)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="394.153418" y="398.092935" transform="rotate(-0 394.153418 398.092935)">0.09</text>
    </g>
    <g id="text_311">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="513.32961" y="399.712052" transform="rotate(-0 513.32961 399.712052)">0.13</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="398.092935" transform="rotate(-0 429.005482 398.092935)">0.03</text>
    </g>
    <g id="text_312">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="549.820525" y="399.712052" transform="rotate(-0 549.820525 399.712052)">0.15</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="398.092935" transform="rotate(-0 463.857547 398.092935)">0.10</text>
    </g>
    <g id="text_313">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="586.31144" y="399.712052" transform="rotate(-0 586.31144 399.712052)">0.09</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="398.092935" transform="rotate(-0 498.709611 398.092935)">0.02</text>
    </g>
    <g id="text_314">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="622.802356" y="399.712052" transform="rotate(-0 622.802356 399.712052)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="533.561675" y="398.092935" transform="rotate(-0 533.561675 398.092935)">0.18</text>
    </g>
    <g id="text_315">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="659.293271" y="399.712052" transform="rotate(-0 659.293271 399.712052)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="568.41374" y="398.092935" transform="rotate(-0 568.41374 398.092935)">0.15</text>
    </g>
    <g id="text_316">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="695.784186" y="399.712052" transform="rotate(-0 695.784186 399.712052)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="398.092935" transform="rotate(-0 603.265804 398.092935)">0.08</text>
    </g>
    <g id="text_317">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="732.275101" y="399.712052" transform="rotate(-0 732.275101 399.712052)">0.21</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="398.092935" transform="rotate(-0 638.117868 398.092935)">0.05</text>
    </g>
    <g id="text_318">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="768.766016" y="399.712052" transform="rotate(-0 768.766016 399.712052)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="398.092935" transform="rotate(-0 672.969933 398.092935)">0.11</text>
    </g>
    <g id="text_319">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="805.256932" y="399.712052" transform="rotate(-0 805.256932 399.712052)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="707.821997" y="398.092935" transform="rotate(-0 707.821997 398.092935)">0.07</text>
    </g>
    <g id="text_320">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="841.747847" y="399.712052" transform="rotate(-0 841.747847 399.712052)">0.14</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="398.092935" transform="rotate(-0 742.674061 398.092935)">0.11</text>
    </g>
    <g id="text_321">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="878.238762" y="399.712052" transform="rotate(-0 878.238762 399.712052)">0.29</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="398.092935" transform="rotate(-0 777.526126 398.092935)">0.06</text>
    </g>
    <g id="text_322">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="914.729677" y="399.712052" transform="rotate(-0 914.729677 399.712052)">0.14</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="398.092935" transform="rotate(-0 812.37819 398.092935)">0.04</text>
    </g>
    <g id="text_323">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="148.420458" y="426.285548" transform="rotate(-0 148.420458 426.285548)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="398.092935" transform="rotate(-0 847.230254 398.092935)">0.20</text>
    </g>
    <g id="text_324">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="184.911373" y="426.285548" transform="rotate(-0 184.911373 426.285548)">0.03</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="882.082319" y="398.092935" transform="rotate(-0 882.082319 398.092935)">0.25</text>
    </g>
    <g id="text_325">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="221.402288" y="426.285548" transform="rotate(-0 221.402288 426.285548)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="398.092935" transform="rotate(-0 916.934383 398.092935)">0.18</text>
    </g>
    <g id="text_326">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="257.893203" y="426.285548" transform="rotate(-0 257.893203 426.285548)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="424.590571" transform="rotate(-0 185.041032 424.590571)">0.13</text>
    </g>
    <g id="text_327">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="294.384119" y="426.285548" transform="rotate(-0 294.384119 426.285548)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="219.893096" y="424.590571" transform="rotate(-0 219.893096 424.590571)">0.15</text>
    </g>
    <g id="text_328">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="330.875034" y="426.285548" transform="rotate(-0 330.875034 426.285548)">0.13</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="424.590571" transform="rotate(-0 254.745161 424.590571)">0.03</text>
    </g>
    <g id="text_329">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="367.365949" y="426.285548" transform="rotate(-0 367.365949 426.285548)">0.04</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="289.597225" y="424.590571" transform="rotate(-0 289.597225 424.590571)">0.16</text>
    </g>
    <g id="text_330">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="403.856864" y="426.285548" transform="rotate(-0 403.856864 426.285548)">0.08</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="324.449289" y="424.590571" transform="rotate(-0 324.449289 424.590571)">0.22</text>
    </g>
    <g id="text_331">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="440.347779" y="426.285548" transform="rotate(-0 440.347779 426.285548)">0.15</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="359.301354" y="424.590571" transform="rotate(-0 359.301354 424.590571)">0.19</text>
    </g>
    <g id="text_332">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="476.838695" y="426.285548" transform="rotate(-0 476.838695 426.285548)">0.05</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="394.153418" y="424.590571" transform="rotate(-0 394.153418 424.590571)">0.06</text>
    </g>
    <g id="text_333">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="513.32961" y="426.285548" transform="rotate(-0 513.32961 426.285548)">0.26</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="424.590571" transform="rotate(-0 429.005482 424.590571)">0.05</text>
    </g>
    <g id="text_334">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="549.820525" y="426.285548" transform="rotate(-0 549.820525 426.285548)">0.11</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="424.590571" transform="rotate(-0 463.857547 424.590571)">0.02</text>
    </g>
    <g id="text_335">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="586.31144" y="426.285548" transform="rotate(-0 586.31144 426.285548)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="424.590571" transform="rotate(-0 498.709611 424.590571)">0.03</text>
    </g>
    <g id="text_336">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="622.802356" y="426.285548" transform="rotate(-0 622.802356 426.285548)">0.19</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="533.561675" y="424.590571" transform="rotate(-0 533.561675 424.590571)">0.31</text>
    </g>
    <g id="text_337">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="659.293271" y="426.285548" transform="rotate(-0 659.293271 426.285548)">0.07</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="568.41374" y="424.590571" transform="rotate(-0 568.41374 424.590571)">0.12</text>
    </g>
    <g id="text_338">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="695.784186" y="426.285548" transform="rotate(-0 695.784186 426.285548)">0.29</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="424.590571" transform="rotate(-0 603.265804 424.590571)">0.03</text>
    </g>
    <g id="text_339">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="732.275101" y="426.285548" transform="rotate(-0 732.275101 426.285548)">0.25</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="424.590571" transform="rotate(-0 638.117868 424.590571)">0.08</text>
    </g>
    <g id="text_340">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="768.766016" y="426.285548" transform="rotate(-0 768.766016 426.285548)">0.13</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="424.590571" transform="rotate(-0 672.969933 424.590571)">0.13</text>
    </g>
    <g id="text_341">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="805.256932" y="426.285548" transform="rotate(-0 805.256932 426.285548)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="707.821997" y="424.590571" transform="rotate(-0 707.821997 424.590571)">0.05</text>
    </g>
    <g id="text_342">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="841.747847" y="426.285548" transform="rotate(-0 841.747847 426.285548)">0.18</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="424.590571" transform="rotate(-0 742.674061 424.590571)">0.09</text>
    </g>
    <g id="text_343">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="878.238762" y="426.285548" transform="rotate(-0 878.238762 426.285548)">0.06</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="424.590571" transform="rotate(-0 777.526126 424.590571)">0.10</text>
    </g>
    <g id="text_344">
-    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="914.729677" y="426.285548" transform="rotate(-0 914.729677 426.285548)">0.12</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="424.590571" transform="rotate(-0 812.37819 424.590571)">0.07</text>
    </g>
    <g id="text_345">
-    <text style="font-style: italic; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #52514e" x="294.384119" y="53.355562" transform="rotate(-0 294.384119 53.355562)">choice</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="424.590571" transform="rotate(-0 847.230254 424.590571)">0.16</text>
    </g>
    <g id="text_346">
-    <text style="font-style: italic; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #52514e" x="568.065983" y="53.355562" transform="rotate(-0 568.065983 53.355562)">score</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="882.082319" y="424.590571" transform="rotate(-0 882.082319 424.590571)">0.23</text>
    </g>
    <g id="text_347">
-    <text style="font-style: italic; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #52514e" x="805.256932" y="53.355562" transform="rotate(-0 805.256932 53.355562)">noul</text>
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="424.590571" transform="rotate(-0 916.934383 424.590571)">0.07</text>
+   </g>
+   <g id="text_348">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="451.088206" transform="rotate(-0 185.041032 451.088206)">0.04</text>
+   </g>
+   <g id="text_349">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="219.893096" y="451.088206" transform="rotate(-0 219.893096 451.088206)">0.13</text>
+   </g>
+   <g id="text_350">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="451.088206" transform="rotate(-0 254.745161 451.088206)">0.05</text>
+   </g>
+   <g id="text_351">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="289.597225" y="451.088206" transform="rotate(-0 289.597225 451.088206)">0.11</text>
+   </g>
+   <g id="text_352">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="324.449289" y="451.088206" transform="rotate(-0 324.449289 451.088206)">0.13</text>
+   </g>
+   <g id="text_353">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="359.301354" y="451.088206" transform="rotate(-0 359.301354 451.088206)">0.15</text>
+   </g>
+   <g id="text_354">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="394.153418" y="451.088206" transform="rotate(-0 394.153418 451.088206)">0.06</text>
+   </g>
+   <g id="text_355">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="451.088206" transform="rotate(-0 429.005482 451.088206)">0.10</text>
+   </g>
+   <g id="text_356">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="451.088206" transform="rotate(-0 463.857547 451.088206)">0.08</text>
+   </g>
+   <g id="text_357">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="451.088206" transform="rotate(-0 498.709611 451.088206)">0.09</text>
+   </g>
+   <g id="text_358">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="533.561675" y="451.088206" transform="rotate(-0 533.561675 451.088206)">0.28</text>
+   </g>
+   <g id="text_359">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="568.41374" y="451.088206" transform="rotate(-0 568.41374 451.088206)">0.25</text>
+   </g>
+   <g id="text_360">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="451.088206" transform="rotate(-0 603.265804 451.088206)">0.08</text>
+   </g>
+   <g id="text_361">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="451.088206" transform="rotate(-0 638.117868 451.088206)">0.04</text>
+   </g>
+   <g id="text_362">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="451.088206" transform="rotate(-0 672.969933 451.088206)">0.07</text>
+   </g>
+   <g id="text_363">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="707.821997" y="451.088206" transform="rotate(-0 707.821997 451.088206)">0.07</text>
+   </g>
+   <g id="text_364">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="451.088206" transform="rotate(-0 742.674061 451.088206)">0.18</text>
+   </g>
+   <g id="text_365">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="451.088206" transform="rotate(-0 777.526126 451.088206)">0.04</text>
+   </g>
+   <g id="text_366">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="451.088206" transform="rotate(-0 812.37819 451.088206)">0.14</text>
+   </g>
+   <g id="text_367">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="451.088206" transform="rotate(-0 847.230254 451.088206)">0.10</text>
+   </g>
+   <g id="text_368">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="882.082319" y="451.088206" transform="rotate(-0 882.082319 451.088206)">0.07</text>
+   </g>
+   <g id="text_369">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="451.088206" transform="rotate(-0 916.934383 451.088206)">0.06</text>
+   </g>
+   <g id="text_370">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="477.585842" transform="rotate(-0 185.041032 477.585842)">0.06</text>
+   </g>
+   <g id="text_371">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="219.893096" y="477.585842" transform="rotate(-0 219.893096 477.585842)">0.11</text>
+   </g>
+   <g id="text_372">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="477.585842" transform="rotate(-0 254.745161 477.585842)">0.11</text>
+   </g>
+   <g id="text_373">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="289.597225" y="477.585842" transform="rotate(-0 289.597225 477.585842)">0.19</text>
+   </g>
+   <g id="text_374">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="324.449289" y="477.585842" transform="rotate(-0 324.449289 477.585842)">0.08</text>
+   </g>
+   <g id="text_375">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="359.301354" y="477.585842" transform="rotate(-0 359.301354 477.585842)">0.11</text>
+   </g>
+   <g id="text_376">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="394.153418" y="477.585842" transform="rotate(-0 394.153418 477.585842)">0.11</text>
+   </g>
+   <g id="text_377">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="477.585842" transform="rotate(-0 429.005482 477.585842)">0.12</text>
+   </g>
+   <g id="text_378">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="477.585842" transform="rotate(-0 463.857547 477.585842)">0.15</text>
+   </g>
+   <g id="text_379">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="477.585842" transform="rotate(-0 498.709611 477.585842)">0.04</text>
+   </g>
+   <g id="text_380">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="533.561675" y="477.585842" transform="rotate(-0 533.561675 477.585842)">0.13</text>
+   </g>
+   <g id="text_381">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="568.41374" y="477.585842" transform="rotate(-0 568.41374 477.585842)">0.15</text>
+   </g>
+   <g id="text_382">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="477.585842" transform="rotate(-0 603.265804 477.585842)">0.09</text>
+   </g>
+   <g id="text_383">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="477.585842" transform="rotate(-0 638.117868 477.585842)">0.05</text>
+   </g>
+   <g id="text_384">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="477.585842" transform="rotate(-0 672.969933 477.585842)">0.12</text>
+   </g>
+   <g id="text_385">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="707.821997" y="477.585842" transform="rotate(-0 707.821997 477.585842)">0.03</text>
+   </g>
+   <g id="text_386">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="477.585842" transform="rotate(-0 742.674061 477.585842)">0.21</text>
+   </g>
+   <g id="text_387">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="477.585842" transform="rotate(-0 777.526126 477.585842)">0.08</text>
+   </g>
+   <g id="text_388">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="477.585842" transform="rotate(-0 812.37819 477.585842)">0.12</text>
+   </g>
+   <g id="text_389">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="477.585842" transform="rotate(-0 847.230254 477.585842)">0.14</text>
+   </g>
+   <g id="text_390">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="882.082319" y="477.585842" transform="rotate(-0 882.082319 477.585842)">0.29</text>
+   </g>
+   <g id="text_391">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="477.585842" transform="rotate(-0 916.934383 477.585842)">0.14</text>
+   </g>
+   <g id="text_392">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="185.041032" y="504.083478" transform="rotate(-0 185.041032 504.083478)">0.08</text>
+   </g>
+   <g id="text_393">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="219.893096" y="504.083478" transform="rotate(-0 219.893096 504.083478)">0.03</text>
+   </g>
+   <g id="text_394">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="254.745161" y="504.083478" transform="rotate(-0 254.745161 504.083478)">0.05</text>
+   </g>
+   <g id="text_395">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="289.597225" y="504.083478" transform="rotate(-0 289.597225 504.083478)">0.04</text>
+   </g>
+   <g id="text_396">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="324.449289" y="504.083478" transform="rotate(-0 324.449289 504.083478)">0.05</text>
+   </g>
+   <g id="text_397">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="359.301354" y="504.083478" transform="rotate(-0 359.301354 504.083478)">0.13</text>
+   </g>
+   <g id="text_398">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="394.153418" y="504.083478" transform="rotate(-0 394.153418 504.083478)">0.04</text>
+   </g>
+   <g id="text_399">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="429.005482" y="504.083478" transform="rotate(-0 429.005482 504.083478)">0.08</text>
+   </g>
+   <g id="text_400">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="463.857547" y="504.083478" transform="rotate(-0 463.857547 504.083478)">0.15</text>
+   </g>
+   <g id="text_401">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="498.709611" y="504.083478" transform="rotate(-0 498.709611 504.083478)">0.05</text>
+   </g>
+   <g id="text_402">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="533.561675" y="504.083478" transform="rotate(-0 533.561675 504.083478)">0.26</text>
+   </g>
+   <g id="text_403">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="568.41374" y="504.083478" transform="rotate(-0 568.41374 504.083478)">0.11</text>
+   </g>
+   <g id="text_404">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="603.265804" y="504.083478" transform="rotate(-0 603.265804 504.083478)">0.06</text>
+   </g>
+   <g id="text_405">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="638.117868" y="504.083478" transform="rotate(-0 638.117868 504.083478)">0.19</text>
+   </g>
+   <g id="text_406">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="672.969933" y="504.083478" transform="rotate(-0 672.969933 504.083478)">0.07</text>
+   </g>
+   <g id="text_407">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #fcfcfb" x="707.821997" y="504.083478" transform="rotate(-0 707.821997 504.083478)">0.29</text>
+   </g>
+   <g id="text_408">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="742.674061" y="504.083478" transform="rotate(-0 742.674061 504.083478)">0.25</text>
+   </g>
+   <g id="text_409">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="777.526126" y="504.083478" transform="rotate(-0 777.526126 504.083478)">0.13</text>
+   </g>
+   <g id="text_410">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="812.37819" y="504.083478" transform="rotate(-0 812.37819 504.083478)">0.12</text>
+   </g>
+   <g id="text_411">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="847.230254" y="504.083478" transform="rotate(-0 847.230254 504.083478)">0.18</text>
+   </g>
+   <g id="text_412">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="882.082319" y="504.083478" transform="rotate(-0 882.082319 504.083478)">0.06</text>
+   </g>
+   <g id="text_413">
+    <text style="font-size: 6.3px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #0b0b0b" x="916.934383" y="504.083478" transform="rotate(-0 916.934383 504.083478)">0.12</text>
+   </g>
+   <g id="text_414">
+    <text style="font-style: italic; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #52514e" x="324.449289" y="52.715035" transform="rotate(-0 324.449289 52.715035)">choice</text>
+   </g>
+   <g id="text_415">
+    <text style="font-style: italic; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #52514e" x="585.839772" y="52.715035" transform="rotate(-0 585.839772 52.715035)">score</text>
+   </g>
+   <g id="text_416">
+    <text style="font-style: italic; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #52514e" x="812.37819" y="52.715035" transform="rotate(-0 812.37819 52.715035)">noul</text>
    </g>
   </g>
   <g id="axes_2">
    <g id="patch_3">
-    <path d="M 942.978875 437.935772 
-L 961.580322 437.935772 
-L 961.580322 65.906835 
-L 942.978875 65.906835 
+    <path d="M 943.914875 489.517118 
+L 963.82 489.517118 
+L 963.82 91.414618 
+L 943.914875 91.414618 
 z
 " style="fill: #fcfcfb"/>
    </g>
    <g id="matplotlib.axis_3"/>
    <g id="matplotlib.axis_4">
-    <g id="ytick_15">
-     <g id="line2d_39"/>
-     <g id="text_348">
-      <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="965.080322" y="440.594952" transform="rotate(-0 965.080322 440.594952)">0.0</text>
-     </g>
-    </g>
-    <g id="ytick_16">
-     <g id="line2d_40"/>
-     <g id="text_349">
-      <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="965.080322" y="366.719311" transform="rotate(-0 965.080322 366.719311)">0.1</text>
-     </g>
-    </g>
-    <g id="ytick_17">
-     <g id="line2d_41"/>
-     <g id="text_350">
-      <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="965.080322" y="292.84367" transform="rotate(-0 965.080322 292.84367)">0.2</text>
-     </g>
-    </g>
     <g id="ytick_18">
      <g id="line2d_42"/>
-     <g id="text_351">
-      <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="965.080322" y="218.968029" transform="rotate(-0 965.080322 218.968029)">0.3</text>
+     <g id="text_417">
+      <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="967.32" y="492.176298" transform="rotate(-0 967.32 492.176298)">0.0</text>
      </g>
     </g>
     <g id="ytick_19">
      <g id="line2d_43"/>
-     <g id="text_352">
-      <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="965.080322" y="145.092388" transform="rotate(-0 965.080322 145.092388)">0.4</text>
+     <g id="text_418">
+      <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="967.32" y="413.1231" transform="rotate(-0 967.32 413.1231)">0.1</text>
      </g>
     </g>
     <g id="ytick_20">
      <g id="line2d_44"/>
-     <g id="text_353">
-      <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="965.080322" y="71.216747" transform="rotate(-0 965.080322 71.216747)">0.5</text>
+     <g id="text_419">
+      <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="967.32" y="334.069901" transform="rotate(-0 967.32 334.069901)">0.2</text>
+     </g>
+    </g>
+    <g id="ytick_21">
+     <g id="line2d_45"/>
+     <g id="text_420">
+      <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="967.32" y="255.016703" transform="rotate(-0 967.32 255.016703)">0.3</text>
+     </g>
+    </g>
+    <g id="ytick_22">
+     <g id="line2d_46"/>
+     <g id="text_421">
+      <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="967.32" y="175.963504" transform="rotate(-0 967.32 175.963504)">0.4</text>
+     </g>
+    </g>
+    <g id="ytick_23">
+     <g id="line2d_47"/>
+     <g id="text_422">
+      <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="967.32" y="96.910306" transform="rotate(-0 967.32 96.910306)">0.5</text>
      </g>
     </g>
    </g>
    <image xlink:href="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAABoAAAIECAYAAAAHCT4MAAACSklEQVR4nO2cUW7CUBADHyj3vzCI8McB5sNCo5kLrFx7nQ2lfbzfr/sMeC6GnHPOdU/0LBV9dIpGgvKI0x5h8ghj9Gg0KI8w7REmjzDXZzQojzDtESaPMMKbodRR8giTR5iuIIzRI52iPKJ0BWGMHukU5RFl6dFGUh5h2iPM8vZujxgzRf3oMFUQpkc5RunRZlAeYdojTB91Yowe6RTdumYwerQZlEeY9gjTHmGEioxXUM3AaI8wSo/aI0aKMMpmsO2R0aPNoDzCtEeY9gij/Npbe8RojzBCRb0fUWoGjNKj9ojRHmGUHrVHjPYII/RI9zXs4o0RxtvokWxhSx0mjzBKj2oGRqnDCD3yKeplmVIzYIQe+Z6wpY6SIowydbZmKHWUPMJ0qWJShKkZMD1hMcLU+do7RZSdoqNTZPRo86e3eYQRKqoZKEtFtmY4tq9UCVNXM1BShOkKwqQIU9dhaob/H3TdnVuQKggj9Ej4Iib0KEWMUofxNYNvkDF1urtuJKiPOjmlDlPqMEKPjHskU+QbZHybsO2Rb5CvGYT/B9Lnka4ZhF+I9XkkVKRLnfH23gxqjzC+29s3qCsI0+2NMaZOp8h4M8h+a2lMnU6RL3VCj+o6SKnDCNtbp2h5btkWVhcGZQWVOkYvYphSh6nrMMLUCT2q6yClDiNsb2HqhM1gU6T7syChR8Yn7GZQHmGMinSp6wlL8X0cXTNgfKnzeeQbVOow3QwYoUfGK2gzqNRhjIpKHaSboUE/Sh2mm6FBP4SpMzbDZlAeYb4G4/myFYnt4gAAAABJRU5ErkJggg==" id="imagec9875051b7" transform="scale(1 -1) translate(0 -371.52)" x="943.2" y="-66.24" width="18.72" height="371.52"/>
+iVBORw0KGgoAAAANSUhEUgAAABwAAAIpCAYAAACxJVijAAACnUlEQVR4nO2cAY7bQAwD3cL//3CD5N5wwGBTD2c+IDAitVrDzp/X69/nOsjfk8Wu67ruz1F931D4tiv8gmkOF8w0OAUfpx7i+HvY8Mbxm6bg49RDnPt9uODC8PabRq+wHtK0ROHkUpyOJ5xMg7PQw8MF6yGOP4eZBsdvmoG9dKCHeoX6HmYanPt9WGI9xPEHf6GHlzyHmQZnQGGjjaYVA2eih2cLdjzhFHychR4eLlgPcRreOPdHP9r0pin4OOUQx9/Dgo8zoHBhL220sZTD5xecME3BZ0khjn+09fgSp+MJJ9PgFHyccojjfym54OMUfJwU4nQDxhkY3o02moKPM9HDswXr4fMLFnycgo8z0EP9Z0i5FGfieDpbsEdfOP5YTLj0bMF6+PyCjTacYoEz0EO/Qv1TjEyD02jDacXAyaU4KXx+wYlY2EebPhYTLj1bsLvF8wsOmMavsNFG04qB43dp5yFOCnHOK7z0Chd6ePbPRhreOCnEabThfEOhfLTd18ALrXKFjTYcv2kGFOr30oEe6hU2vHH8plkYbe2lME2a5xccMM3AlXughylkyaXPL+gfbf6C/lgMbN6HBfZUn8fv0mKBMxALfw/1wfevGBXEWbiQ2oPvL+gfbf5/nff3sNGG4//AY6CHAwr1LtXfnjINzkDw9bcnf0H/XrqQw8MFiwVOCnH8W9vAC60DLrUrLBY4ftMMbG25lKbj6fkF/T/p/bnswR/ooV6h/3jSu7QrN06xwGl44wy4dKCH9llaLHAWYjGgUO9S+2jzu7TvgHH8pvHvNL3XhpPC5xcciEU7DY0/Fo02nFyK4zeNv6A/Fn6XDixR/h7q18RigTMQiwGFuRSmJaqC/3/BYoHT1lbBX+N3aaMNp60N57jCH4SU+fxICOM8AAAAAElFTkSuQmCC" id="image418aa7d901" transform="scale(1 -1) translate(0 -398.16)" x="943.92" y="-91.44" width="20.16" height="398.16"/>
    <g id="LineCollection_1"/>
   </g>
-  <g id="text_354">
+  <g id="text_423">
    <text style="font-weight: 600; font-size: 11px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #0b0b0b" x="11.85408" y="15.902344" transform="rotate(-0 11.85408 15.902344)">expected calibration error per config, every model on jev-bench</text>
   </g>
-  <g id="text_355">
+  <g id="text_424">
    <text style="font-size: 8.2px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="11.85408" y="29.397688" transform="rotate(-0 11.85408 29.397688)">Rows in leaderboard order; the first is Jev. Same test records for every model. Lower is better.</text>
   </g>
-  <g id="text_356">
-   <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="11.85408" y="529.678359" transform="rotate(-0 11.85408 529.678359)">jev-bench v0.1.1 · 2026-09-21</text>
+  <g id="text_425">
+   <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #52514e" x="11.85408" y="607.438359" transform="rotate(-0 11.85408 607.438359)">jev-bench v0.1.1 · 2026-09-21</text>
   </g>
  </g>
  <defs>
-  <clipPath id="pb996720d26">
-   <rect x="130.175" y="65.906835" width="802.800135" height="372.028937"/>
+  <clipPath id="pedf6d66d5f">
+   <rect x="167.615" y="65.235964" width="766.745415" height="450.459808"/>
   </clipPath>
  </defs>
 </svg>
