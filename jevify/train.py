@@ -136,8 +136,15 @@ def run_tier1(model_id: str, run_id: str, out_dir: Path | str, root: Path | str,
               dim: int = 512, epochs: int = 20, lr: float = 3e-4, batch: int = 8,
               trust_remote_code: bool = False, heldout: Sequence[str] | None = None,
               test_per_source: int = 0, residual: bool = True, device: str | None = None,
-              soft_labels: bool = False) -> dict[str, Any]:
-    """Frozen backbone, trained decision heads. Features are extracted once and reused."""
+              soft_labels: bool = False, seed: int = 0, features_cache: Path | str | None = None) -> dict[str, Any]:
+    """Frozen backbone, trained decision heads. Features are extracted once and reused.
+
+    ``features_cache`` is a directory: features are saved there after extraction and loaded
+    from it on later calls, so retraining the heads -- another seed, another learning rate --
+    costs minutes instead of another pass over 34,000 records through the backbone.
+    ``seed`` varies head initialization and data order only; the slot subsampling plan is
+    fixed, so seeds measure the variance of training, not of the data.
+    """
     import numpy as np
     import torch
 
@@ -162,10 +169,21 @@ def run_tier1(model_id: str, run_id: str, out_dir: Path | str, root: Path | str,
     print(f"[{run_id}] {model_id}: {len(train_recs)} train / {len(val_recs)} val / {len(test_recs)} test; "
           f"heldout={held}", flush=True)
 
+    from .engine.features import load_features, save_features
+
     t_feat = time.time()
-    train_rows = fx.extract(train_recs, max_slots=max_slots, rng=rng, batch_size=batch)
-    val_rows = fx.extract(val_recs, max_slots=max_slots, rng=rng, batch_size=batch)
-    test_rows = fx.extract(test_recs, batch_size=batch)
+    cache = Path(features_cache) if features_cache else None
+    if cache and (cache / "test.npz").exists():
+        train_rows, val_rows, test_rows = (load_features(cache / f"{n}.npz") for n in ("train", "validation", "test"))
+        print(f"[{run_id}] features loaded from {cache}", flush=True)
+    else:
+        train_rows = fx.extract(train_recs, max_slots=max_slots, rng=rng, batch_size=batch)
+        val_rows = fx.extract(val_recs, max_slots=max_slots, rng=rng, batch_size=batch)
+        test_rows = fx.extract(test_recs, batch_size=batch)
+        if cache:
+            cache.mkdir(parents=True, exist_ok=True)
+            for n, rows in (("train", train_rows), ("validation", val_rows), ("test", test_rows)):
+                save_features(cache / f"{n}.npz", rows)
     feat_s = time.time() - t_feat
     print(f"[{run_id}] features in {feat_s:.0f}s", flush=True)
 
@@ -173,7 +191,7 @@ def run_tier1(model_id: str, run_id: str, out_dir: Path | str, root: Path | str,
                      soft_labels=soft_labels)
     dev = device or scorer.device
     t_train = time.time()
-    heads, info = train_heads(train_rows, val_rows, cfg, epochs=epochs, lr=lr, device=dev, verbose=True)
+    heads, info = train_heads(train_rows, val_rows, cfg, epochs=epochs, lr=lr, device=dev, seed=seed, verbose=True)
     train_s = time.time() - t_train
     save_heads(heads, info, out_dir / "heads")
 
@@ -183,7 +201,7 @@ def run_tier1(model_id: str, run_id: str, out_dir: Path | str, root: Path | str,
     return _finish(out_dir, {
         "run_id": run_id, "model_id": model_id, "tier": 1, "layer": layer, "chat_applied": fx.chat,
         "heldout_sources": held, "n_train": len(train_recs), "n_val": len(val_recs), "n_test": len(test_recs),
-        "max_slots": max_slots, "dim": dim, "epochs": epochs, "lr": lr, "residual": residual, "soft_labels": soft_labels,
+        "max_slots": max_slots, "dim": dim, "epochs": epochs, "lr": lr, "residual": residual, "soft_labels": soft_labels, "seed": seed,
         "lm_weight": [round(float(x), 3) for x in heads.lm_weight.detach().cpu()],
         "best_epoch": info["best_epoch"], "best_val_loss": round(info["best_val_loss"], 4),
         "feat_s": round(feat_s, 1), "train_s": round(train_s, 1), "wall_s": round(time.time() - t0, 1),
@@ -338,6 +356,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     ap.add_argument("--batch", type=int, default=0)
     ap.add_argument("--grad-accum", type=int, default=2)
     ap.add_argument("--replace", action="store_true", help="tier1: heads replace the LM score (default: residual)")
+    ap.add_argument("--seeds", default="0", help="tier1: comma-separated seeds; features are extracted once and cached")
     ap.add_argument("--soft-labels", action="store_true",
                     help="train against human label distributions where a source has them")
     ap.add_argument("--heldout", default="", help="comma-separated; defaults to the standard six")
@@ -375,11 +394,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                   batch=a.batch or 16, cand_chunk=a.cand_chunk, resume=not a.no_resume)
         return 0
     if a.tier == "tier1":
-        run_tier1(**common, root=root, layer=a.layer, chat=not a.no_chat,
-                  train_per_source=a.train_per_source or 600, val_per_source=a.val_per_source or 150,
-                  max_slots=a.max_slots, dim=a.dim, epochs=a.epochs or 20, lr=a.lr, batch=a.batch or 8,
-                  heldout=held, test_per_source=a.test_per_source, residual=not a.replace,
-                  soft_labels=a.soft_labels)
+        seeds = [int(x) for x in a.seeds.split(",") if x]
+        for seed in seeds:
+            rid = a.run_id if len(seeds) == 1 else f"{a.run_id}-s{seed}"
+            run_tier1(model_id=a.model_id, run_id=rid, out_dir=Path(a.out) / rid, trust_remote_code=a.trust_remote_code,
+                      root=root, layer=a.layer, chat=not a.no_chat,
+                      train_per_source=a.train_per_source or 600, val_per_source=a.val_per_source or 150,
+                      max_slots=a.max_slots, dim=a.dim, epochs=a.epochs or 20, lr=a.lr, batch=a.batch or 8,
+                      heldout=held, test_per_source=a.test_per_source, residual=not a.replace,
+                      soft_labels=a.soft_labels, seed=seed, features_cache=Path(a.out) / f"{a.run_id}-features")
     else:
         run_tier2(**common, root=root, layer=a.layer, chat=not a.no_chat,
                   train_per_source=a.train_per_source or 400, val_per_source=a.val_per_source or 100,
