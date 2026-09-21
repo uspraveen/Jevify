@@ -542,7 +542,9 @@ def fig_models_map(rows: list[dict[str, Any]], out: Path, title: str = "Jevified
         label = e["label"].split("/")[-1] if "/" in e["label"] else e["label"]
         pts.append((label, s["acc"], s["ece"]))
     ax.set_xlabel("macro accuracy over 22 configs"); ax.set_ylabel("macro expected calibration error (lower is better)")
-    ax.set_xlim(0.25, 1.0); ax.set_ylim(0, max(0.3, max(p[2] for p in pts) + 0.03))
+    # y stops a little above the worst model rather than at a fixed 0.30: the interesting
+    # differences are a few hundredths of ECE and were squeezed into the bottom third
+    ax.set_xlim(0.25, 1.0); ax.set_ylim(0, max(0.2, max(p[2] for p in pts) + 0.04))
     from matplotlib.lines import Line2D
     ax.legend(handles=[Line2D([0], [0], marker="D", color="#eb6834", lw=0, markersize=7, label="Jev 1.13.0 (API)"),
                        Line2D([0], [0], marker="o", color=PRIM_COLOR["choice"], lw=0, markersize=6, label="Jevified, Tier 0 (no training)"),
