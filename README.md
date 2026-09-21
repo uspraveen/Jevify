@@ -46,16 +46,18 @@ Meanwhile it is excellent and well calibrated on crisp, grounded questions (ARC 
 wrong architecture.** A trained head that replaces the model's own scorer gains +0.077 accuracy
 on sources it trained on and loses **−0.098** on sources it never saw. Making it a
 zero-initialized residual on that scorer — so training provably starts at Tier 0 — keeps the gain
-(+0.080) and erases the regression (−0.000). The head then learns to keep the model's prior at
-full strength (LM weights **0.95 / 0.98 / 1.01**), which is itself the evidence that replacing it
-was wrong.
+(+0.080) and erases the regression (−0.000). Two independently trained heads, on Qwen3.5-2B and
+Qwen3.5-4B, both learn to keep the model's prior at full strength — LM weights **0.95 / 0.98 / 1.01**
+and **0.96 / 0.97 / 1.01** — which is itself the evidence that replacing it was wrong.
 
 ![Tier 1: trained vs held-out sources](results/figures/tier1_story.png)
 
-**3 · An open 2B model, Jevified, is now better calibrated than Jev and closer to human
-uncertainty.** Macro **ECE 0.069 vs Jev's 0.113**, and **TVD to human label distributions 0.374
-vs 0.432** — on exactly the axis where Jev's own claim is weakest. Jev still leads on raw
-accuracy (0.733 vs 0.662 for the best Tier 0 model).
+**3 · Jevified open models now beat Jev on calibration and on human agreement, and are within
+3.5 points on accuracy.** Qwen3.5-4B with residual heads: macro accuracy **0.698 vs Jev's 0.733**,
+**ECE 0.089 vs 0.113**, **TVD to human label distributions 0.360 vs 0.432**, and Score accuracy
+0.507 vs 0.503. Qwen3.5-2B reaches ECE **0.069**, the best of anything tested. The finding in (2)
+replicates on both backbones — at 2B the residual erases the regression, at 4B it turns it into a
+**+0.035** gain on held-out sources.
 
 **4 · Structure generalizes; knowledge does not.** Heads trained with ≤16 options transfer
 unchanged to K=151 (clinc150 moves −0.008). What collapses under replacement is knowledge
@@ -122,6 +124,7 @@ calibration-gold configs — lower is better, and it is the number Jev's own cla
 | model | tier | macro acc | macro ECE | macro Brier | sel@90 | choice acc | score acc | noul acc | TVD→human | GPU | test cost |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | **Jev 1.13.0 (TypeSafe API)** | API | 0.733 | 0.113 | 0.349 | 0.760 | 0.770 | 0.503 | 0.881 | 0.432 |  |  |
+| Qwen/Qwen3.5-4B (Tier 1 residual) | Tier 1 residual | 0.698 | 0.089 | 0.378 | 0.729 | 0.699 | 0.507 | 0.862 | 0.360 | A100-80GB | $1.28 |
 | Qwen/Qwen3.5-4B | Tier 0 | 0.662 | 0.093 | 0.402 | 0.689 | 0.687 | 0.468 | 0.796 | 0.438 | A100-80GB | $0.96 |
 | google/gemma-4-E4B-it | Tier 0 | 0.658 | 0.148 | 0.426 | 0.678 | 0.699 | 0.432 | 0.798 | 0.432 | A100-80GB | $1.00 |
 | Qwen/Qwen3.5-2B (Tier 1 residual) | Tier 1 residual | 0.632 | 0.069 | 0.445 | 0.657 | 0.596 | 0.449 | 0.835 | 0.374 | A100-80GB | $0.67 |
@@ -146,7 +149,8 @@ per-config metrics, recipe and figures.
 - [x] Tier 0 sweep: 9 open checkpoints scored on all 22,773 test records against Jev
 - [x] Tier 1 residual decision heads, with held-out-source generalization measured
 - [x] Findings, figures and reports published ([docs/FINDINGS.md](docs/FINDINGS.md))
-- [ ] Tier 1 on more backbones; more diverse ordinal scales in training
+- [x] Tier 1 replicated on a second backbone (Qwen3.5-4B)
+- [ ] More diverse ordinal scales in training; Tier 1 at 7B+ and across families
 - [ ] Tier 2: LoRA where Tier 1 leaves a gap the benchmark can see
 - [ ] Label-first synthetic data pipeline; HF Space; model zoo; VLM backbones; vision-tower autoresearch
 

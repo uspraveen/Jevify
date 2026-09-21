@@ -1,0 +1,41 @@
+{
+ "run_id": "qwen35-4b-t1r",
+ "model_id": "Qwen/Qwen3.5-4B",
+ "gpu": "A100-80GB",
+ "tier": 1,
+ "layer": -1,
+ "chat_applied": true,
+ "heldout_sources": [
+  "clinc150",
+  "arc_challenge",
+  "yelp5",
+  "measuring_hate_speech",
+  "fever_evidence",
+  "strategyqa_grounded"
+ ],
+ "n_train": 8685,
+ "n_val": 2250,
+ "n_test": 22773,
+ "max_slots": 16,
+ "dim": 512,
+ "epochs": 25,
+ "lr": 0.0003,
+ "residual": true,
+ "lm_weight": [
+  0.964,
+  0.969,
+  1.01
+ ],
+ "best_epoch": 4,
+ "best_val_loss": 0.4218,
+ "feature_s": 1748,
+ "train_s": 56,
+ "wall_s": 1837.9,
+ "est_cost_usd": 1.276,
+ "val_detail": {
+  "loss": 0.4218,
+  "choice": 0.7344,
+  "noul": 0.3022,
+  "score": 0.0962
+ }
+}

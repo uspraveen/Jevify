@@ -21,8 +21,9 @@ meaningless. Six sources are therefore **held out of training entirely** — `cl
 The Tier 0 recipe is also **refitted without those sources** before comparison; otherwise
 its temperature has seen validation data the heads never did.
 
-Backbone: Qwen3.5-2B. Heads trained on 8,685 records from 16 sources, ≤16 options per
-record, early-stopped on 2,250 validation records. One A100 job, ~16 minutes, $0.65.
+Backbones: Qwen3.5-2B and Qwen3.5-4B. Heads trained on 8,685 records from 16 sources, ≤16
+options per record, early-stopped on 2,250 validation records. One A100 job each, 15–30
+minutes, $0.65 and $1.28.
 
 ## Result
 
@@ -35,6 +36,24 @@ record, early-stopped on 2,250 validation records. One A100 job, ~16 minutes, $0
 
 The replacement head is a **+0.077 mean gain on trained sources and a −0.098 loss on
 held-out ones**. Measured only in-distribution it looks like a clear win; it is not one.
+
+### Replication on Qwen3.5-4B
+
+| variant | held-out acc | held-out ECE | trained acc | trained ECE |
+|---|---|---|---|---|
+| Tier 0 (recipe refit without held-out) | 0.714 | 0.139 | 0.641 | 0.087 |
+| Tier 1, heads **residual** | **0.749** | **0.107** | **0.680** | **0.082** |
+| *Jev 1.13.0 (zero-shot)* | *0.835* | *0.090* | *0.694* | *0.122* |
+
+The finding holds and strengthens at 4B: the residual head is **+0.035 on held-out sources**
+(not merely neutral as at 2B) and **+0.039 on trained ones**, better calibrated in both regimes.
+The learned LM weights are **0.96 / 0.97 / 1.01**, within 0.01–0.02 of the 2B run's
+0.95 / 0.98 / 1.01 — two independently trained heads on different backbones both concluded the
+model's own prior was worth keeping at full strength.
+
+Across the whole benchmark this puts Jevified Qwen3.5-4B at **macro accuracy 0.698 against Jev's
+0.733**, with better calibration (ECE 0.089 vs 0.113), closer agreement with human label
+distributions (TVD 0.360 vs 0.432), and higher Score accuracy (0.507 vs 0.503).
 
 ## Why it failed, and why that was informative
 
@@ -90,7 +109,7 @@ option representations should help and where a logit on an identifier token cann
 - **The held-out set is not difficulty-matched.** It contains several of Jev's strongest
   configs, which is why Jev scores *higher* on held-out (0.835) than on trained (0.694)
   sources. Compare models within a column, never across.
-- **One backbone, one seed** for the headline numbers. A second backbone is running.
+- **Two backbones, one seed each.** The direction replicates; the magnitudes will move.
 - Heads are trained on jev-bench's own train splits, so "held out" means held-out *source*,
   not held-out *distribution* — the records still come from the same 22-dataset family.
 

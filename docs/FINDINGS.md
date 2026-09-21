@@ -197,16 +197,23 @@ backbone knows and relearns a scorer from 8,685 examples.
 **6.3 The fix is to correct the model's prior, not replace it.**
 `score_i = w·lm_i + f([h_dec, h_i, h_dec ⊙ h_i])` with `f`'s last layer zero-initialized, so training
 provably *starts at Tier 0* — a unit test asserts an untrained residual head reproduces Tier 0's
-distribution to 1e-4. Result: trained +0.080, **held-out −0.000**, better calibrated in both regimes.
+distribution to 1e-4. Result on Qwen3.5-2B: trained +0.080, **held-out −0.000**, better calibrated
+in both regimes.
 
-**6.4 The head chose to keep the prior at full strength.** Learned LM weights came out
-**0.95 / 0.98 / 1.01** for choice / score / noul — the model itself says the Tier 0 scorer was worth
-keeping, which is the cleanest evidence that replacement was the wrong design.
+**6.3b It replicates, and strengthens, on Qwen3.5-4B.** Held-out **+0.035** (0.714 → 0.749) and
+trained **+0.039** (0.641 → 0.680), better calibrated in both. At 2B the residual erased the
+regression; at 4B it turns it into a gain.
 
-**6.5 The residual model has the best calibration and the best human agreement of anything tested.**
-Macro ECE **0.069** against Jev's 0.113, and TVD to human label distributions **0.374** against Jev's
-0.432 — on the exact axis where Jev's calibration claim was weakest (§1.2), an open 2B model now wins.
-Jev still leads on raw accuracy.
+**6.4 Both heads chose to keep the prior at full strength.** Learned LM weights came out
+**0.95 / 0.98 / 1.01** on 2B and **0.96 / 0.97 / 1.01** on 4B for choice / score / noul — two
+independently trained heads on different backbones agreeing to within 0.02 that the Tier 0 scorer
+was worth keeping. That is the cleanest evidence that replacement was the wrong design.
+
+**6.5 Jevified open models now beat Jev on calibration and on human agreement.** Qwen3.5-2B reaches
+macro ECE **0.069** against Jev's 0.113; Qwen3.5-4B reaches TVD to human label distributions **0.360**
+against Jev's 0.432 and Score accuracy **0.507** against 0.503 — on the exact axis where Jev's
+calibration claim is weakest (§1.2). On raw macro accuracy Jev still leads, but the gap is now
+**0.733 vs 0.698**.
 
 **6.6 What the heads actually buy** is semantic matching, not recall: GoEmotions +0.156,
 Civil Comments +0.203, HelpSteer2 verbosity +0.193, MASSIVE +0.145. These are tasks where the answer
@@ -254,8 +261,8 @@ Jev API calls for 37,573 requests.
 
 ## 8. Open questions
 
-- **Does the residual finding hold across backbones?** One backbone, one seed for the headline.
-  A Qwen3.5-4B replication is the immediate next run.
+- **How far does the residual finding go?** It replicates on two backbones (2B, 4B) with one seed
+  each, and strengthens with scale. Whether it holds at 7B+ and across families is untested.
 - **Can ordinal generalization be fixed with data?** More diverse ordinal scales in training is the
   obvious lever, and jev-bench has only four.
 - **Is the held-out set difficulty-matched?** It is not — it contains several of Jev's strongest

@@ -1,0 +1,95 @@
+{
+ "rows": [
+  {
+   "model": "Qwen3.5-4B (Tier 1 residual)",
+   "variant": "Tier 1 heads",
+   "heldout_n_sources": 6,
+   "heldout_acc": 0.7486048034934498,
+   "heldout_ece": 0.10703628813174726,
+   "heldout_brier": 0.33731652945751894,
+   "heldout_sel90": 0.7764796835670622,
+   "trained_n_sources": 16,
+   "trained_acc": 0.6797006841578115,
+   "trained_ece": 0.08179481387340004,
+   "trained_brier": 0.39273717190470003,
+   "trained_sel90": 0.711546000636829
+  },
+  {
+   "model": "Jev 1.13.0",
+   "variant": "API (zero-shot)",
+   "heldout_n_sources": 6,
+   "heldout_acc": 0.8353886462882096,
+   "heldout_ece": 0.09009604803493447,
+   "heldout_brier": 0.2351535246967492,
+   "heldout_sel90": 0.8580438691118304,
+   "trained_n_sources": 16,
+   "trained_acc": 0.694114363832062,
+   "trained_ece": 0.12201773757854939,
+   "trained_brier": 0.39103513879224117,
+   "trained_sel90": 0.7226123321295803
+  },
+  {
+   "model": "Qwen/Qwen3.5-4B",
+   "variant": "Tier 0 (recipe refit w/o held-out)",
+   "heldout_n_sources": 6,
+   "heldout_acc": 0.7141523532265891,
+   "heldout_ece": 0.13930851647160078,
+   "heldout_brier": 0.3549534777768287,
+   "heldout_sel90": 0.7359996404171162,
+   "trained_n_sources": 16,
+   "trained_acc": 0.6412973205312547,
+   "trained_ece": 0.08668287498093089,
+   "trained_brier": 0.4239866627276015,
+   "trained_sel90": 0.6702502451829262
+  }
+ ],
+ "heldout": [
+  "clinc150",
+  "arc_challenge",
+  "yelp5",
+  "measuring_hate_speech",
+  "fever_evidence",
+  "strategyqa_grounded"
+ ],
+ "meta": {
+  "run_id": "qwen35-4b-t1r",
+  "model_id": "Qwen/Qwen3.5-4B",
+  "gpu": "A100-80GB",
+  "tier": 1,
+  "layer": -1,
+  "chat_applied": true,
+  "heldout_sources": [
+   "clinc150",
+   "arc_challenge",
+   "yelp5",
+   "measuring_hate_speech",
+   "fever_evidence",
+   "strategyqa_grounded"
+  ],
+  "n_train": 8685,
+  "n_val": 2250,
+  "n_test": 22773,
+  "max_slots": 16,
+  "dim": 512,
+  "epochs": 25,
+  "lr": 0.0003,
+  "residual": true,
+  "lm_weight": [
+   0.964,
+   0.969,
+   1.01
+  ],
+  "best_epoch": 4,
+  "best_val_loss": 0.4218,
+  "feature_s": 1748,
+  "train_s": 56,
+  "wall_s": 1837.9,
+  "est_cost_usd": 1.276,
+  "val_detail": {
+   "loss": 0.4218,
+   "choice": 0.7344,
+   "noul": 0.3022,
+   "score": 0.0962
+  }
+ }
+}
