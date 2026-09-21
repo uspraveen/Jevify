@@ -1,8 +1,9 @@
 # results/
 
-Everything a claim in this project rests on, in one tree — mirrored byte-for-byte on the
-[`Praveenrajus/jev-bench`](https://huggingface.co/datasets/Praveenrajus/jev-bench/tree/main/results)
-dataset. **Each figure exists in exactly one place: next to the data that produced it.**
+Everything a claim in this project rests on, in one tree. The same tree is published under
+[`Praveenrajus/jev-bench`](https://huggingface.co/datasets/Praveenrajus/jev-bench/tree/main/results);
+the two are identical except that the raw `test_predictions.jsonl` files (16–70 MB each) live only
+on the Hub. **Each figure exists in exactly one place: next to the data that produced it.**
 
 | path | what it is | produced by |
 |---|---|---|
