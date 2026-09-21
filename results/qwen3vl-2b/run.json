@@ -1,0 +1,16 @@
+{
+ "run_id": "qwen3vl-2b",
+ "model_id": "Qwen/Qwen3-VL-2B-Instruct",
+ "modality": "vision",
+ "tier": 0,
+ "sources": [
+  "pope",
+  "aokvqa",
+  "ai2d"
+ ],
+ "split": "test",
+ "n": 4244,
+ "load_s": 64.3,
+ "wall_s": 375.1,
+ "device": "NVIDIA A40"
+}

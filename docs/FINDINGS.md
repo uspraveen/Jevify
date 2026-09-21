@@ -59,6 +59,14 @@ in one call took 527 ms.
 
 ---
 
+**1.x Confidence that does not track agreement, in numbers.** Over the 1,599 ChaosNLI test items:
+Pearson r between Jev's confidence and the annotators' agreement is **0.046**. Mean confidence is
+0.826 on contested items (majority < 60%, n = 604), 0.833 on split items (60–80%, n = 706) and
+0.839 on consensus items (≥ 80%, n = 289) — flat — while accuracy on those same bands is
+**0.493 / 0.632 / 0.820**. Jev is more confident than the human majority on 80% of items.
+
+---
+
 ## 2. Controlled probes
 
 Within-item experiments: the same state and gold answer, one factor changed, 200 items per

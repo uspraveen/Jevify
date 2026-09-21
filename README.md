@@ -35,11 +35,13 @@ optimizes the same objective.
 Full catalogue with evidence and caveats in **[docs/FINDINGS.md](docs/FINDINGS.md)**.
 
 **1 · Jev is calibrated right up until humans disagree — which is when calibration matters.**
-On ChaosNLI, where 100 annotators label every item, Jev answers at p = 0.94–0.98 on items the
-annotators split 60/40; its distributions sit **TVD 0.33** from the human ones, and 0.43 on
-hate-speech vote shares. It assigns ~0.29 "toxic" to comments *zero* Jigsaw annotators flagged.
-Meanwhile it is excellent and well calibrated on crisp, grounded questions (ARC 0.979, FEVER
-0.972, ECE ≤ 0.06).
+On ChaosNLI, where 100 annotators label every item, Jev's confidence is essentially **flat at
+~0.83 no matter how much the annotators agree** (Pearson r = 0.046 between its confidence and
+human agreement) — while its accuracy swings from **0.49** on contested items (majority < 60%,
+n = 604) to **0.82** on consensus items (≥ 80%, n = 289). It is more confident than the human
+majority on 80% of items; its distributions sit **TVD 0.33** from the human ones, and 0.43 on
+hate-speech vote shares. Meanwhile it is excellent and well calibrated on crisp, grounded
+questions (ARC 0.979, FEVER 0.972, ECE ≤ 0.06).
 
 ![Jev: model probability vs human vote share](reports/jev-1.13.0/figures/human_vs_model.png)
 
@@ -86,6 +88,18 @@ instead of a softmax over {yes, no}.
 levels contradicted NVIDIA's verbatim scale, and GoEmotions' single-label subset hid rater
 disagreement (rebuilt from raw votes; plurality agreement is only 0.66, which is the accuracy
 ceiling). Low benchmark scores deserve an audit before they become claims.
+
+**9 · It transfers to vision — and so does the ordering of the primitives.** Qwen3-VL-2B, no
+training, on POPE / A-OKVQA / AI2D (4,244 records): Noul **ECE 0.083** vs Choice 0.124 and 0.175,
+the same ~2× gap found in text with a different model, modality and data. Starving the vision
+encoder then costs accuracy *and* calibration together: from 42 to 187 image tokens, accuracy
+rises 0.048 and ECE falls 0.037. The dangerous regime — losing accuracy while keeping confidence
+— never appears; on the hallucination benchmark, a starved encoder produces doubt, not confident
+hallucination. And the budget saturates silently: 512 and 1024 patches both resolve to 280
+tokens, which only the *measured* token count reveals.
+[· detail](docs/FINDINGS.md#8-vision-does-any-of-this-transfer)
+
+![What the vision encoder's budget buys](reports/vision-budget/vision_budget.png)
 
 ## Try it
 
@@ -147,6 +161,17 @@ this repo. → `jevify/server.py`.
 **A Jev runner** — score the real API on the same records, same metrics, same figures.
 → `jevify-run api|report|recipe|compare`.
 
+**Training that runs anywhere** — Tier 1, Tier 2 and the vision pass with no cloud dependency:
+`python -m jevify.train tier1|tier2|vision --model-id … --run-id …`. The Modal app calls the same
+functions. → `jevify/train.py`.
+
+**Vision** — images ride on `state`; the question and answer set are unchanged. The vision tower is
+addressable, not opaque: `describe()` it, set a pixel budget and *measure* the tokens it actually
+produced, freeze it, or scope LoRA to it with a full-path regex (suffix names like `q_proj` exist on
+both halves of a VLM, so a suffix list silently adapts everything). Tower swapping is deliberately
+not offered — the projector is trained against one encoder's geometry. → `jevify/engine/vision.py`,
+`jevify/engine/vision_backbone.py`, `scripts/vision_budget.py`.
+
 ## Leaderboard
 
 Every model on the same 22,773 test records. Tier 0 = no training (prompt + logit readout + a
@@ -184,9 +209,12 @@ per-config metrics, recipe and figures.
 - [x] Findings, figures and reports published ([docs/FINDINGS.md](docs/FINDINGS.md))
 - [x] Published models + hosted playground and API
 - [x] Tier 1 replicated on a second backbone (Qwen3.5-4B)
-- [ ] More diverse ordinal scales in training; Tier 1 at 7B+ and across families
-- [ ] Tier 2: LoRA where Tier 1 leaves a gap the benchmark can see
-- [ ] Label-first synthetic data pipeline; HF Space; model zoo; VLM backbones; vision-tower autoresearch
+- [x] Training portable off Modal (`python -m jevify.train`)
+- [x] VLM backbones: Tier 0 on POPE / A-OKVQA / AI2D; vision tower inspectable, budgetable, freezable, LoRA-scopable
+- [x] Vision-encoder budget sweep: accuracy and calibration degrade together, budget saturation measured
+- [ ] Tier 2: LoRA jointly with residual heads — training now, results pending
+- [ ] Vision-scoped LoRA on AI2D (the perceptual weak spot); more ordinal scales; Tier 1 at 7B+
+- [ ] Label-first synthetic data pipeline; HF Space; model zoo
 
 ## Why tiers, and why no RL
 

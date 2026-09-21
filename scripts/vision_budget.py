@@ -141,7 +141,7 @@ def figure(rows: list[dict], model_id: str, path: Path) -> None:
         ax.tick_params(colors=INK2, labelsize=9)
     fig.suptitle(f"What the vision encoder's budget buys — {model_id}", color=INK, fontsize=13, x=0.01, ha="left")
     if sat is not None:
-        budgets = "  and  ".join(f"{b}" for b in sorted(collapsed[sat]))
+        budgets = " and ".join(f"{b}" for b in sorted(collapsed[sat]))
         fig.text(0.01, 0.905, f"Dashed line: the budget saturates. {budgets} patches both yield the same "
                               f"{int(sat)} median tokens, and score the same — the images are smaller than "
                               f"the budget.", color=INK2, fontsize=9, ha="left")
