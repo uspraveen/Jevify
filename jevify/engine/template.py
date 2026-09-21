@@ -80,31 +80,42 @@ def question_hash(question: dict[str, Any]) -> str:
     return hashlib.sha1(json.dumps(question, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:12]
 
 
+def _assemble(state_block: str, qlines: list[str], state_last: bool) -> str:
+    """Order the prompt. State first is the natural reading order. State *last* makes the
+    question and its options a prefix shared by every request that asks that question, so
+    a serving engine's prefix cache can reuse their KV blocks and a request pays only for
+    its state -- the property that makes latency flat in the number of options."""
+    if state_last:
+        return "\n".join(qlines + ["", state_block, CUE])
+    return "\n".join([state_block, ""] + qlines + [CUE])
+
+
 def render(state: Any, question: dict[str, Any], *, mode: ReadoutMode = "index",
            permutation_seed: int | None = None, content_free: bool = False,
-           identifiers: Sequence[str] | None = None) -> Rendered:
+           identifiers: Sequence[str] | None = None, state_last: bool = False) -> Rendered:
     q = parse_question(question)
     body = render_state(CONTENT_FREE_STATE if content_free else state)
+    state_block = f"State:\n{body}"
     qh = question_hash(question)
     instr = _describe(q.instructions).strip()
 
     if isinstance(q, NoulQuestion):
-        lines = [f"State:\n{body}", "", f"Question: {instr or 'Is the statement true?'}"]
+        qlines = [f"Question: {instr or 'Is the statement true?'}"]
         if q.criteria:
             if q.criteria.true:
-                lines.append(f"Answer yes if: {_describe(q.criteria.true)}")
+                qlines.append(f"Answer yes if: {_describe(q.criteria.true)}")
             if q.criteria.false:
-                lines.append(f"Answer no if: {_describe(q.criteria.false)}")
-        lines += ["Allowed answers: yes, no", CUE]
-        return Rendered("\n".join(lines), ["yes", "no"], ["1", "0"], "noul", "yesno", [0, 1], qh)
+                qlines.append(f"Answer no if: {_describe(q.criteria.false)}")
+        qlines.append("Allowed answers: yes, no")
+        return Rendered(_assemble(state_block, qlines, state_last), ["yes", "no"], ["1", "0"], "noul", "yesno", [0, 1], qh)
 
     if isinstance(q, ScoreQuestion):
         levels = [_describe(c) for c in q.criteria]
-        lines = [f"State:\n{body}", "", f"Question: {instr or 'Which level applies?'}", "Levels (ordered from lowest to highest):"]
-        lines += [f"{i}. {d}" for i, d in enumerate(levels)]
-        lines += [f"Allowed answers: {', '.join(str(i) for i in range(len(levels)))}", CUE]
+        qlines = [f"Question: {instr or 'Which level applies?'}", "Levels (ordered from lowest to highest):"]
+        qlines += [f"{i}. {d}" for i, d in enumerate(levels)]
+        qlines.append(f"Allowed answers: {', '.join(str(i) for i in range(len(levels)))}")
         keys = [str(i) for i in range(len(levels))]
-        return Rendered("\n".join(lines), list(keys), keys, "score", "digit", list(range(len(keys))), qh)
+        return Rendered(_assemble(state_block, qlines, state_last), list(keys), keys, "score", "digit", list(range(len(keys))), qh)
 
     assert isinstance(q, ChoiceQuestion)
     keys = list(q.criteria.keys())
@@ -112,19 +123,19 @@ def render(state: Any, question: dict[str, Any], *, mode: ReadoutMode = "index",
     if permutation_seed is not None:
         random.Random(permutation_seed).shuffle(order)
     shown = [keys[i] for i in order]
-    lines = [f"State:\n{body}", "", f"Question: {instr or 'Which option applies?'}", "Options:"]
+    qlines = [f"Question: {instr or 'Which option applies?'}", "Options:"]
     if mode == "index":
         ids = list(identifiers[: len(shown)]) if identifiers and len(identifiers) >= len(shown) else default_identifiers(len(shown))
         for ident, k in zip(ids, shown):
             desc = _describe(q.criteria[k])
-            lines.append(f"{ident}. {k}" + (f" — {desc}" if desc and desc != k else ""))
-        lines += [f"Allowed answers: {', '.join(ids)}", CUE]
-        return Rendered("\n".join(lines), ids, shown, "choice", "index", order, qh)
+            qlines.append(f"{ident}. {k}" + (f" — {desc}" if desc and desc != k else ""))
+        qlines.append(f"Allowed answers: {', '.join(ids)}")
+        return Rendered(_assemble(state_block, qlines, state_last), ids, shown, "choice", "index", order, qh)
     for k in shown:
         desc = _describe(q.criteria[k])
-        lines.append(f"- {k}" + (f": {desc}" if desc and desc != k else ""))
-    lines += ["Answer with exactly one option name.", CUE]
-    return Rendered("\n".join(lines), list(shown), shown, "choice", "label", order, qh)
+        qlines.append(f"- {k}" + (f": {desc}" if desc and desc != k else ""))
+    qlines.append("Answer with exactly one option name.")
+    return Rendered(_assemble(state_block, qlines, state_last), list(shown), shown, "choice", "label", order, qh)
 
 
 def to_chat(prefix: str, tokenizer, *, system: str = SYSTEM_PROMPT) -> str:

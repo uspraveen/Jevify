@@ -35,6 +35,7 @@ class JevifiedModel:
             prior_weight=recipe_cfg.get("prior_weight", 0.0),
             temperature=recipe_cfg.get("temperature") or {"choice": 1.0, "score": 1.0, "noul": 1.0},
             bias=recipe_cfg.get("bias") or {"noul": 0.0},
+            state_last=bool(recipe_cfg.get("state_last", False)),
         ))
         self._extractor = None
         if heads is not None:
@@ -121,8 +122,13 @@ def _to_wire(qd: dict[str, Any], pred, dist: dict[str, float] | None = None) -> 
 
 
 def load_jevified(repo_or_path: str, *, device: str | None = None, hf_token: str | None = None,
-                  trust_remote_code: bool = False) -> JevifiedModel:
-    """Load a Jevified model from the Hub or a local directory."""
+                  trust_remote_code: bool = False, engine: str = "hf") -> JevifiedModel:
+    """Load a Jevified model from the Hub or a local directory.
+
+    ``engine="vllm"`` serves the Tier 0 readout (or a merged Tier 2 backbone) through vLLM
+    with prefix caching -- the production path. Heads (Tier 1) need hidden states and stay
+    on the Hugging Face path.
+    """
     import os
 
     path = Path(repo_or_path)
@@ -131,6 +137,15 @@ def load_jevified(repo_or_path: str, *, device: str | None = None, hf_token: str
 
         path = Path(snapshot_download(repo_or_path, token=hf_token or os.environ.get("HF_TOKEN")))
     config = _config_for(path)
+    if engine == "vllm":
+        from .engine.vllm_readout import VLLMScorer
+
+        if (path / "lora" / "adapter_config.json").exists() or (path / "heads" / "heads.pt").exists():
+            raise ValueError("engine='vllm' serves the Tier 0 readout of a backbone; merge a LoRA into a checkpoint first, "
+                             "and Tier 1 heads need the Hugging Face path")
+        scorer = VLLMScorer(config["backbone"], trust_remote_code=trust_remote_code or config.get("trust_remote_code", False),
+                            hf_token=hf_token or os.environ.get("HF_TOKEN"))
+        return JevifiedModel(scorer, config, None)
     scorer = HFScorer(config["backbone"], device=device, hf_token=hf_token or os.environ.get("HF_TOKEN"),
                       trust_remote_code=trust_remote_code or config.get("trust_remote_code", False))
     if (path / "lora" / "adapter_config.json").exists():

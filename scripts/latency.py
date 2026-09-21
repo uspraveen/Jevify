@@ -100,6 +100,9 @@ def main() -> int:
     ap.add_argument("--batch", type=int, default=16)
     ap.add_argument("--permutations", default="1,2", help="Tier 0 option-order permutations to measure")
     ap.add_argument("--out", type=Path, default=ROOT / "results" / "latency")
+    ap.add_argument("--engine", default="hf", choices=["hf", "vllm"], help="Tier 0 scorer: research path or vLLM")
+    ap.add_argument("--state-last", action="store_true", help="question + options before the state (cacheable prefix)")
+    ap.add_argument("--tag", default="", help="suffix for output files")
     a = ap.parse_args()
 
     import torch
@@ -121,10 +124,16 @@ def main() -> int:
         rows.append(row)
 
     for mid in [m for m in a.tier0.split(",") if m]:
-        scorer = HFScorer(mid, dtype=torch.bfloat16)
+        if a.engine == "vllm":
+            from jevify.engine.vllm_readout import VLLMScorer
+            scorer = VLLMScorer(mid)
+        else:
+            scorer = HFScorer(mid, dtype=torch.bfloat16)
         for perms in [int(x) for x in a.permutations.split(",") if x]:
-            model = JevifiedModel(scorer, {"backbone": mid, "chat": True, "recipe": {"permutations": perms}})
-            measure(f"{mid.split('/')[-1]} (Tier 0)", "Tier 0", model, perms)
+            model = JevifiedModel(scorer, {"backbone": mid, "chat": True,
+                                           "recipe": {"permutations": perms, "state_last": a.state_last}})
+            label = f"{mid.split('/')[-1]} (Tier 0{', vLLM' if a.engine == 'vllm' else ''}{', state last' if a.state_last else ''})"
+            measure(label, "Tier 0", model, perms)
         del scorer, model; torch.cuda.empty_cache()
     for spec in [x for x in (a.jevified + "," + a.jevified_dir).split(",") if x]:
         model = load_jevified(spec)
@@ -135,13 +144,15 @@ def main() -> int:
 
     jev = jev_latency(a.records, ladder)
     a.out.mkdir(parents=True, exist_ok=True)
-    (a.out / "latency.json").write_text(json.dumps({"device": device, "n_per_k": a.n, "batch": a.batch, "rows": rows,
+    (a.out / f"latency{a.tag}.json").write_text(json.dumps({"device": device, "n_per_k": a.n, "batch": a.batch, "rows": rows,
+                                                   "engine": a.engine, "state_last": a.state_last,
                                                    "jev_api": jev, "ladder": LADDER}, indent=1), encoding="utf-8")
     md = markdown(rows, jev, device, a.batch)
-    (a.out / "latency.md").write_text(md, encoding="utf-8")
+    (a.out / f"latency{a.tag}.md").write_text(md, encoding="utf-8")
     print(md)
     from jevify.bench.figures import fig_latency_ladder
-    fig_latency_ladder(rows, jev, LADDER, a.out, device)
+    if not a.tag:
+        fig_latency_ladder(rows, jev, LADDER, a.out, device)
     return 0
 
 

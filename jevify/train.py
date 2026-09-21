@@ -94,7 +94,7 @@ def _finish(out_dir: Path, meta: dict[str, Any]) -> dict[str, Any]:
 def run_tier0(model_id: str, run_id: str, out_dir: Path | str, root: Path | str, *, sources: Sequence[str] | None = None,
               split: str = "test", limit: int = 0, mode: str = "index", chat: bool = True, permutations: int = 2,
               batch: int = 16, cand_chunk: int = 64, trust_remote_code: bool = False, resume: bool = True,
-              seed: int = 0) -> dict[str, Any]:
+              seed: int = 0, state_last: bool = False, engine: str = "hf") -> dict[str, Any]:
     """No training: prompt, logit readout over the answer set, raw log-scores kept for a recipe.
 
     Resumable: predictions already on disk are skipped, so a killed run continues where it
@@ -115,19 +115,24 @@ def run_tier0(model_id: str, run_id: str, out_dir: Path | str, root: Path | str,
     print(f"[{run_id}] {model_id}: {len(todo)} records ({len(skip)} already done)", flush=True)
 
     t0 = time.time()
-    scorer = HFScorer(model_id, dtype=torch.bfloat16, batch_size=batch, cand_chunk=cand_chunk,
-                      trust_remote_code=trust_remote_code, hf_token=os.environ.get("HF_TOKEN"))
+    if engine == "vllm":
+        from .engine.vllm_readout import VLLMScorer
+
+        scorer = VLLMScorer(model_id, trust_remote_code=trust_remote_code, hf_token=os.environ.get("HF_TOKEN"))
+    else:
+        scorer = HFScorer(model_id, dtype=torch.bfloat16, batch_size=batch, cand_chunk=cand_chunk,
+                          trust_remote_code=trust_remote_code, hf_token=os.environ.get("HF_TOKEN"))
     t_load = time.time() - t0
-    engine = Tier0Engine(scorer, Recipe(mode=mode, chat=chat, permutations=permutations))
-    n = write_predictions(out, engine.score_records(todo, batch=batch), append=bool(skip), progress_every=250)
+    eng = Tier0Engine(scorer, Recipe(mode=mode, chat=chat, permutations=permutations, state_last=state_last))
+    n = write_predictions(out, eng.score_records(todo, batch=batch), append=bool(skip), progress_every=250)
     return _finish(out_dir, {
         "run_id": run_id, "model_id": model_id, "tier": 0, "split": split, "sources": list(sources) if sources else None,
-        "limit": limit, "recipe": engine.recipe.as_dict(), "chat_applied": engine.chat, "n_new": n, "n_total": len(recs),
+        "limit": limit, "recipe": eng.recipe.as_dict(), "chat_applied": eng.chat, "engine": engine, "n_new": n, "n_total": len(recs),
         "load_s": round(t_load, 1), "wall_s": round(time.time() - t0, 1), "torch": torch.__version__,
         "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
         "scorer_stats": {k: (round(v, 2) if isinstance(v, float) else v) for k, v in scorer.stats.items()},
-        "attn_impl": getattr(scorer.model.config, "_attn_implementation", None),
-        "dtype": str(next(scorer.model.parameters()).dtype)})
+        "attn_impl": getattr(getattr(getattr(scorer, "model", None), "config", None), "_attn_implementation", None),
+        "dtype": str(next(scorer.model.parameters()).dtype) if hasattr(scorer, "model") else "bfloat16"})
 
 
 # --------------------------------------------------------------------------- Tier 1
@@ -365,6 +370,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     ap.add_argument("--permutations", type=int, default=2, help="tier0: option-order permutations to average")
     ap.add_argument("--cand-chunk", type=int, default=64)
     ap.add_argument("--no-resume", action="store_true", help="tier0: ignore predictions already on disk")
+    ap.add_argument("--state-last", action="store_true", help="tier0: question and options before the state (cacheable prefix)")
+    ap.add_argument("--engine", default="hf", choices=["hf", "vllm"], help="tier0: research scorer or the vLLM serving path")
     ap.add_argument("--split", default="test")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--max-pixels", type=int, default=0)
@@ -391,7 +398,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     if a.tier == "tier0":
         run_tier0(**common, root=root, sources=[s for s in a.sources.split(",") if s] or None, split=a.split,
                   limit=a.limit, mode=a.mode, chat=not a.no_chat, permutations=a.permutations,
-                  batch=a.batch or 16, cand_chunk=a.cand_chunk, resume=not a.no_resume)
+                  batch=a.batch or 16, cand_chunk=a.cand_chunk, resume=not a.no_resume,
+                  state_last=a.state_last, engine=a.engine)
         return 0
     if a.tier == "tier1":
         seeds = [int(x) for x in a.seeds.split(",") if x]

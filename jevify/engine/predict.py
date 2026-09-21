@@ -34,6 +34,7 @@ class Recipe:
     mode: str = "index"                 # choice readout: index | label
     chat: bool = True                   # wrap in the chat template when the model has one
     permutations: int | dict[str, int] = 1        # option orderings scored for choice (1 = presented order only)
+    state_last: bool = False                       # question + options before the state: a cacheable prefix
     prior_weight: float | dict[str, float] = 0.0  # 0 = off; 1 = full PMI / contextual calibration
     temperature: dict[str, float] = field(default_factory=lambda: {p: 1.0 for p in PRIMS})
     bias: dict[str, float] = field(default_factory=lambda: {"noul": 0.0})
@@ -48,7 +49,7 @@ class Recipe:
         return max(self.permutations.values()) if isinstance(self.permutations, dict) else int(self.permutations)
 
     def as_dict(self) -> dict[str, Any]:
-        return {"mode": self.mode, "chat": self.chat, "permutations": self.permutations,
+        return {"mode": self.mode, "chat": self.chat, "permutations": self.permutations, "state_last": self.state_last,
                 "prior_weight": self.prior_weight, "temperature": dict(self.temperature), "bias": dict(self.bias)}
 
 
@@ -65,10 +66,11 @@ class Tier0Engine:
 
     def _renderings(self, state: Any, question: dict[str, Any]) -> list[Rendered]:
         ids = self.scorer.identifiers() if self.recipe.mode == "index" else None
-        rs = [render(state, question, mode=self.recipe.mode, identifiers=ids)]
+        sl = self.recipe.state_last
+        rs = [render(state, question, mode=self.recipe.mode, identifiers=ids, state_last=sl)]
         if rs[0].primitive == "choice":
             for i in range(1, self.recipe.max_permutations()):
-                rs.append(render(state, question, mode=self.recipe.mode, permutation_seed=1000 + i, identifiers=ids))
+                rs.append(render(state, question, mode=self.recipe.mode, permutation_seed=1000 + i, identifiers=ids, state_last=sl))
         return rs
 
     # ------------------------------------------------------------------ raw scoring
@@ -88,7 +90,7 @@ class Tier0Engine:
             for i, r in enumerate(chunk):
                 if not want_prior:
                     break
-                rd = render(r.state, r.question, mode=self.recipe.mode, content_free=True,
+                rd = render(r.state, r.question, mode=self.recipe.mode, content_free=True, state_last=self.recipe.state_last,
                             identifiers=self.scorer.identifiers() if self.recipe.mode == "index" else None)
                 key = f"{rd.question_hash}:{rd.mode}"
                 if key not in self._prior_cache and all(k != key for k, _ in prior_keys):
@@ -109,7 +111,7 @@ class Tier0Engine:
                 extra = {
                     "mode": rd0.mode,
                     "runs": [{"keys": rd.keys, "logscores": sc} for rd, sc in runs],
-                    "prior": {"keys": render(r.state, r.question, mode=self.recipe.mode, content_free=True,
+                    "prior": {"keys": render(r.state, r.question, mode=self.recipe.mode, content_free=True, state_last=self.recipe.state_last,
                                              identifiers=self.scorer.identifiers() if self.recipe.mode == "index" else None).keys,
                               "logscores": prior} if prior else None,
                 }
