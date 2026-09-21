@@ -182,28 +182,73 @@ def _image_processor(processor):
     return getattr(processor, "image_processor", processor)
 
 
-def pixel_budget(processor, max_pixels: int | None = None, min_pixels: int | None = None) -> dict[str, Any]:
-    """Set how much image survives preprocessing; returns what was actually applied.
+# transformers 5.x normalizes the old `max_pixels` / `min_pixels` arguments into a
+# `size` object as `longest_edge` / `shortest_edge`, and drops the legacy attributes.
+# Both spellings are written and both are read back, so this works across versions.
+_BUDGET_FIELDS = {"max_pixels": ("max_pixels", "longest_edge"),
+                  "min_pixels": ("min_pixels", "shortest_edge")}
 
-    Returning the applied values matters: processors silently ignore attributes they do
-    not have, so a budget you *set* is not necessarily a budget that *took*.
+
+def _size_fields(size) -> dict[str, Any]:
+    if size is None:
+        return {}
+    if isinstance(size, dict):
+        return dict(size)
+    try:
+        return {k: v for k, v in vars(size).items() if not k.startswith("_")}
+    except TypeError:                                   # slotted / exotic size objects
+        return {f: getattr(size, f) for f in ("longest_edge", "shortest_edge", "max_pixels", "min_pixels")
+                if hasattr(size, f)}
+
+
+def _size_set(size, field: str, value: int) -> bool:
+    if size is None:
+        return False
+    if isinstance(size, dict):
+        if field in size:
+            size[field] = value
+            return True
+        return False
+    if hasattr(size, field):
+        try:
+            setattr(size, field, value)
+            return True
+        except Exception:                               # frozen size objects
+            return False
+    return False
+
+
+def pixel_budget(processor, max_pixels: int | None = None, min_pixels: int | None = None) -> dict[str, Any]:
+    """Set how much image survives preprocessing; return what was actually applied.
+
+    Reporting back matters more here than it looks. A processor silently ignores an
+    attribute it does not have, and the attribute moved between transformers versions —
+    so a budget you *set* is not necessarily a budget that *took*. Pair this with
+    ``image_tokens``, which measures the consequence rather than trusting the setting.
     """
     ip = _image_processor(processor)
+    size = getattr(ip, "size", None)
     applied: dict[str, Any] = {}
-    for key, val in (("max_pixels", max_pixels), ("min_pixels", min_pixels)):
-        if val is None:
+    for key, value in (("max_pixels", max_pixels), ("min_pixels", min_pixels)):
+        if value is None:
             continue
-        if hasattr(ip, key):
-            setattr(ip, key, int(val))
-            applied[key] = int(val)
-        # newer processors nest the same budget under `size`
-        size = getattr(ip, "size", None)
-        if isinstance(size, dict) and key in size:
-            size[key] = int(val)
-            applied[key] = int(val)
-    applied["effective"] = {k: getattr(ip, k, None) for k in ("max_pixels", "min_pixels")}
-    if isinstance(getattr(ip, "size", None), dict):
-        applied["size"] = dict(ip.size)
+        value = int(value)
+        legacy, modern = _BUDGET_FIELDS[key]
+        hit = False
+        if hasattr(ip, legacy):
+            setattr(ip, legacy, value)
+            hit = True
+        for field in (legacy, modern):
+            hit = _size_set(size, field, value) or hit
+        if hit:
+            applied[key] = value
+    fields = _size_fields(getattr(ip, "size", None))
+    applied["effective"] = {
+        key: next((v for v in (getattr(ip, legacy, None), fields.get(legacy), fields.get(modern))
+                   if v is not None), None)
+        for key, (legacy, modern) in _BUDGET_FIELDS.items()}
+    if fields:
+        applied["size"] = {k: v for k, v in fields.items() if v is not None}
     return applied
 
 

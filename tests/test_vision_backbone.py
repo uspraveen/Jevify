@@ -142,3 +142,66 @@ def test_image_tokens_grows_with_the_image(processor):
     small = vb.image_tokens(processor, Image.new("RGB", (64, 64), "red"))
     large = vb.image_tokens(processor, Image.new("RGB", (512, 512), "red"))
     assert small > 0 and large >= small
+
+
+# --------------------------------------------------------------------------- budget plumbing
+class _SizeDict:
+    """Stand-in for transformers 5.x SizeDict: attributes, not dict keys."""
+
+    def __init__(self):
+        self.longest_edge = None
+        self.shortest_edge = None
+        self.max_pixels = None
+        self.min_pixels = None
+
+
+class _ModernIP:
+    """transformers 5.x: the budget lives in `size`, the legacy attributes are gone."""
+
+    def __init__(self):
+        self.size = _SizeDict()
+
+
+class _LegacyIP:
+    """transformers 4.x: plain attributes."""
+
+    def __init__(self):
+        self.max_pixels = None
+        self.min_pixels = None
+
+
+class _Proc:
+    def __init__(self, ip):
+        self.image_processor = ip
+
+
+def test_pixel_budget_writes_the_modern_size_object():
+    """Regression: a real Qwen3-VL processor reported an empty budget.
+
+    transformers 5.x folds `max_pixels` into `size.longest_edge` and drops the legacy
+    attribute, so reading only `ip.max_pixels` reports None for a budget that is in fact
+    applied -- which would make a sweep over budgets look like it changed nothing.
+    """
+    proc = _Proc(_ModernIP())
+    applied = vb.pixel_budget(proc, max_pixels=64 * 28 * 28, min_pixels=16 * 28 * 28)
+    assert applied["max_pixels"] == 64 * 28 * 28
+    assert proc.image_processor.size.longest_edge == 64 * 28 * 28
+    assert proc.image_processor.size.shortest_edge == 16 * 28 * 28
+    assert applied["effective"]["max_pixels"] == 64 * 28 * 28
+    assert applied["effective"]["min_pixels"] == 16 * 28 * 28
+
+
+def test_pixel_budget_still_writes_legacy_attributes():
+    proc = _Proc(_LegacyIP())
+    applied = vb.pixel_budget(proc, max_pixels=1234)
+    assert proc.image_processor.max_pixels == 1234
+    assert applied["effective"]["max_pixels"] == 1234
+
+
+def test_pixel_budget_reports_nothing_applied_when_nothing_matches():
+    class _Blank:
+        pass
+
+    applied = vb.pixel_budget(_Proc(_Blank()), max_pixels=999)
+    assert "max_pixels" not in applied            # honest: the budget did not take
+    assert applied["effective"]["max_pixels"] is None
