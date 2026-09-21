@@ -884,21 +884,17 @@ def fig_latency_ladder(rows: list[dict[str, Any]], jev: dict[str, Any], ladder: 
     """Single-request latency against answer-set size, as three small multiples.
 
     One panel per question a deployer actually asks -- which size, which tier, which recipe --
-    each with at most five lines, Jev's measured API round trip drawn in every panel as the
-    reference. Twelve lines in one panel was unreadable. Log-log: K spans 2 to 151 and latency
-    an order of magnitude, and a power law is a straight line whose slope is the scaling.
+    each with at most five series and a legend, Jev's measured API round trip drawn in every
+    panel as the reference. K is on a log axis because it spans 2 to 151; latency is linear
+    from zero, so a flat floor looks flat and a doubling looks like a doubling.
     """
     plt = _mpl()
+    from matplotlib.lines import Line2D
+
     ks = [k for _, _, k in ladder]
 
     def series(r):
         return [r["single"][src]["p50_ms"] for src, _, _ in ladder]
-
-    def find(model_sub, tier, perms):
-        for r in rows:
-            if model_sub in r["model"] and r["tier"] == tier and r["permutations"] == perms:
-                return r
-        return None
 
     sizes = [r for r in rows if r["tier"] == "Tier 0" and r["permutations"] == 1]
     base = next((r for r in sizes if "2B" in r["model"]), sizes[0] if sizes else None)
@@ -906,46 +902,44 @@ def fig_latency_ladder(rows: list[dict[str, Any]], jev: dict[str, Any], ladder: 
     tiers = [r for r in rows if r["model"].startswith(base_name) and r["permutations"] == 1]
     perms = [r for r in rows if r["tier"] == "Tier 0" and any(x in r["model"] for x in ("2B", "4B"))]
 
+    tier_name = {"Tier 0": "Tier 0 (readout only)", "Tier 1": "Tier 1 (+ decision heads)", "Tier 2": "Tier 2 (+ merged LoRA)"}
     panels = [
-        ("Backbone size  (Tier 0, one option order)", sizes,
-         lambda r: r["model"].split(" (")[0], [BLUE_RAMP[1], BLUE_RAMP[3], BLUE_RAMP[5], BLUE_RAMP[7]]),
-        (f"Tier  ({base_name}, one option order)", tiers,
-         lambda r: r["tier"] + {"Tier 0": " (readout)", "Tier 1": " (+ heads)", "Tier 2": " (+ merged LoRA)"}.get(r["tier"], ""),
-         [BLUE_RAMP[4], "#1baf7a", "#7b4fbf"]),
-        ("Recipe  (one vs two option orders averaged)", perms,
+        ("Backbone size  ·  Tier 0, one option order", sizes,
+         lambda r: r["model"].split(" (")[0], [BLUE_RAMP[1], BLUE_RAMP[3], BLUE_RAMP[5], BLUE_RAMP[7]], lambda r: "-"),
+        (f"Tier  ·  {base_name}, one option order", tiers,
+         lambda r: tier_name.get(r["tier"], r["tier"]), [BLUE_RAMP[4], "#1baf7a", "#7b4fbf"], lambda r: "-"),
+        ("Recipe  ·  one vs two option orders averaged", perms,
          lambda r: f"{r['model'].split(' (')[0]}, {r['permutations']} order{'s' if r['permutations'] > 1 else ''}",
-         [BLUE_RAMP[2], BLUE_RAMP[2], BLUE_RAMP[6], BLUE_RAMP[6]]),
+         [BLUE_RAMP[2], BLUE_RAMP[2], BLUE_RAMP[6], BLUE_RAMP[6]], lambda r: "-" if r["permutations"] > 1 else (0, (2.5, 2))),
     ]
-    fig, axes = plt.subplots(1, 3, figsize=(13.2, 4.6), sharey=True)
     jys = [jev[src]["p50_ms"] if src in jev else np.nan for src, _, _ in ladder] if jev else None
-    for ax, (title, rs, name, colors) in zip(axes, panels):
-        pts = []
+    ymax = max([max(series(r)) for r in rows] + ([np.nanmax(jys)] if jys is not None else [])) * 1.08
+
+    fig, axes = plt.subplots(1, 3, figsize=(13.4, 4.9), sharey=True)
+    for ax, (title, rs, name, colors, style) in zip(axes, panels):
+        handles = []
         for i, r in enumerate(rs):
-            ys = series(r)
-            ls = (0, (4, 2)) if (title.startswith("Recipe") and r["permutations"] == 1) else "-"
-            ax.plot(ks, ys, marker="o", markersize=4, lw=1.7, color=colors[i % len(colors)], ls=ls, zorder=3)
-            pts.append((name(r), ks[-1], ys[-1]))
+            color, ls = colors[i % len(colors)], style(r)
+            ax.plot(ks, series(r), marker="o", markersize=4.2, lw=1.8, color=color, ls=ls, zorder=3)
+            handles.append(Line2D([0], [0], color=color, ls=ls, marker="o", markersize=4.2, lw=1.8, label=name(r)))
         if jys is not None:
-            ax.plot(ks, jys, marker="D", markersize=4.5, lw=1.7, color="#eb6834", zorder=3)
-            pts.append(("Jev API round trip", ks[-1], jys[-1]))
-        ax.set_xscale("log"); ax.set_yscale("log")
+            ax.plot(ks, jys, marker="D", markersize=4.6, lw=1.8, color="#eb6834", zorder=3)
+            handles.append(Line2D([0], [0], color="#eb6834", marker="D", markersize=4.6, lw=1.8, label="Jev 1.13.0 API round trip"))
+        ax.set_xscale("log")
         ax.set_xticks(ks); ax.set_xticklabels([str(k) for k in ks], fontsize=8); ax.minorticks_off()
-        ax.set_xlim(ks[0] * 0.8, ks[-1] * 1.25)
-        ax.set_xlabel("answer-set size K (log)", fontsize=9)
+        ax.set_xlim(ks[0] * 0.8, ks[-1] * 1.2)
+        ax.set_ylim(0, ymax)
+        ax.set_xlabel("answer-set size K (log scale)", fontsize=9)
         ax.set_title(title, loc="left", fontsize=9.5, color=INK)
         ax.grid(True, which="major", color=GRID, lw=0.7, zorder=0)
         for side in ("top", "right"):
             ax.spines[side].set_visible(False)
         ax.tick_params(colors=INK2, labelsize=8)
-        yt = [100, 200, 500, 1000]
-        ax.set_yticks(yt); ax.set_yticklabels([str(v) for v in yt], fontsize=8)
-        lines_pts = [(x, y) for line in ax.get_lines() for x, y in zip(line.get_xdata(), line.get_ydata())
-                     if np.isfinite(y)]
-        _annotate_without_overlap(fig, ax, pts, fontsize=7.4, obstacles=lines_pts)
-    axes[0].set_ylabel("median latency per request, ms (log)", fontsize=9)
+        ax.legend(handles=handles, loc="upper left", fontsize=7.6, frameon=False, handlelength=3.2)
+    axes[0].set_ylabel("median latency per request (ms)", fontsize=9)
     fig.tight_layout(rect=(0, 0.20 / fig.get_figheight(), 1, 1 - 0.62 / fig.get_figheight()))
     _headline(fig, f"Latency per request vs answer-set size, one {device}",
-              "One record at a time through the served path. Every option is scored, so K is the cost axis; the option text is in the prompt, "
-              "so prefill grows with K. Jev's line is its API round trip as observed by our client -- network included.")
+              "One record at a time through the served path, median of 30 real records per K. Every option is scored and the option text is in "
+              "the prompt, so prefill grows with K. Jev's line is its API round trip as observed by our client, network included.")
     _footer(fig)
     return _save(fig, out / "latency_ladder")
