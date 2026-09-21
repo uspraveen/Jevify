@@ -99,7 +99,15 @@ def figure(rows: list[dict], model_id: str, path: Path) -> None:
 
     srcs = sorted({s for r in rows for s in r["sources"]})
     x = [r["image_tokens_median"] or r["budget_patches"] for r in rows]
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4.3), facecolor=SURFACE)
+
+    # where do distinct budgets stop buying distinct tokens?
+    seen: dict[int, list[int]] = {}
+    for r, xi in zip(rows, x):
+        seen.setdefault(xi, []).append(r["budget_patches"])
+    collapsed = {k: v for k, v in seen.items() if len(v) > 1}
+    sat = min(collapsed) if collapsed else None
+
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.6), facecolor=SURFACE)
     for ax, metric, title, better in (
             (axes[0], "accuracy", "Accuracy", "higher is better"),
             (axes[1], "ece", "Calibration error (ECE)", "lower is better")):
@@ -114,6 +122,14 @@ def figure(rows: list[dict], model_id: str, path: Path) -> None:
             ax.annotate(s, (pts[-1][0], pts[-1][1]), textcoords="offset points", xytext=(8, 0),
                         color=SOURCE_COLOR.get(s, INK2), fontsize=9, va="center")
         ax.set_xscale("log")
+        # tick at the measured token counts, not at decades: those are the x values that exist
+        ticks = sorted(set(x))
+        ax.set_xticks(ticks)
+        ax.set_xticklabels([str(int(t)) for t in ticks], fontsize=9)
+        ax.minorticks_off()
+        # two budgets collapsing onto one token count is the finding, not a plotting artifact
+        if sat is not None:
+            ax.axvline(sat, color=INK2, linewidth=1, linestyle=(0, (4, 3)), alpha=0.45, zorder=1)
         ax.set_xlabel("median image tokens per record (log)", color=INK2, fontsize=9)
         ax.set_title(f"{title} — {better}", color=INK, fontsize=11, loc="left")
         ax.grid(True, color=GRID, linewidth=0.8, zorder=0)
@@ -124,7 +140,12 @@ def figure(rows: list[dict], model_id: str, path: Path) -> None:
             ax.spines[spine].set_color(GRID)
         ax.tick_params(colors=INK2, labelsize=9)
     fig.suptitle(f"What the vision encoder's budget buys — {model_id}", color=INK, fontsize=13, x=0.01, ha="left")
-    fig.tight_layout(rect=(0, 0, 0.98, 0.94))
+    if sat is not None:
+        budgets = "  and  ".join(f"{b}" for b in sorted(collapsed[sat]))
+        fig.text(0.01, 0.905, f"Dashed line: the budget saturates. {budgets} patches both yield the same "
+                              f"{int(sat)} median tokens, and score the same — the images are smaller than "
+                              f"the budget.", color=INK2, fontsize=9, ha="left")
+    fig.tight_layout(rect=(0, 0, 0.98, 0.90))
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=160, facecolor=SURFACE)
     plt.close(fig)

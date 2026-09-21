@@ -259,7 +259,76 @@ Jev API calls for 37,573 requests.
 
 ---
 
-## 8. Open questions
+## 8. Vision: does any of this transfer?
+
+Section 9 of the previous revision ended by asking whether a System One question survives
+when the option semantics live in an image. It does, and more of the text findings come
+with it than we expected.
+
+**8.1 A VLM Jevifies without changing the contract.** `state` carries PIL images, the
+question is the same typed object, and the answer set is the same single-token identifiers.
+Qwen3-VL-2B-Instruct, no training, 4,244 records:
+
+| source | primitive | n | acc | ECE | Brier | AUROC |
+|---|---|---|---|---|---|---|
+| `pope` (object hallucination) | noul | 2,000 | 0.899 | **0.083** | 0.090 | 0.960 |
+| `aokvqa` (knowledge VQA) | choice K=4 | 744 | 0.793 | 0.124 | 0.331 | — |
+| `ai2d` (science diagrams) | choice | 1,500 | 0.652 | 0.175 | 0.510 | — |
+
+**8.2 The primitive ordering transfers intact.** In text we found Noul roughly twice as
+well calibrated as 2-way Choice. In vision, with a different model, different data and a
+different modality, the same ordering appears: Noul 0.083, Choice 0.124 and 0.175. Whatever
+makes an absolute yes/no question easier to calibrate than a relative one is not a property
+of text.
+
+**8.3 Nearly a quarter of a "2B" VLM is vision.** The inventory `describe()` returns for
+Qwen3-VL-2B: a 407M-parameter, 24-layer `Qwen3VLVisionModel` tower (19.1% of the model) plus
+a 75.5M projector (3.6%) — 22.7% in front of a 1.65B decoder. Tier 0 and Tier 1 read the
+decoder, so that entire stage is upstream of anything the decision head can fix.
+
+**8.4 Starving the encoder degrades accuracy and calibration together — the model knows it
+knows less.** Same records, same prompt, same decoder; only the pixel budget moves. 400
+records per source:
+
+| budget (28×28 patches) | measured tokens | ai2d acc / ECE | aokvqa acc / ECE | pope acc / ECE | macro acc | macro ECE |
+|---|---|---|---|---|---|---|
+| 64 | 42 | 0.593 / 0.225 | 0.705 / 0.195 | 0.875 / 0.109 | 0.724 | 0.176 |
+| 128 | 88 | 0.615 / 0.217 | 0.748 / 0.155 | 0.892 / 0.092 | 0.752 | 0.155 |
+| 256 | 187 | 0.623 / 0.208 | 0.785 / 0.136 | 0.907 / 0.073 | 0.772 | 0.139 |
+| 512 | 280 | 0.630 / 0.191 | 0.777 / 0.138 | 0.897 / 0.081 | 0.768 | 0.137 |
+| 1024 | 280 | 0.637 / 0.195 | 0.780 / 0.136 | 0.897 / 0.082 | 0.772 | 0.137 |
+
+Between 42 and 187 tokens, macro accuracy rises 0.048 **and** macro ECE falls 0.037. The
+dangerous regime — losing accuracy while holding confidence — does not appear at any budget
+we tested. On POPE specifically, the most starved encoder (42 tokens) is still better
+calibrated (0.109) than either Choice task at *any* budget. A hallucination-prone setting did
+not produce confident hallucination; it produced appropriate doubt.
+
+**8.5 The budget saturates, and only the measured token count reveals it.** Budgets of 512 and
+1024 patches both yield 280 median tokens, and score within noise of each other — the images
+are simply smaller than the budget. A deployment reading its own config would believe it had
+doubled the visual signal. This is why `pixel_budget()` reports what applied and
+`image_tokens()` measures the consequence: the nominal setting is not evidence. Practically,
+~187 tokens captures essentially all the accuracy available to this model on these sources.
+
+*Caveat: the sweep uses 400 records per source and the Tier 0 table above uses the full test
+caps, so the two tables are not directly comparable. Within the sweep, every budget sees the
+identical records, which is the comparison that matters.*
+
+**8.6 Scoping LoRA to a vision tower cannot be expressed with suffix names.** peft matches
+`target_modules` against the end of a module path, and `q_proj` is a suffix on both halves of
+a VLM. A suffix list meaning "adapt the encoder" silently adapts the whole model — the kind of
+mistake that produces a result rather than an error. `lora_pattern()` returns a full-path regex
+instead, and a test asserts the vision pattern matches nothing under the decoder.
+
+**8.7 What we deliberately did not build.** Swapping one vision tower for another. The
+projector is trained against a specific encoder's output geometry, so the swap succeeds
+mechanically and destroys the model. Doing it honestly means retraining the projector, which is
+a larger job than Jevification and a different claim.
+
+---
+
+## 9. Open questions
 
 - **How far does the residual finding go?** It replicates on two backbones (2B, 4B) with one seed
   each, and strengthens with scale. Whether it holds at 7B+ and across families is untested.
@@ -270,4 +339,9 @@ Jev API calls for 37,573 requests.
   Compare models within a column, never across. A matched split would be a better protocol.
 - **Tier 2 (LoRA)** remains untested: whether letting the backbone move buys anything the residual
   head does not.
-- **Does any of this transfer to VLMs**, where the option semantics live in an image?
+- **Does a vision-scoped LoRA help where a decoder-scoped one cannot?** Section 8 makes the
+  tower addressable but does not adapt it. The natural test is AI2D, the weakest source by a
+  wide margin (0.652) and the one whose difficulty is most plausibly perceptual rather than
+  linguistic.
+- **Does the budget/calibration relationship hold for a model that is badly calibrated to
+  begin with?** Qwen3-VL-2B degrades gracefully. A model that starts overconfident may not.
