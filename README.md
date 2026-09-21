@@ -68,15 +68,16 @@ unchanged to K=151 (clinc150 moves −0.008). What collapses under replacement i
 (arc_challenge −0.199, mmlu −0.119 *even when trained*) and ordinal scales never seen
 (measuring_hate_speech −0.482).
 
-**5 · LoRA buys the accuracy a frozen backbone cannot — and moves the model toward Jev's
-overconfidence.** Tier 2 (rank-16 LoRA trained jointly with the residual heads, one A40, 2.5 h)
-lifts Qwen3.5-2B from 0.632 to **0.685** macro accuracy and to **0.508** Score accuracy — the best
-of anything tested, Jev included. It fixes the Tier 1 weak spot outright: the held-out ordinal
-scale gains **+0.219** accuracy *and* gets better calibrated. But on ambiguous questions it gives
-back the base model's humility: ChaosNLI ECE 0.077 → **0.215** (Jev: 0.222), macro ECE 0.069 →
-0.116. It also overfits after a single pass — validation loss rises every epoch after the first.
-The training loss uses hard labels even where human vote distributions exist; using them is the
-next run. [· detail](docs/FINDINGS.md#7-tier-2-letting-the-backbone-move)
+**5 · LoRA buys the accuracy a frozen backbone cannot — and the learning rate decides whether it
+keeps the calibration.** Tier 2 (rank-16 LoRA trained jointly with the residual heads, one A40,
+2.5 h) lifts Qwen3.5-2B from 0.632 to **0.690** macro accuracy and fixes the Tier 1 weak spot
+outright: the held-out ordinal scale gains **+0.17** accuracy *and* gets better calibrated. At LoRA
+lr 1e-4 it paid for that with Jev-like overconfidence on ambiguous questions (ChaosNLI ECE 0.077 →
+0.215; Jev: 0.222). At **3e-5** it gains *more* accuracy and keeps the calibration: held-out ECE
+**0.086**, equal to Jev, and TVD to human label distributions **0.332** — the best of any model
+tested. Training against the human distributions instead (soft labels) was the hypothesis I
+expected to win and it lost: TVD 0.433, no better than Jev. Both arms overfit after one pass.
+[· detail](docs/FINDINGS.md#7-tier-2-letting-the-backbone-move)
 
 **6 · Instruction tuning does hurt calibration — 1.3–1.8× worse raw ECE — but it is almost
 entirely a temperature problem.** Gemma-4-E2B-it starts at ECE 0.361 and lands at 0.158 after one
@@ -227,8 +228,9 @@ per-config metrics, recipe and figures.
 - [x] Training portable off Modal (`python -m jevify.train`)
 - [x] VLM backbones: Tier 0 on POPE / A-OKVQA / AI2D; vision tower inspectable, budgetable, freezable, LoRA-scopable
 - [x] Vision-encoder budget sweep: accuracy and calibration degrade together, budget saturation measured
-- [x] Tier 2: LoRA jointly with residual heads — +0.053 macro accuracy at 2B, best Score accuracy of any model; overfits after one pass; trades the residual head's calibration for Jev-like overconfidence on ambiguity
-- [ ] Tier 2 against human label distributions where they exist; Tier 2 at 4B
+- [x] Tier 2: LoRA jointly with residual heads — +0.058 macro accuracy at 2B; at lr 3e-5 the best held-out ECE and human-agreement of any model; overfits after one pass
+- [x] Tier 2 ablation: learning rate vs hard-label loss — the learning rate was the cause of the overconfidence; soft-label training is a negative result on human agreement
+- [ ] Tier 2 at 4B (running); soft labels at the low learning rate; five-seed error bars on Tier 1
 - [ ] Vision-scoped LoRA on AI2D (the perceptual weak spot); more ordinal scales; Tier 1 at 7B+
 - [ ] Label-first synthetic data pipeline; HF Space; model zoo
 
