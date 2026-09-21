@@ -132,3 +132,42 @@ def test_non_residual_head_ignores_lm(extractor):
     model = DecisionHeads(HeadConfig(hidden=extractor.hidden, dim=32, dropout=0.0, residual=False))
     p = predict_rows(model, rows)["c/0"]
     assert max(p.values()) < 0.9, "a fresh non-residual head should be near-uniform"
+
+
+def test_differentiable_slots_match_the_cached_extractor(extractor):
+    """Tier 2's grad-enabled path must produce exactly what Tier 1 caches, or the two
+    tiers are not measuring the same thing."""
+    import torch
+    from jevify.engine.tier2 import DifferentiableSlots
+    recs = _records(2)
+    cached = extractor.extract(recs)
+    batch = DifferentiableSlots(extractor).batch(recs)
+    by_id = {r["id"]: r for r in cached}
+    for i, r in enumerate(recs):
+        c = by_id[r.id]
+        n = len(c["keys"])
+        assert batch.keys[i] == c["keys"]
+        # the cache is fp16, so compare with fp16's relative precision rather than a flat tolerance
+        assert torch.allclose(batch.decision[i].float(), torch.tensor(c["decision"].astype("float32")), rtol=3e-3, atol=1e-2)
+        assert torch.allclose(batch.slots[i, :n].float(), torch.tensor(c["slots"].astype("float32")), rtol=3e-3, atol=1e-2)
+        assert torch.allclose(batch.lm[i, :n].float(), torch.tensor(c["lm"]), atol=2e-3)
+
+
+def test_tier2_gradients_reach_lora(extractor):
+    """A LoRA-wrapped backbone must receive gradients through the slot features."""
+    pytest.importorskip("peft")
+    import torch
+    from jevify.engine.tier2 import DifferentiableSlots, apply_lora
+    from jevify.engine.heads import DecisionHeads, HeadConfig
+
+    model, trainable = apply_lora(extractor.scorer.model, r=4, alpha=8, targets=["q_proj", "v_proj"])
+    extractor.scorer.model = model
+    extractor.rebind()
+    assert trainable > 0
+    heads = DecisionHeads(HeadConfig(hidden=extractor.hidden, dim=16, dropout=0.0))
+    batch = DifferentiableSlots(extractor).batch(_records(1))
+    loss, _ = heads.loss(batch)
+    loss.backward()
+    grads = [p.grad for n, p in model.named_parameters() if p.requires_grad and p.grad is not None]
+    assert grads, "no LoRA parameter received a gradient"
+    assert any(float(g.abs().sum()) > 0 for g in grads), "LoRA gradients are all zero"

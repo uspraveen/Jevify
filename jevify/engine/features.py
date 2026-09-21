@@ -83,13 +83,22 @@ class FeatureExtractor:
         self._hook = self._target_module().register_forward_hook(self._capture)
 
     def _target_module(self):
-        model = self.scorer.model
-        for attr in ("model", "transformer", "base_model"):
-            inner = getattr(model, attr, None)
-            layers = getattr(inner, "layers", None) or getattr(inner, "h", None) if inner is not None else None
-            if layers:
-                return layers[self.layer]
-        raise TypeError("could not locate the decoder layers of this architecture")
+        """The decoder block to read hidden states from.
+
+        Found as the longest nn.ModuleList in the model, which is the decoder stack in every
+        architecture we have met and, unlike attribute paths, survives PEFT/LoRA wrappers.
+        """
+        import torch.nn as nn
+
+        stacks = [m for m in self.scorer.model.modules() if isinstance(m, nn.ModuleList) and len(m) > 1]
+        if not stacks:
+            raise TypeError("could not locate the decoder layers of this architecture")
+        return max(stacks, key=len)[self.layer]
+
+    def rebind(self) -> None:
+        """Re-attach the hook after the backbone is wrapped or replaced (e.g. by LoRA)."""
+        self._hook.remove()
+        self._hook = self._target_module().register_forward_hook(self._capture)
 
     def _capture(self, _module, _inputs, output) -> None:
         self._captured = output[0] if isinstance(output, tuple) else output
