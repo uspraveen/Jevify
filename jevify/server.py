@@ -15,6 +15,7 @@ import argparse
 import datetime as dt
 import os
 import time
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
@@ -34,8 +35,17 @@ class SystemOneService:
         self.model_name = model_name
         self.released = dt.datetime.now(dt.timezone.utc).date().isoformat()
 
+    jevified = None
+
     def answer(self, req: SystemOneRequest) -> SystemOneResponse:
         engine = self.engine
+        if self.jevified is not None and self.jevified.heads is not None:
+            qs = {k: q.model_dump(exclude_none=True) for k, q in req.questions.items()}
+            answers = self.jevified.ask(req.state, qs, model_name=self.model_name)
+            tok = sum(len(engine.scorer.tokenize(engine._prefix(rd), rd.candidates).prefix_ids)
+                      for qid, qd in qs.items() for rd in engine._renderings(req.state, qd))
+            return SystemOneResponse.model_validate({"model": self.model_name, "answers": answers,
+                                                     "usage": {"input_tokens": tok, "output_tokens": len(qs)}})
         items: list[tuple[str, list[str]]] = []
         plan: list[tuple[str, Any, list[Any]]] = []
         for qid, q in req.questions.items():
@@ -88,7 +98,8 @@ def build_app(service: SystemOneService) -> FastAPI:
 
     @app.get("/v1/models")
     async def models():
-        return {"models": [{"name": MODEL_ALIAS, "description": f"Jevified {service.model_name} (Tier 0)", "release_date": service.released},
+        tier = "Tier 1" if getattr(service.jevified, "heads", None) is not None else "Tier 0"
+        return {"models": [{"name": MODEL_ALIAS, "description": f"Jevified {service.model_name} ({tier})", "release_date": service.released},
                            {"name": service.model_name, "description": "The underlying checkpoint", "release_date": service.released}]}
 
     @app.get("/healthz")
@@ -100,11 +111,31 @@ def build_app(service: SystemOneService) -> FastAPI:
 
 def make_service(model_id: str, *, mode: str = "index", chat: bool = True, permutations: int = 1,
                  temperature: dict[str, float] | None = None, device: str | None = None) -> SystemOneService:
+    """Serve either a plain HF checkpoint (Tier 0) or a published Jevified repo (Tier 0 or 1)."""
     from .engine.readout import HFScorer
 
+    jevified = _try_load_jevified(model_id, device)
+    if jevified is not None:
+        svc = SystemOneService(jevified.engine, model_name=model_id)
+        svc.jevified = jevified
+        return svc
     scorer = HFScorer(model_id, device=device, hf_token=os.environ.get("HF_TOKEN"))
     recipe = Recipe(mode=mode, chat=chat, permutations=permutations, temperature=temperature or Recipe().temperature)
     return SystemOneService(Tier0Engine(scorer, recipe), model_name=model_id)
+
+
+def _try_load_jevified(model_id: str, device: str | None):
+    """Return a JevifiedModel if model_id names a published Jevify repo, else None."""
+    from huggingface_hub import hf_hub_download
+
+    try:
+        hf_hub_download(model_id, "jevify_config.json", token=os.environ.get("HF_TOKEN"))
+    except Exception:
+        if not (Path(model_id) / "jevify_config.json").exists():
+            return None
+    from .load import load_jevified
+
+    return load_jevified(model_id, device=device)
 
 
 def main(argv: list[str] | None = None) -> int:

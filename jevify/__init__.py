@@ -12,3 +12,7 @@ clients work against a Jevified model by changing a base URL.
 """
 
 __version__ = "0.0.1"
+
+from .load import JevifiedModel, load_jevified  # noqa: E402
+
+__all__ = ["JevifiedModel", "load_jevified", "__version__"]

@@ -1,0 +1,32 @@
+{
+ "jevify_version": 1,
+ "tier": 1,
+ "backbone": "Qwen/Qwen3.5-2B",
+ "layer": -1,
+ "chat": true,
+ "residual": true,
+ "head_config": {
+  "hidden": 2048,
+  "dim": 512,
+  "dropout": 0.1,
+  "layer": -1,
+  "backbone": "Qwen/Qwen3.5-2B",
+  "residual": true
+ },
+ "heldout_sources": [
+  "clinc150",
+  "arc_challenge",
+  "yelp5",
+  "measuring_hate_speech",
+  "fever_evidence",
+  "strategyqa_grounded"
+ ],
+ "trained_on": "Praveenrajus/jev-bench",
+ "n_train": 8685,
+ "lm_weight": [
+  0.95,
+  0.977,
+  1.014
+ ],
+ "best_epoch": 6
+}

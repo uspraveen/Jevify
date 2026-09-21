@@ -332,3 +332,61 @@ def tier1(model_id: str, run_id: str, gpu: str = "A100-80GB", layer: int = -1, c
     (local / "test_predictions.jsonl").write_bytes(fetch.remote(run_id, "test_predictions.jsonl"))
     (local / "run.json").write_text(json.dumps(info, indent=1))
     print(f"saved to {local}  (wall {info['wall_s']}s, est ${info['est_cost_usd']})")
+
+
+# --------------------------------------------------------------------------- hosted playground + API
+SERVE_MODEL = os.environ.get("JEVIFY_SERVE_MODEL", "Praveenrajus/jevify-qwen3.5-2b")
+serve_image = (
+    modal.Image.debian_slim(python_version="3.12")
+    .pip_install("torch", "transformers>=5.0", "accelerate", "huggingface_hub", "numpy", "pydantic>=2.5",
+                 "httpx", "fastapi", "uvicorn", "gradio>=5.0")
+    .env({"HF_HOME": "/hf", "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"})
+    .add_local_python_source("jevify")
+    .add_local_dir("space", remote_path="/space")
+)
+
+
+@app.function(image=serve_image, gpu="L4", volumes={"/hf": hf_cache}, secrets=[modal.Secret.from_name("huggingface")],
+              min_containers=0, scaledown_window=300, timeout=3600, memory=16384)
+@modal.concurrent(max_inputs=4)
+@modal.asgi_app()
+def playground():
+    """The Jevify API and playground in one app: /v1/systemone for code, / for people.
+
+    Scales to zero, so it costs only while someone is using it.
+    """
+    import sys
+
+    import gradio as gr
+    from fastapi import FastAPI
+
+    from jevify.server import build_app, make_service
+
+    svc = make_service(SERVE_MODEL)
+    api = build_app(svc)
+
+    sys.path.insert(0, "/space")
+    import app as playground_ui                      # the same Gradio app as the Space
+
+    playground_ui._cache[SERVE_MODEL] = svc.jevified or _tier0_wrapper(svc)
+    playground_ui.MODELS = {f"{SERVE_MODEL.split('/')[-1]}": SERVE_MODEL}
+    playground_ui.DEFAULT = list(playground_ui.MODELS)[0]
+
+    root = FastAPI(title="Jevify")
+    # the whole System One server lives under /api, so TYPESAFE_BASE_URL=<url>/api works with
+    # the official SDK unchanged (it appends /v1/systemone itself)
+    root.mount("/api", api)
+
+    @root.get("/healthz")
+    def health():
+        return {"ok": True, "model": SERVE_MODEL, "api": "/api/v1/systemone"}
+
+    return gr.mount_gradio_app(root, playground_ui.demo, path="/")
+
+
+def _tier0_wrapper(svc):
+    """Adapt a Tier 0 service to the playground's .ask() interface."""
+    from jevify.load import JevifiedModel
+
+    return JevifiedModel(svc.engine.scorer, {"backbone": svc.model_name, "chat": svc.engine.chat,
+                                             "recipe": svc.engine.recipe.as_dict()}, None)

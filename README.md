@@ -4,6 +4,7 @@
 
 **Turn any open LLM into a calibrated, Jev-style System One decision model.**
 
+[**Try it**](https://uspraveenraj--jevify-playground.modal.run) ·
 [**Findings**](docs/FINDINGS.md) ·
 [jev-bench on the Hub](https://huggingface.co/datasets/Praveenrajus/jev-bench) ·
 [Jev baseline + label audit](reports/jev-1.13.0/README.md) ·
@@ -86,6 +87,38 @@ levels contradicted NVIDIA's verbatim scale, and GoEmotions' single-label subset
 disagreement (rebuilt from raw votes; plurality agreement is only 0.66, which is the accuracy
 ceiling). Low benchmark scores deserve an audit before they become claims.
 
+## Try it
+
+**Playground:** [https://uspraveenraj--jevify-playground.modal.run](https://uspraveenraj--jevify-playground.modal.run) — ask a Jevified open model typed questions and watch the
+distributions. Scales to zero, so the first question waits ~30 s for a cold start.
+
+**Hosted API**, same wire format as TypeSafe's:
+
+```bash
+curl -X POST https://uspraveenraj--jevify-playground.modal.run/api/v1/systemone   -H 'Content-Type: application/json'   -d '{"state": "I was charged twice, please refund.", "model": "jevify-latest",
+       "questions": {"refund": {"type": "noul", "instructions": "Is this a refund request?"}}}'
+```
+
+The official `typesafe-sdk` works against it unchanged:
+
+```python
+# TYPESAFE_BASE_URL=https://uspraveenraj--jevify-playground.modal.run/api
+from typesafe_sdk import Noul, TypeSafeClient
+with TypeSafeClient() as client:
+    r = client.system_one(state="I was charged twice, please refund.", model="jevify-latest",
+                          questions={"refund": Noul(instructions="Is this a refund request?")})
+```
+
+**Models:** [jevify-qwen3.5-4b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b) ·
+[jevify-qwen3.5-2b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b) — ~11 MB each; the
+backbone is pulled from its own repo, so nothing is duplicated.
+
+```python
+from jevify import load_jevified
+model = load_jevified("Praveenrajus/jevify-qwen3.5-4b")
+model.ask(state, questions)
+```
+
 ## What's here
 
 **jev-bench** — 22 configs, 166k rows of real human-labeled data reformatted into System One
@@ -149,6 +182,7 @@ per-config metrics, recipe and figures.
 - [x] Tier 0 sweep: 9 open checkpoints scored on all 22,773 test records against Jev
 - [x] Tier 1 residual decision heads, with held-out-source generalization measured
 - [x] Findings, figures and reports published ([docs/FINDINGS.md](docs/FINDINGS.md))
+- [x] Published models + hosted playground and API
 - [x] Tier 1 replicated on a second backbone (Qwen3.5-4B)
 - [ ] More diverse ordinal scales in training; Tier 1 at 7B+ and across families
 - [ ] Tier 2: LoRA where Tier 1 leaves a gap the benchmark can see

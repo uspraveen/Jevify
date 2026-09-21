@@ -1,0 +1,8 @@
+gradio>=5.0
+torch>=2.2
+transformers>=4.50
+accelerate
+huggingface_hub>=0.25
+numpy>=1.26
+pydantic>=2.5
+jevify @ git+https://github.com/uspraveen/Jevify
