@@ -871,3 +871,54 @@ def fig_confidence_vs_agreement(records, preds: dict[str, Any], out: Path, model
               f"majority on {(M > H).mean():.0%} of items.")
     _footer(fig)
     return _save(fig, out / "confidence_vs_agreement")
+
+
+def fig_latency_ladder(rows: list[dict[str, Any]], jev: dict[str, Any], ladder: list, out: Path, device: str) -> Path:
+    """Single-request latency against answer-set size, one line per model/tier, Jev's API as reference.
+
+    Log-log: K spans 2 to 151 and latency spans an order of magnitude, and on log axes a
+    power law is a straight line whose slope says how the cost scales with the answer set.
+    """
+    plt = _mpl()
+    ks = [k for _, _, k in ladder]
+    fig, ax = plt.subplots(figsize=(7.6, 4.8))
+    palette = {"Tier 0": BLUE_RAMP, "Tier 1": ["#1baf7a", "#128a5f"], "Tier 2": ["#7b4fbf", "#5a3691"]}
+    used: dict[str, int] = {}
+    ends = []
+    for r in rows:
+        tier = r["tier"]
+        i = used.get(tier, 0); used[tier] = i + 1
+        ramp = palette.get(tier, BLUE_RAMP)
+        color = ramp[min(len(ramp) - 1, 2 + i * 2)] if tier == "Tier 0" else ramp[i % len(ramp)]
+        ys = [r["single"][src]["p50_ms"] for src, _, _ in ladder]
+        ls = "-" if r["permutations"] == 2 else (0, (4, 2))
+        label = f"{r['model']}" + (f", {r['permutations']} perm" if r["tier"] == "Tier 0" else "")
+        ax.plot(ks, ys, marker="o", markersize=4.5, lw=1.8, color=color, ls=ls, zorder=3)
+        ends.append((label, ks[-1], ys[-1], color))
+    if jev:
+        jys = [jev[src]["p50_ms"] if src in jev else np.nan for src, _, _ in ladder]
+        ax.plot(ks, jys, marker="D", markersize=4.5, lw=1.8, color="#eb6834", zorder=3)
+        ends.append(("Jev 1.13.0 API round trip", ks[-1], float(np.nanmax([v for v in jys if not np.isnan(v)][-1:] or [np.nan])), "#eb6834"))
+    ax.set_xscale("log"); ax.set_yscale("log")
+    ax.set_xticks(ks); ax.set_xticklabels([str(k) for k in ks], fontsize=8); ax.minorticks_off()
+    ax.set_xlabel("answer-set size K (log)"); ax.set_ylabel("median latency per request, ms (log)")
+    ax.grid(True, which="major", color=GRID, lw=0.7, zorder=0)
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    # direct labels at the right end, nudged apart in log space
+    ends.sort(key=lambda e: e[2])
+    last_y = None
+    for label, x, y, color in ends:
+        yy = y
+        if last_y is not None and yy / last_y < 1.18:
+            yy = last_y * 1.18
+        ax.annotate(label, (x, y), xytext=(8, 0), textcoords="offset points", fontsize=7.6, color=color, va="center",
+                    xycoords="data", annotation_clip=False)
+        last_y = yy
+    ax.set_xlim(ks[0] * 0.85, ks[-1] * 1.15)
+    fig.tight_layout(rect=(0, 0.22 / fig.get_figheight(), 0.72, 1 - 0.62 / fig.get_figheight()))
+    _headline(fig, f"Latency per request vs answer-set size, one {device}",
+              "One record at a time through the served path; every option is scored, so K is the cost axis. "
+              "Dashed = single option order, solid = two permutations averaged. Jev's line is its API round trip as observed by our client.")
+    _footer(fig)
+    return _save(fig, out / "latency_ladder")

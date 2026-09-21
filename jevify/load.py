@@ -93,7 +93,7 @@ class JevifiedModel:
         return out
 
     def __repr__(self) -> str:
-        tier = "Tier 1" if self.heads is not None else "Tier 0"
+        tier = "Tier 2" if self.config.get("lora") else ("Tier 1" if self.heads is not None else "Tier 0")
         return f"JevifiedModel({self.backbone!r}, {tier})"
 
 
@@ -130,12 +130,38 @@ def load_jevified(repo_or_path: str, *, device: str | None = None, hf_token: str
         from huggingface_hub import snapshot_download
 
         path = Path(snapshot_download(repo_or_path, token=hf_token or os.environ.get("HF_TOKEN")))
-    config = json.loads((path / "jevify_config.json").read_text(encoding="utf-8"))
+    config = _config_for(path)
     scorer = HFScorer(config["backbone"], device=device, hf_token=hf_token or os.environ.get("HF_TOKEN"),
                       trust_remote_code=trust_remote_code or config.get("trust_remote_code", False))
+    if (path / "lora" / "adapter_config.json").exists():
+        # Tier 2: the adapter is merged into the weights at load, so serving a LoRA-trained model
+        # costs exactly what serving its backbone costs -- no adapter matmuls at inference
+        from peft import PeftModel
+
+        scorer.model = PeftModel.from_pretrained(scorer.model, str(path / "lora")).merge_and_unload().eval()
+        config = {**config, "lora": True}
     heads = None
     if (path / "heads" / "heads.pt").exists():
         from .engine.heads import load_heads
 
         heads = load_heads(path / "heads", device=scorer.device)
     return JevifiedModel(scorer, config, heads)
+
+
+def _config_for(path: Path) -> dict[str, Any]:
+    """A published repo carries jevify_config.json; a raw training output directory (what
+    ``python -m jevify.train`` writes) carries run.json. Either loads, so a model can be
+    tried the moment training finishes, before anything is published."""
+    cfg = path / "jevify_config.json"
+    if cfg.exists():
+        return json.loads(cfg.read_text(encoding="utf-8"))
+    run = path / "run.json"
+    if not run.exists():
+        raise FileNotFoundError(f"{path}: neither jevify_config.json nor run.json found")
+    meta = json.loads(run.read_text(encoding="utf-8"))
+    recipe = meta.get("recipe") or {}
+    return {"backbone": meta["model_id"], "chat": meta.get("chat_applied", True), "tier": meta.get("tier", 0),
+            "recipe": {"mode": recipe.get("mode", "index"), "permutations": recipe.get("permutations", 1),
+                       "prior_weight": recipe.get("prior_weight", 0.0), "temperature": recipe.get("temperature"),
+                       "bias": recipe.get("bias")},
+            "trust_remote_code": meta.get("trust_remote_code", False)}
