@@ -232,9 +232,11 @@ def _cmd_compare(args) -> int:
         evs[label] = load_eval(args.records, path, args.split)
     args.out.mkdir(parents=True, exist_ok=True)
     md = compare_table(named, prims)
+    # the charts sit beside the table and the table says so, so neither is an orphan
+    md += chr(10) + chr(10) + chr(10).join(f"![{m} per config](compare_{m}.png)" for m in ("accuracy", "ece"))
     (args.out / "compare.md").write_text(md + chr(10), encoding="utf-8")
     for metric in ("accuracy", "ece"):
-        fig_compare(evs, args.out, metric)
+        fig_compare(evs, args.out, metric, prim_of=prims)
     print(md)
     return 0
 

@@ -23,3 +23,6 @@
 | `stsb` | score | 0.538 | 0.119 | 0.594 | 0.283 | 0.049 | 0.788 |
 | `yelp5` | score | 0.685 | 0.174 | 0.483 | 0.464 | 0.112 | 0.672 |
 | **macro** | | **0.733** | **0.113** | **0.349** | **0.552** | **0.111** | **0.519** |
+
+![accuracy per config](compare_accuracy.png)
+![ece per config](compare_ece.png)

@@ -12,7 +12,7 @@ on the Hub. **Each figure exists in exactly one place: next to the data that pro
 | `<run>/` | One Jevified checkpoint: `run.json` (what ran), `recipe.json` (calibration fitted on validation only), `test_predictions.jsonl`, `test_metrics.json`, `test_report.md`, `ablation.md` | `scripts/process_run.py` / `process_tier1.py` |
 | `<run>/figures/` | That model's six diagnostics: `calibration_map`, `reliability`, `risk_coverage`, `human_vs_model`, `vs_cardinality`, `latency` (Tier 0 only) | `jevify.bench.figures.make_all` |
 | `<run>/vs_jev/` | That model against Jev, config by config: `compare.md` + accuracy / ECE bar charts | `jevify-run compare` |
-| `leaderboard/` | Every model on one table (`leaderboard.md/json`) and one map (`models_map.png`); all-model bar charts | `scripts/leaderboard.py` |
+| `leaderboard/` | Every model on one table (`leaderboard.md/json`), one map (`models_map.png`), and per-config heatmaps of accuracy and ECE across all models | `scripts/leaderboard.py` |
 | `figures/` | Cross-cutting findings that aggregate *across* runs: `tier1_story`, `tier1_per_source`, `instruct_vs_base`, `recipe_ladder`, `confidence_vs_agreement` | `scripts/make_figures.py` |
 | `qwen3vl-2b/` | Vision Tier 0 (POPE / A-OKVQA / AI2D, 4,244 records) with a text-only records manifest, since images do not round-trip through the per-source layout | `python -m jevify.train vision` |
 | `vision-budget/` | The encoder budget sweep: `results.json`, table, `vision_budget.png` | `scripts/vision_budget.py` |

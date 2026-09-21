@@ -19,7 +19,6 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from jevify.bench import figures as F  # noqa: E402
-from jevify.bench.figures import fig_compare, load_eval  # noqa: E402
 
 PRIMS = ("choice", "score", "noul")
 
@@ -88,16 +87,16 @@ def main() -> int:
     out.mkdir(parents=True, exist_ok=True)
     (out / "leaderboard.md").write_text(table + NL, encoding="utf-8")
     (out / "leaderboard.json").write_text(json.dumps([{k: v for k, v in e.items() if k not in ("metrics", "preds")} for e in rows], indent=1, default=str), encoding="utf-8")
-    evs = {}
-    for e in rows:
-        if Path(e["preds"]).exists():
-            evs[e["label"] if e["tier"] != "API" else "Jev 1.13.0"] = load_eval(a.records, Path(e["preds"]), "test")
     import datetime as _dt
     F.PROVENANCE = f"jev-bench v{manifest.get('version', '?')} · {_dt.date.today().isoformat()}"
     F.fig_models_map(rows, out)
-    if evs and len(evs) <= 6:
-        for metric in ("accuracy", "ece"):
-            fig_compare(evs, out, metric)
+    # per-config detail for every model at once: a heatmap built from each run's
+    # test_metrics.json. Nothing here reads a predictions file -- the previous grouped bar
+    # chart loaded all of them and then only drew when there were six models or fewer,
+    # which left a stale six-model chart published under a thirteen-model leaderboard.
+    heat_rows = [{"label": "Jev 1.13.0" if e["tier"] == "API" else e["label"].split("/")[-1], "metrics": e["metrics"]} for e in rows]
+    for metric in ("accuracy", "ece"):
+        F.fig_metric_heatmap(heat_rows, prim_of, out, metric)
     print(table)
     if a.push:
         from huggingface_hub import HfApi

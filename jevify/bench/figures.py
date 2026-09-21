@@ -336,36 +336,148 @@ def fig_latency(ev: dict[str, dict[str, Any]], out: Path, model: str) -> Path | 
     return _save(fig, out / "latency")
 
 
-def fig_compare(evs: dict[str, dict[str, dict[str, Any]]], out: Path, metric: str = "accuracy") -> Path:
-    """Grouped horizontal bars: one row per source, one bar per model. First model = reference."""
+METRIC_LABEL = {"accuracy": ("accuracy", "higher is better"), "ece": ("expected calibration error", "lower is better"),
+                "brier": ("Brier score", "lower is better")}
+REFERENCE_COLOR = "#eb6834"          # Jev, everywhere in the project
+
+
+def _ordered_sources(evs: dict[str, dict[str, Any]], prim_of: dict[str, str] | None) -> list[tuple[str, str]]:
+    """(primitive, source) pairs in display order: grouped by primitive, then by name."""
+    srcs = {s for ev in evs.values() for s in ev}
+
+    def prim(src: str) -> str:
+        if prim_of and src in prim_of:
+            return prim_of[src]
+        for ev in evs.values():
+            if src in ev and isinstance(ev[src], dict) and ev[src].get("primitive"):
+                return ev[src]["primitive"]
+        return ""
+    order = {"choice": 0, "score": 1, "noul": 2}
+    return sorted(((prim(sname), sname) for sname in srcs), key=lambda t: (order.get(t[0], 9), t[1]))
+
+
+def fig_compare(evs: dict[str, dict[str, dict[str, Any]]], out: Path, metric: str = "accuracy",
+                prim_of: dict[str, str] | None = None) -> Path:
+    """Grouped horizontal bars, one row per config: a model (or a few) against a reference.
+
+    The first model is the reference and is drawn in the project's Jev colour so it reads
+    the same here as on the models map. Meant for two to four models; a matrix of many
+    models is a heatmap (``fig_metric_heatmap``), not a forest of bars.
+    """
     plt = _mpl()
     models = list(evs)
-    sources = sorted({s for ev in evs.values() for s in ev}, key=lambda s: (next(iter(evs.values())).get(s, {}).get("primitive", ""), s))
-    vals = {m: [_metric(evs[m].get(s), metric) for s in sources] for m in models}
-    fig, ax = plt.subplots(figsize=(8, 0.34 * len(sources) * max(len(models), 2) / 2 + 1.5))
+    groups = _ordered_sources(evs, prim_of)
+    sources = [sname for _, sname in groups]
+    vals = {m: [_metric(evs[m].get(sname), metric) for sname in sources] for m in models}
+    label, better = METRIC_LABEL.get(metric, (metric, ""))
+    fig, ax = plt.subplots(figsize=(8.2, 0.30 * len(sources) * max(len(models), 2) / 2 + 2.2))
     h = 0.8 / len(models)
-    ramp = [BLUE_RAMP[6], BLUE_RAMP[3], BLUE_RAMP[1], "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#4a3aa7"]
+    palette = [REFERENCE_COLOR, BLUE_RAMP[5], BLUE_RAMP[2], "#1baf7a"]
     for i, m in enumerate(models):
         y = np.arange(len(sources)) + (i - (len(models) - 1) / 2) * h
-        ax.barh(y, [v if v is not None else 0 for v in vals[m]], height=h * 0.92, color=ramp[i % len(ramp)], label=m, edgecolor=SURFACE, linewidth=0.5)
+        ax.barh(y, [v if v is not None else 0 for v in vals[m]], height=h * 0.9,
+                color=palette[i % len(palette)], label=m, edgecolor=SURFACE, linewidth=0.5, zorder=3)
+    # a thin rule between primitive groups, and the group's name beside it
+    prev = None
+    for i, (prim, _s) in enumerate(groups):
+        if prim != prev:
+            if i:
+                ax.axhline(i - 0.5, color=GRID, lw=0.9, zorder=1)
+            ax.text(1.0, i - 0.42, prim, transform=ax.get_yaxis_transform(), ha="right", va="top",
+                    fontsize=7.2, color=INK2, style="italic")
+            prev = prim
     ax.set_yticks(np.arange(len(sources))); ax.set_yticklabels(sources, fontsize=7.5)
-    ax.invert_yaxis(); ax.set_xlabel(metric); ax.tick_params(length=0)
-    ax.legend(loc="lower right", fontsize=7.5)
-    ax.set_title(f"{metric} per jev-bench config", loc="left")
-    fig.tight_layout()
+    ax.invert_yaxis(); ax.set_xlabel(label); ax.tick_params(length=0)
+    ax.set_xlim(left=0)
+    ax.grid(True, axis="x", color=GRID, lw=0.7, zorder=0)
+    for side in ("top", "right", "left"):
+        ax.spines[side].set_visible(False)
+    ax.legend(loc="lower right", fontsize=7.5, frameon=True, facecolor=SURFACE, edgecolor=GRID)
+    fig.tight_layout(rect=_layout(fig, 1))
+    _headline(fig, f"{' vs '.join(models[1:] + [models[0]])}: {label} per jev-bench config",
+              f"Same test records for every model. {better.capitalize()}.")
+    _footer(fig)
     return _save(fig, out / f"compare_{metric}")
+
+
+def fig_metric_heatmap(entries: list[dict[str, Any]], prim_of: dict[str, str], out: Path,
+                       metric: str = "accuracy") -> Path:
+    """Models x configs, one cell per (model, config), for the whole leaderboard.
+
+    Grouped bars stop working past a handful of models -- the previous version of this
+    chart was 4,800 pixels tall, showed six of thirteen models, and used three shades of
+    blue nobody could tell apart. A matrix of magnitudes is a heatmap: one sequential hue,
+    the value printed in each cell, rows in leaderboard order, columns grouped by primitive.
+    Built from test_metrics.json, so it needs no predictions in memory.
+    """
+    plt = _mpl()
+    from matplotlib.colors import LinearSegmentedColormap
+
+    label, better = METRIC_LABEL.get(metric, (metric, ""))
+    evs = {e["label"]: e["metrics"] for e in entries}
+    groups = _ordered_sources(evs, prim_of)
+    sources = [sname for _, sname in groups]
+    models = [e["label"] for e in entries]
+    grid = np.array([[_metric(evs[m].get(sname), metric) for sname in sources] for m in models], dtype=float)
+    cmap = LinearSegmentedColormap.from_list("blue_seq", [SURFACE] + BLUE_RAMP, N=256)
+    cmap.set_bad(GRID)
+    vmax = float(np.nanmax(grid))
+    vmin = 0.0 if metric != "accuracy" else float(max(0.0, np.nanmin(grid) - 0.05))
+
+    fig, ax = plt.subplots(figsize=(0.46 * len(sources) + 3.6, 0.36 * len(models) + 2.4))
+    im = ax.imshow(grid, cmap=cmap, vmin=vmin, vmax=vmax, aspect="auto", interpolation="nearest")
+    ax.set_xticks(np.arange(len(sources))); ax.set_xticklabels(sources, rotation=48, ha="right", fontsize=7.2)
+    ax.set_yticks(np.arange(len(models))); ax.set_yticklabels(models, fontsize=7.6)
+    ax.tick_params(length=0)
+    ax.grid(False)                                       # the house grid would cross the cells
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    # value in every cell; light ink on dark cells so the numbers are readable anywhere
+    span = max(vmax - vmin, 1e-9)
+    for i in range(len(models)):
+        for j in range(len(sources)):
+            v = grid[i, j]
+            if np.isnan(v):
+                continue
+            dark = (v - vmin) / span > 0.55
+            ax.text(j, i, f"{v:.2f}", ha="center", va="center", fontsize=6.3, color=SURFACE if dark else INK)
+    # primitive group separators and labels above the columns
+    prev, start = None, 0
+    for j, (prim, _s) in enumerate(groups + [("", "")]):
+        if prim != prev:
+            if prev is not None:
+                ax.text((start + j - 1) / 2, -0.9, prev, ha="center", va="bottom", fontsize=8, color=INK2, style="italic")
+                if j < len(groups):
+                    ax.axvline(j - 0.5, color=SURFACE, lw=2.2)
+            prev, start = prim, j
+    cb = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.012)
+    cb.ax.tick_params(labelsize=7, length=0, colors=INK2)
+    cb.outline.set_visible(False)
+    fig.tight_layout(rect=_layout(fig, 1))
+    _headline(fig, f"{label} per config, every model on jev-bench",
+              f"Rows in leaderboard order; the first is Jev. Same test records for every model. {better.capitalize()}.")
+    _footer(fig)
+    return _save(fig, out / f"heatmap_{metric}")
 
 
 # --------------------------------------------------------------------------- helpers
 
 def _metric(d: dict[str, Any] | None, metric: str) -> float | None:
+    """A config's metric from either a per-record eval (arrays) or a Report dict.
+
+    Accepting the Report form means every comparison figure can be rebuilt from the
+    published test_metrics.json files alone -- no predictions in memory, seconds not minutes.
+    """
     if d is None:
         return None
-    if metric == "accuracy":
-        return float(d["correct"].mean())
-    if metric == "ece":
-        return _ece(d["conf"], d["correct"])
-    raise ValueError(metric)
+    if "correct" in d:                                   # per-record eval from load_eval
+        if metric == "accuracy":
+            return float(d["correct"].mean())
+        if metric == "ece":
+            return _ece(d["conf"], d["correct"])
+        raise ValueError(metric)
+    v = d.get(metric)
+    return None if v is None else float(v)
 
 
 def _ece(conf: np.ndarray, correct: np.ndarray, n_bins: int = 15) -> float:
