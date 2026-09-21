@@ -53,6 +53,10 @@ def main() -> int:
         if not (d / "test_metrics.json").exists() or d.name == "leaderboard":
             continue
         run = json.loads((d / "run.json").read_text()) if (d / "run.json").exists() else {}
+        if run.get("modality") == "vision":
+            # vision runs score different sources (POPE, A-OKVQA, AI2D); averaging them into the
+            # text leaderboard would compare nothing with nothing. They have their own card section.
+            continue
         recipe = json.loads((d / "recipe.json").read_text(encoding="utf-8")) if (d / "recipe.json").exists() else {}
         suffix = "" if not run.get("tier") else (" residual" if run.get("residual") else " replace")
         tier = f"Tier {run.get('tier', 0)}{suffix}"
