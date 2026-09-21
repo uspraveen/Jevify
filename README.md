@@ -7,8 +7,8 @@
 [**Try it**](https://uspraveenraj--jevify-playground.modal.run) ·
 [**Findings**](docs/FINDINGS.md) ·
 [jev-bench on the Hub](https://huggingface.co/datasets/Praveenrajus/jev-bench) ·
-[Jev baseline + label audit](reports/jev-1.13.0/README.md) ·
-[Behavioral probes](reports/jev-1.13.0/probes/README.md) ·
+[Jev baseline + label audit](results/jev-1.13.0/README.md) ·
+[Behavioral probes](results/jev-1.13.0/probes/README.md) ·
 [Tier 1 write-up](reports/tier1/README.md) ·
 [Jev API contract](docs/JEV_CONTRACT.md) ·
 [Dataset rationale](docs/DATASETS.md)
@@ -35,15 +35,16 @@ optimizes the same objective.
 Full catalogue with evidence and caveats in **[docs/FINDINGS.md](docs/FINDINGS.md)**.
 
 **1 · Jev is calibrated right up until humans disagree — which is when calibration matters.**
-On ChaosNLI, where 100 annotators label every item, Jev's confidence is essentially **flat at
-~0.83 no matter how much the annotators agree** (Pearson r = 0.046 between its confidence and
-human agreement) — while its accuracy swings from **0.49** on contested items (majority < 60%,
-n = 604) to **0.82** on consensus items (≥ 80%, n = 289). It is more confident than the human
-majority on 80% of items; its distributions sit **TVD 0.33** from the human ones, and 0.43 on
-hate-speech vote shares. Meanwhile it is excellent and well calibrated on crisp, grounded
-questions (ARC 0.979, FEVER 0.972, ECE ≤ 0.06).
+On ChaosNLI, where 100 annotators label every item, Jev's confidence is essentially **flat no
+matter how much the annotators agree** — 0.81 / 0.84 / 0.83 / 0.88 as agreement goes from a
+split (< 50%, n = 191) through contested (50–70%, n = 828) and clear (70–90%, n = 523) to
+consensus (≥ 90%, n = 57), Pearson r = 0.046 — while its accuracy on those same bands runs
+**0.47 / 0.55 / 0.73 / 0.96**. It is more confident than the human majority on 80% of items; its
+distributions sit **TVD 0.33** from the human ones, and 0.43 on hate-speech vote shares.
+Meanwhile it is excellent and well calibrated on crisp, grounded questions (ARC 0.979, FEVER
+0.972, ECE ≤ 0.06).
 
-![Jev: model probability vs human vote share](reports/jev-1.13.0/figures/human_vs_model.png)
+![Jev: confidence vs human agreement on ChaosNLI](results/figures/confidence_vs_agreement.png)
 
 **2 · Evaluating on held-out *records* instead of held-out *sources* would have shipped the
 wrong architecture.** A trained head that replaces the model's own scorer gains +0.077 accuracy
@@ -99,7 +100,7 @@ hallucination. And the budget saturates silently: 512 and 1024 patches both reso
 tokens, which only the *measured* token count reveals.
 [· detail](docs/FINDINGS.md#8-vision-does-any-of-this-transfer)
 
-![What the vision encoder's budget buys](reports/vision-budget/vision_budget.png)
+![What the vision encoder's budget buys](results/vision-budget/vision_budget.png)
 
 ## Try it
 

@@ -18,7 +18,7 @@ Contents: [Jev's behaviour](#1-what-jev-actually-does) · [Controlled probes](#2
 **1.1 Crisp, grounded decisions are excellent and well calibrated.** ARC-Challenge 0.979,
 MMLU 0.923, FEVER-with-evidence 0.972, BoolQ 0.917, StrategyQA-grounded 0.956 — all at
 ECE ≤ 0.06. As a router or a guard on well-specified questions, the confidence signal is
-usable exactly as advertised. *(baseline, [report](../reports/jev-1.13.0/README.md))*
+usable exactly as advertised. *(baseline, [report](../results/jev-1.13.0/README.md))*
 
 **1.2 Where humans disagree, the probabilities do not track human uncertainty.** This is the
 central negative finding about Jev. On ChaosNLI — 100 annotators per item — the mean distance
@@ -59,18 +59,20 @@ in one call took 527 ms.
 
 ---
 
-**1.x Confidence that does not track agreement, in numbers.** Over the 1,599 ChaosNLI test items:
-Pearson r between Jev's confidence and the annotators' agreement is **0.046**. Mean confidence is
-0.826 on contested items (majority < 60%, n = 604), 0.833 on split items (60–80%, n = 706) and
-0.839 on consensus items (≥ 80%, n = 289) — flat — while accuracy on those same bands is
-**0.493 / 0.632 / 0.820**. Jev is more confident than the human majority on 80% of items.
+**1.x Confidence that does not track agreement, in numbers.** Over the 1,599 ChaosNLI test items,
+Pearson r between Jev's confidence and the annotators' agreement is **0.046**. By agreement band
+— split (< 50%, n = 191), contested (50–70%, n = 828), clear (70–90%, n = 523), consensus (≥ 90%,
+n = 57) — mean confidence is **0.81 / 0.84 / 0.83 / 0.88**, flat, while accuracy is
+**0.47 / 0.55 / 0.73 / 0.96**. Jev is more confident than the human majority on 80% of items.
+
+![Jev: confidence vs human agreement](../results/figures/confidence_vs_agreement.png)
 
 ---
 
 ## 2. Controlled probes
 
 Within-item experiments: the same state and gold answer, one factor changed, 200 items per
-source, 14,800 requests. *(full write-up: [probes](../reports/jev-1.13.0/probes/README.md))*
+source, 14,800 requests. *(full write-up: [probes](../results/jev-1.13.0/probes/README.md))*
 
 **2.1 Decision-set size is a cost, not a cliff.** With the gold option always present and K−1
 distractors added: clinc150 0.995 → 0.910 from K=2 to K=151; banking77 0.995 → 0.820 at K=77;
@@ -102,7 +104,7 @@ as well calibrated as a Noul than as a two-option Choice** at equal accuracy (Bo
 ## 3. What we got wrong in the benchmark
 
 Low scores can mean a weak model or a broken benchmark. Every weak result was checked by reading
-samples of the model's actual errors. *(full audit: [report](../reports/jev-1.13.0/README.md))*
+samples of the model's actual errors. *(full audit: [report](../results/jev-1.13.0/README.md))*
 
 **3.1 Most labels hold up and Jev's low scores are real.** ChaosNLI, Civil Comments, Measuring
 Hate Speech and SST-5 errors are genuine — overconfidence on items where annotators split, and a

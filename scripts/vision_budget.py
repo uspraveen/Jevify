@@ -163,7 +163,7 @@ def main() -> int:
     ap.add_argument("--sources", default="")
     ap.add_argument("--trust-remote-code", action="store_true")
     ap.add_argument("--report-only", action="store_true")
-    ap.add_argument("--reports", type=Path, default=ROOT / "reports" / "vision-budget")
+    ap.add_argument("--reports", type=Path, default=ROOT / "results" / "vision-budget")
     a = ap.parse_args()
 
     base = a.base or a.model_id.split("/")[-1].lower().replace("-instruct", "")

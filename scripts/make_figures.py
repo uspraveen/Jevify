@@ -2,7 +2,7 @@
 
     python scripts/make_figures.py [--push]
 
-Writes results/figures/{tier1_story,tier1_per_source,instruct_vs_base,recipe_ladder}.{png,svg}
+Writes results/figures/{tier1_story,tier1_per_source,instruct_vs_base,recipe_ladder,confidence_vs_agreement}.{png,svg}
 and refreshes the leaderboard's own figures.
 """
 from __future__ import annotations
@@ -101,20 +101,23 @@ def main() -> int:
     if models:
         made.append(F.fig_recipe_ladder(models, out))
 
-    # collect the headline figures into one predictable folder, wherever they were generated
-    import shutil
-    for src in (ROOT / "results" / "leaderboard" / "models_map",
-                ROOT / "results" / a.tier1 / "figures" / "calibration_map",
-                ROOT / "results" / "jev-1.13.0" / "probes" / "probe_cardinality",
-                a.records / "results" / "jev-1.13.0" / "probes" / "probe_cardinality",
-                a.records / "results" / "jev-1.13.0" / "figures" / "human_vs_model"):
-        for ext in (".png", ".svg"):
-            f = src.with_suffix(ext)
-            if f.exists():
-                dest = out / f.name
-                if not dest.exists() or f.stat().st_mtime > dest.stat().st_mtime:
-                    shutil.copy2(f, dest)
-                    made.append(dest)
+    # Jev's confidence against human agreement on ChaosNLI: the figure behind headline
+    # finding 1. Generated here so it has a reproducible source like every other figure.
+    jev_preds = a.records / "results" / "jev-1.13.0" / "test_predictions.jsonl"
+    chaos = a.records / "data" / "chaosnli" / "test.jsonl"
+    if jev_preds.exists() and chaos.exists():
+        from jevify.bench.record import read_jsonl
+        from jevify.runners.base import read_predictions
+        recs = list(read_jsonl(chaos))
+        preds = {q.id: q for q in read_predictions(jev_preds) if q.id.startswith("chaosnli/")}
+        made.append(F.fig_confidence_vs_agreement(recs, preds, out, "Jev 1.13.0"))
+
+    # Every figure lives with the data that produced it: per-model figures under
+    # results/<run>/figures, cross-model ones under results/leaderboard, probes under
+    # results/jev-1.13.0/probes. This folder holds only the cross-cutting figures generated
+    # above. It used to also receive *copies* of headline figures from those other places,
+    # which left duplicates -- and once, a stale Tier 1 chart -- where readers expected the
+    # canonical file. Nothing is copied here any more; results/README.md is the index.
 
     for m in made:
         print(m)
