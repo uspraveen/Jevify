@@ -212,6 +212,20 @@ def sweep_status():
             print(line)
 
 
+def _priced(meta: dict, gpu_name: str, out_dir: Path) -> dict:
+    """Add this run's Modal cost to a portable run.json and commit the volume.
+
+    Cost is the one fact ``jevify.train`` cannot know: it depends on which rented GPU
+    happened to run the job, so it is attached here rather than in the library.
+    """
+    meta = {**meta, "gpu": gpu_name,
+            "est_cost_usd": round(meta.get("wall_s", 0.0) / 3600 * RATE_PER_HOUR.get(gpu_name, 2.5), 3)}
+    (out_dir / "run.json").write_text(json.dumps(meta, indent=1))
+    runs.commit()
+    print(json.dumps(meta), flush=True)
+    return meta
+
+
 # --------------------------------------------------------------------------- Tier 1
 # Sources the heads never see in training. Chosen to span primitives, domains and K:
 # large-K routing, knowledge MCQ, an ordinal rating, a soft-label safety scale, and two
@@ -223,90 +237,15 @@ def _tier1_impl(gpu_name: str, model_id: str, run_id: str, layer: int = -1, chat
                 train_per_source: int = 600, val_per_source: int = 150, max_slots: int = 16, dim: int = 512,
                 epochs: int = 20, lr: float = 3e-4, batch: int = 8, trust_remote_code: bool = False,
                 heldout: str = "", test_per_source: int = 0, residual: bool = True) -> dict:
-    import numpy as np
-    import torch
+    """Frozen backbone, trained decision heads. The work itself lives in ``jevify.train``."""
+    from jevify.train import run_tier1
 
-    from jevify.bench.record import read_jsonl
-    from jevify.engine.features import FeatureExtractor
-    from jevify.engine.heads import HeadConfig, evaluate_loss, predict_rows, save_heads, train_heads
-    from jevify.engine.readout import HFScorer
-    from jevify.runners.base import Prediction, write_predictions
-
-    held = [s for s in (heldout.split(",") if heldout else HELDOUT_SOURCES) if s]
-    root = _bench_root()
-    out_dir = Path(f"/runs/{run_id}")
-    out_dir.mkdir(parents=True, exist_ok=True)
-    t0 = time.time()
-    scorer = HFScorer(model_id, dtype=torch.bfloat16, trust_remote_code=trust_remote_code, hf_token=os.environ.get("HF_TOKEN"))
-    fx = FeatureExtractor(scorer, layer=layer, chat=chat)
-    rng = np.random.default_rng(20260921)
-
-    def load(split: str, limit: int, sources: list[str] | None = None, exclude: list[str] | None = None):
-        recs = []
-        for path in sorted((root / "data").glob(f"*/{split}.jsonl")):
-            name = path.parent.name
-            if sources is not None and name not in sources:
-                continue
-            if exclude and name in exclude:
-                continue
-            recs.extend(read_jsonl(path, limit=limit or None))
-        return recs
-
-    train_recs = load("train", train_per_source, exclude=held)
-    val_recs = load("validation", val_per_source, exclude=held)
-    test_recs = load("test", test_per_source)
-    print(f"[{run_id}] {model_id} on {gpu_name}: {len(train_recs)} train / {len(val_recs)} val / {len(test_recs)} test; "
-          f"heldout={held}", flush=True)
-
-    t_feat = time.time()
-    train_rows = fx.extract(train_recs, max_slots=max_slots, rng=rng, batch_size=batch)
-    val_rows = fx.extract(val_recs, max_slots=max_slots, rng=rng, batch_size=batch)
-    test_rows = fx.extract(test_recs, batch_size=batch)
-    feat_s = time.time() - t_feat
-    print(f"[{run_id}] features in {feat_s:.0f}s", flush=True)
-
-    cfg = HeadConfig(hidden=fx.hidden, dim=dim, layer=layer, backbone=model_id, residual=residual)
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    t_train = time.time()
-    heads, info = train_heads(train_rows, val_rows, cfg, epochs=epochs, lr=lr, device=device, verbose=True)
-    train_s = time.time() - t_train
-    save_heads(heads, info, out_dir / "heads")
-
-    probs = predict_rows(heads, test_rows, device=device)
-    by_id = {r.id: r for r in test_recs}
-    preds = []
-    for rid, dist in probs.items():
-        r = by_id[rid]
-        if r.primitive == "noul":
-            preds.append(Prediction(id=rid, primitive="noul", p_yes=dist.get("1", 0.0), answer=dist.get("1", 0.0), model=f"{model_id} (Tier 1)"))
-        else:
-            keys = r.option_keys()
-            pm = {k: float(dist.get(k, 0.0)) for k in keys}
-            total = sum(pm.values()) or 1.0
-            pm = {k: v / total for k, v in pm.items()}
-            best = max(pm, key=pm.get)
-            from jevify.wire import choice_confidence, score_confidence, score_expectation
-            vals = [pm[k] for k in keys]
-            if r.primitive == "choice":
-                preds.append(Prediction(id=rid, primitive="choice", probabilities=pm, answer=best,
-                                        confidence=choice_confidence(vals), model=f"{model_id} (Tier 1)"))
-            else:
-                preds.append(Prediction(id=rid, primitive="score", probabilities=pm, answer=score_expectation(vals),
-                                        confidence=score_confidence(vals), model=f"{model_id} (Tier 1)"))
-    write_predictions(out_dir / "test_predictions.jsonl", preds, progress_every=0)
-    elapsed = time.time() - t0
-    meta = {"run_id": run_id, "model_id": model_id, "gpu": gpu_name, "tier": 1, "layer": layer, "chat_applied": fx.chat,
-            "heldout_sources": held, "n_train": len(train_rows), "n_val": len(val_rows), "n_test": len(test_rows),
-            "max_slots": max_slots, "dim": dim, "epochs": epochs, "lr": lr, "residual": residual,
-            "lm_weight": [round(float(x), 3) for x in heads.lm_weight.detach().cpu()],
-            "best_epoch": info["best_epoch"], "best_val_loss": round(info["best_val_loss"], 4),
-            "feature_s": round(feat_s), "train_s": round(train_s), "wall_s": round(elapsed, 1),
-            "est_cost_usd": round(elapsed / 3600 * RATE_PER_HOUR.get(gpu_name, 2.5), 3),
-            "val_detail": {k: round(v, 4) for k, v in evaluate_loss(heads, val_rows, device=device).items()}}
-    (out_dir / "run.json").write_text(json.dumps(meta, indent=1))
-    runs.commit()
-    print(json.dumps(meta), flush=True)
-    return meta
+    meta = run_tier1(model_id, run_id, Path(f"/runs/{run_id}"), _bench_root(), layer=layer, chat=chat,
+                     train_per_source=train_per_source, val_per_source=val_per_source, max_slots=max_slots,
+                     dim=dim, epochs=epochs, lr=lr, batch=batch, trust_remote_code=trust_remote_code,
+                     heldout=[s for s in heldout.split(",") if s] or None,
+                     test_per_source=test_per_source, residual=residual)
+    return _priced(meta, gpu_name, Path(f"/runs/{run_id}"))
 
 
 @app.function(gpu="L4", **GPU_KW)
@@ -339,85 +278,15 @@ def _tier2_impl(gpu_name: str, model_id: str, run_id: str, layer: int = -1, chat
                 epochs: int = 3, head_lr: float = 3e-4, lora_lr: float = 1e-4, lora_r: int = 16,
                 batch: int = 4, grad_accum: int = 2, trust_remote_code: bool = False, heldout: str = "",
                 test_per_source: int = 0) -> dict:
-    """LoRA on the backbone, trained jointly with the residual decision heads."""
-    import torch
+    """LoRA on the backbone, trained jointly with the residual heads (see ``jevify.train``)."""
+    from jevify.train import run_tier2
 
-    from jevify.bench.record import read_jsonl
-    from jevify.engine.features import FeatureExtractor
-    from jevify.engine.heads import HeadConfig, save_heads
-    from jevify.engine.readout import HFScorer
-    from jevify.engine.tier2 import DifferentiableSlots, apply_lora, predict_tier2, train_tier2
-    from jevify.runners.base import Prediction, write_predictions
-    from jevify.wire import choice_confidence, score_confidence, score_expectation
-
-    held = [s for s in (heldout.split(",") if heldout else HELDOUT_SOURCES) if s]
-    root = _bench_root()
-    out_dir = Path(f"/runs/{run_id}")
-    out_dir.mkdir(parents=True, exist_ok=True)
-    t0 = time.time()
-    scorer = HFScorer(model_id, dtype=torch.bfloat16, trust_remote_code=trust_remote_code, hf_token=os.environ.get("HF_TOKEN"))
-    fx = FeatureExtractor(scorer, layer=layer, chat=chat)
-    peft_model, trainable = apply_lora(scorer.model, r=lora_r, alpha=2 * lora_r)
-    scorer.model = peft_model
-    fx.rebind()                      # the decoder stack moved under PEFT's wrapper
-
-    def load(split, limit, exclude=None, only=None):
-        recs = []
-        for path in sorted((root / "data").glob(f"*/{split}.jsonl")):
-            name = path.parent.name
-            if only is not None and name not in only:
-                continue
-            if exclude and name in exclude:
-                continue
-            recs.extend(read_jsonl(path, limit=limit or None))
-        return recs
-
-    train_recs = load("train", train_per_source, exclude=held)
-    val_recs = load("validation", val_per_source, exclude=held)
-    test_recs = load("test", test_per_source)
-    print(f"[{run_id}] {model_id} on {gpu_name}: {len(train_recs)} train / {len(val_recs)} val / {len(test_recs)} test",
-          flush=True)
-
-    cfg = HeadConfig(hidden=fx.hidden, dim=dim, layer=layer, backbone=model_id, residual=True)
-    heads, info = train_tier2(fx, train_recs, val_recs, cfg, epochs=epochs, batch_size=batch, grad_accum=grad_accum,
-                              head_lr=head_lr, lora_lr=lora_lr, max_slots=max_slots)
-    save_heads(heads, info, out_dir / "heads")
-    scorer.model.save_pretrained(str(out_dir / "lora"))
-
-    slots = DifferentiableSlots(fx)
-    probs = predict_tier2(slots, heads, test_recs, batch_size=max(batch, 8))
-    by_id = {r.id: r for r in test_recs}
-    preds = []
-    for rid, dist in probs.items():
-        r = by_id[rid]
-        if r.primitive == "noul":
-            preds.append(Prediction(id=rid, primitive="noul", p_yes=dist.get("1", 0.0), answer=dist.get("1", 0.0),
-                                    model=f"{model_id} (Tier 2)"))
-            continue
-        keys = r.option_keys()
-        pm = {k: float(dist.get(k, 0.0)) for k in keys}
-        total = sum(pm.values()) or 1.0
-        pm = {k: v / total for k, v in pm.items()}
-        vals = [pm[k] for k in keys]
-        if r.primitive == "choice":
-            preds.append(Prediction(id=rid, primitive="choice", probabilities=pm, answer=max(pm, key=pm.get),
-                                    confidence=choice_confidence(vals), model=f"{model_id} (Tier 2)"))
-        else:
-            preds.append(Prediction(id=rid, primitive="score", probabilities=pm, answer=score_expectation(vals),
-                                    confidence=score_confidence(vals), model=f"{model_id} (Tier 2)"))
-    write_predictions(out_dir / "test_predictions.jsonl", preds, progress_every=0)
-    elapsed = time.time() - t0
-    meta = {"run_id": run_id, "model_id": model_id, "gpu": gpu_name, "tier": 2, "residual": True, "layer": layer,
-            "chat_applied": fx.chat, "heldout_sources": held, "lora_r": lora_r, "lora_trainable": trainable,
-            "n_train": len(train_recs), "n_val": len(val_recs), "n_test": len(test_recs), "max_slots": max_slots,
-            "dim": dim, "epochs": epochs, "head_lr": head_lr, "lora_lr": lora_lr,
-            "best_epoch": info["best_epoch"], "best_val_loss": round(info["best_val_loss"], 4),
-            "lm_weight": [round(float(x), 3) for x in heads.lm_weight.detach().cpu()],
-            "wall_s": round(elapsed, 1), "est_cost_usd": round(elapsed / 3600 * RATE_PER_HOUR.get(gpu_name, 2.5), 3)}
-    (out_dir / "run.json").write_text(json.dumps(meta, indent=1))
-    runs.commit()
-    print(json.dumps(meta), flush=True)
-    return meta
+    meta = run_tier2(model_id, run_id, Path(f"/runs/{run_id}"), _bench_root(), layer=layer, chat=chat,
+                     train_per_source=train_per_source, val_per_source=val_per_source, max_slots=max_slots,
+                     dim=dim, epochs=epochs, head_lr=head_lr, lora_lr=lora_lr, lora_r=lora_r, batch=batch,
+                     grad_accum=grad_accum, trust_remote_code=trust_remote_code,
+                     heldout=[s for s in heldout.split(",") if s] or None, test_per_source=test_per_source)
+    return _priced(meta, gpu_name, Path(f"/runs/{run_id}"))
 
 
 @app.function(gpu="A100-80GB", **GPU_KW)
@@ -514,36 +383,12 @@ vision_image = (
 def vision_tier0(model_id: str, run_id: str, sources: str = "", split: str = "test", limit: int = 0,
                  batch: int = 8, max_pixels: int = 0, trust_remote_code: bool = False) -> dict:
     """Score a vision-language model on the vision configs of jev-bench."""
-    import torch
+    from jevify.train import run_vision
 
-    from jevify.engine.vision import VisionScorer
-    from jevify.runners.base import write_predictions
-    from jevify.runners.vision_runner import VisionRunner, build_vision_records, write_vision_records
-    from jevify.bench.adapters import VISION_REGISTRY
-
-    want = [s for s in sources.split(",") if s] or list(VISION_REGISTRY)
-    out_dir = Path(f"/runs/{run_id}")
-    out_dir.mkdir(parents=True, exist_ok=True)
-    t0 = time.time()
-    recs = build_vision_records(want, split, limit)
-    print(f"[{run_id}] {model_id}: {len(recs)} vision records from {want}", flush=True)
-    scorer = VisionScorer(model_id, dtype=torch.bfloat16, batch_size=batch,
-                          max_pixels=max_pixels or None, trust_remote_code=trust_remote_code,
-                          hf_token=os.environ.get("HF_TOKEN"))
-    t_load = time.time() - t0
-    n = write_predictions(out_dir / f"{split}_predictions.jsonl",
-                          VisionRunner(scorer).predict(recs, batch=batch), progress_every=200)
-    # the records carry PIL images; write_vision_records strips them before the row is built
-    write_vision_records(out_dir / f"{split}_records.jsonl", recs)
-    elapsed = time.time() - t0
-    info = {"run_id": run_id, "model_id": model_id, "modality": "vision", "tier": 0, "sources": want,
-            "split": split, "n": n, "load_s": round(t_load, 1), "wall_s": round(elapsed, 1),
-            "est_cost_usd": round(elapsed / 3600 * RATE_PER_HOUR["A100-80GB"], 3),
-            "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu"}
-    (out_dir / "run.json").write_text(json.dumps(info, indent=1))
-    runs.commit()
-    print(json.dumps(info), flush=True)
-    return info
+    meta = run_vision(model_id, run_id, Path(f"/runs/{run_id}"),
+                      sources=[s for s in sources.split(",") if s] or None, split=split, limit=limit,
+                      batch=batch, max_pixels=max_pixels, trust_remote_code=trust_remote_code)
+    return _priced(meta, "A100-80GB", Path(f"/runs/{run_id}"))
 
 
 @app.local_entrypoint()
