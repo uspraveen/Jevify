@@ -69,3 +69,54 @@ def test_batches_mixed_questions(scorer):
     items = [scorer.item({"image": _img(c)}, q)[0] for c in ("red", "blue", "red")]
     scores = scorer.score_many(items)
     assert len(scores) == 3 and all(len(s) == 2 for s in scores)
+
+
+def test_write_vision_records_strips_images(tmp_path):
+    """Regression: a PIL image on the state must not reach ``json.dumps``.
+
+    ``BenchRecord.to_row`` encodes the state itself, so replacing the ``state`` column
+    on the row afterwards is too late. This exact ordering mistake killed a scored
+    A100 vision run after the predictions were already on disk.
+    """
+    import json
+
+    from jevify.bench.record import BenchRecord
+    from jevify.runners.vision_runner import write_vision_records
+
+    recs = [
+        BenchRecord(id="pope/test/0", source="pope", primitive="noul", split="test",
+                    state={"image": _img("red"), "question": "Is there a cat?"},
+                    question={"type": "noul", "instructions": "yes?"}, label=1,
+                    meta={"category": "adversarial"}),
+        BenchRecord(id="ai2d/test/1", source="ai2d", primitive="choice", split="test",
+                    state={"image": _img("blue"), "question": "Which part?"},
+                    question={"type": "choice", "instructions": "pick", "criteria": {"A": "root", "B": "stem"}},
+                    label="A"),
+    ]
+    out = tmp_path / "test_records.jsonl"
+    n = write_vision_records(out, recs)
+    assert n == 2
+
+    rows = [json.loads(line) for line in out.read_text(encoding="utf-8").splitlines()]
+    assert len(rows) == 2
+    for row, rec in zip(rows, recs):
+        state = json.loads(row["state"])
+        assert state["image"] == "<image 1>"           # placeholder, not an object
+        assert state["question"] == rec.state["question"]
+        assert BenchRecord.from_row(row).id == rec.id  # and it round-trips back
+    assert rows[0]["label"] == "1" and rows[1]["label"] == "A"
+
+
+def test_write_vision_records_handles_nested_and_multiple_images(tmp_path):
+    import json
+
+    from jevify.bench.record import BenchRecord
+    from jevify.runners.vision_runner import write_vision_records
+
+    rec = BenchRecord(id="x/test/0", source="x", primitive="choice", split="test",
+                      state={"panels": [_img("red"), _img("blue")], "caption": "two panels"},
+                      question={"type": "choice", "instructions": "?", "criteria": {"A": 1, "B": 2}}, label="A")
+    out = tmp_path / "r.jsonl"
+    write_vision_records(out, [rec])
+    state = json.loads(json.loads(out.read_text(encoding="utf-8"))["state"])
+    assert state["panels"] == ["<image 1>", "<image 2>"] and state["caption"] == "two panels"

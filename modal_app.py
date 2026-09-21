@@ -518,7 +518,7 @@ def vision_tier0(model_id: str, run_id: str, sources: str = "", split: str = "te
 
     from jevify.engine.vision import VisionScorer
     from jevify.runners.base import write_predictions
-    from jevify.runners.vision_runner import VisionRunner, build_vision_records
+    from jevify.runners.vision_runner import VisionRunner, build_vision_records, write_vision_records
     from jevify.bench.adapters import VISION_REGISTRY
 
     want = [s for s in sources.split(",") if s] or list(VISION_REGISTRY)
@@ -533,11 +533,8 @@ def vision_tier0(model_id: str, run_id: str, sources: str = "", split: str = "te
     t_load = time.time() - t0
     n = write_predictions(out_dir / f"{split}_predictions.jsonl",
                           VisionRunner(scorer).predict(recs, batch=batch), progress_every=200)
-    # the records carry PIL images, so keep a text-only manifest for scoring them later
-    import json as _json
-    (out_dir / f"{split}_records.jsonl").write_text(
-        chr(10).join(_json.dumps({**r.to_row(), "state": _json.dumps(
-            {k: ("<image>" if k == "image" else v) for k, v in r.state.items()})}) for r in recs), encoding="utf-8")
+    # the records carry PIL images; write_vision_records strips them before the row is built
+    write_vision_records(out_dir / f"{split}_records.jsonl", recs)
     elapsed = time.time() - t0
     info = {"run_id": run_id, "model_id": model_id, "modality": "vision", "tier": 0, "sources": want,
             "split": split, "n": n, "load_s": round(t_load, 1), "wall_s": round(elapsed, 1),
