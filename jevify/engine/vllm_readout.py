@@ -104,10 +104,22 @@ class VLLMScorer:
 
         from vllm import SamplingParams
 
+        from vllm.inputs import TokensPrompt
+
         prompts, params, cand_ids = [], [], []
         for prefix, candidates in items:
+            # The cue ends in a space, and "Answer: " + "A" tokenizes as [..., "Answer", ":", " A"]:
+            # the space merges into the candidate. The HF scorer tokenizes prefix and candidate
+            # jointly and so feeds the model "...Answer:" and scores " A". Feeding the prompt
+            # *with* its trailing space instead makes the model predict what follows a
+            # standalone space token -- a different distribution -- while the logit read is
+            # still " A". So the prompt goes in as the exact token ids of the joint
+            # tokenization up to the candidate, never as text.
+            full = self.tokenizer(prefix, add_special_tokens=True)["input_ids"]
+            joint = self.tokenizer(prefix + candidates[0], add_special_tokens=True)["input_ids"]
+            n = _common(full, joint)
             toks = [self._candidate_token(prefix, c) for c in candidates]
-            prompts.append(prefix)
+            prompts.append(TokensPrompt(prompt_token_ids=joint[:n]))
             cand_ids.append(toks)
             params.append(SamplingParams(max_tokens=1, temperature=1.0, logprobs=len(toks),
                                          allowed_token_ids=list(dict.fromkeys(toks))))
