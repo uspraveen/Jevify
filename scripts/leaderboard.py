@@ -54,8 +54,9 @@ def main() -> int:
             continue
         run = json.loads((d / "run.json").read_text()) if (d / "run.json").exists() else {}
         recipe = json.loads((d / "recipe.json").read_text(encoding="utf-8")) if (d / "recipe.json").exists() else {}
-        tier = f"Tier {run.get('tier', 0)}" + ("" if not run.get("tier") else (" residual" if run.get("residual") else " replace"))
-        entries.append({"run": d.name, "label": run.get("model_id", d.name) + ("" if not run.get("tier") else f" [{d.name}]"),
+        suffix = "" if not run.get("tier") else (" residual" if run.get("residual") else " replace")
+        tier = f"Tier {run.get('tier', 0)}{suffix}"
+        entries.append({"run": d.name, "label": run.get("model_id", d.name) + ("" if not run.get("tier") else f" ({tier})"),
                         "tier": tier, "params": "",
                         "metrics": json.loads((d / "test_metrics.json").read_text(encoding="utf-8")),
                         "preds": d / "test_predictions.jsonl", "cost": run.get("est_cost_usd"), "gpu": run.get("gpu"),

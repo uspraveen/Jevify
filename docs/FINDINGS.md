@@ -1,0 +1,266 @@
+# Findings
+
+Everything this project has established, with the evidence and the caveats. Each entry names
+where the number comes from so it can be checked or rerun. Findings about **Jev** come from
+22,773 test records plus 14,800 controlled probe requests against the live API; findings about
+**Jevified open models** come from nine Tier 0 checkpoints and two Tier 1 variants on the same
+records.
+
+Contents: [Jev's behaviour](#1-what-jev-actually-does) · [Controlled probes](#2-controlled-probes)
+· [The benchmark itself](#3-what-we-got-wrong-in-the-benchmark) · [Tier 0](#4-tier-0-any-open-llm-with-no-training)
+· [Instruction tuning](#5-does-instruction-tuning-hurt-calibration) · [Tier 1](#6-tier-1-trained-decision-heads)
+· [Engineering](#7-engineering-findings) · [Open questions](#8-open-questions)
+
+---
+
+## 1. What Jev actually does
+
+**1.1 Crisp, grounded decisions are excellent and well calibrated.** ARC-Challenge 0.979,
+MMLU 0.923, FEVER-with-evidence 0.972, BoolQ 0.917, StrategyQA-grounded 0.956 — all at
+ECE ≤ 0.06. As a router or a guard on well-specified questions, the confidence signal is
+usable exactly as advertised. *(baseline, [report](../reports/jev-1.13.0/README.md))*
+
+**1.2 Where humans disagree, the probabilities do not track human uncertainty.** This is the
+central negative finding about Jev. On ChaosNLI — 100 annotators per item — the mean distance
+between Jev's distribution and the human one is **TVD 0.33**, with answers at p = 0.94–0.98 on
+items where annotators split 60/40. On Measuring Hate Speech vote shares, TVD 0.43. On Civil
+Comments it assigns ~0.29 "toxic" to comments **zero** annotators flagged. Calibration is the
+product claim, and it fails on precisely the inputs where calibration is the thing you need.
+
+**1.3 The System Two gap is measurable.** Same StrategyQA questions, closed-book 0.785 vs
+grounded 0.956 — a 17-point gap that isolates retrieval from reasoning.
+
+**1.4 LLM-response judging is weak.** HelpSteer2 helpfulness 0.363 and verbosity 0.341 exact,
+0.81 / 0.84 within one level. Using Jev as an automatic judge of assistant outputs is not
+supported by these numbers.
+
+**1.5 Fine-grained emotion is its worst task.** GoEmotions 0.282 at ECE 0.384 — confidently
+wrong. Note the ceiling: human raters agree with the plurality label only 66% of the time (§3.3).
+
+**1.6 It over-flags toxicity relative to the annotators.** Civil Comments accuracy 0.729 on a
+set that is ~92% non-toxic, with AUROC 0.829 — the *ranking* is fine, the *operating point* is
+not. Anyone porting a threshold across question wordings should re-fit it.
+
+**1.7 Confidence is a rescaled max-probability, not entropy.** Choice `confidence` is exactly
+`(p_max − 1/K)/(1 − 1/K)` on every sample taken. Score `confidence` is not reproducible from the
+published distribution by any standard statistic (a bimodal `[0.54, 0.15, 0.31]` scores 0.0;
+a K=10 answer with p_max 0.52 scores 0.80), so Jevify defines and documents its own.
+*(see [JEV_CONTRACT.md](JEV_CONTRACT.md))*
+
+**1.8 Noul is absolute; Choice is relative.** TypeSafe's own docs show the same question
+returning 0.22 as a Noul and 0.01/0.99 as a yes/no Choice, with `P(x) + P(¬x) = 1.19`. These are
+separate instruments, which turns out to matter for how you *build* one (§2.6, §6.2).
+
+**1.9 Operational facts.** Probabilities are rounded to 0.01 — which makes NLL explode on
+high-K configs (GoEmotions 9.9) and means **Brier and ECE are the proper scores to read**.
+Answers are not deterministic (±0.01–0.02 across identical calls). Latency is flat in the number
+of questions per request: ~185 ms median over 22,773 single-question requests, and 12 questions
+in one call took 527 ms.
+
+---
+
+## 2. Controlled probes
+
+Within-item experiments: the same state and gold answer, one factor changed, 200 items per
+source, 14,800 requests. *(full write-up: [probes](../reports/jev-1.13.0/probes/README.md))*
+
+**2.1 Decision-set size is a cost, not a cliff.** With the gold option always present and K−1
+distractors added: clinc150 0.995 → 0.910 from K=2 to K=151; banking77 0.995 → 0.820 at K=77;
+ledgar 1.000 → 0.775 at K=100. Roughly 1.5–3 accuracy points per doubling of K, ECE staying
+≤ 0.10.
+
+**2.2 Ambiguity is the cliff.** GoEmotions is 0.850 at K=2 and 0.300 by K=25, where it flattens,
+with ECE climbing to 0.34. What hurts Jev is human disagreement, not cardinality — and the
+cross-dataset view would have suggested the opposite, since large-K datasets score lower.
+
+**2.3 Option order flips 0–13% of answers**, scaling with ambiguity rather than K: MMLU 0.000,
+ARC 0.005, MNLI 0.025, clinc150 (K=151) 0.040, ledgar 0.075, GoEmotions 0.130.
+
+**2.4 It reads option semantics, not label strings.** Replacing option keys with
+`option_1 … option_K` while keeping descriptions costs nothing (banking77 0.820 → 0.810,
+clinc150 0.905 → 0.915). Removing the descriptions too drops it to chance (0.005–0.020). Useful
+if you route to internal IDs.
+
+**2.5 Nonsense options attract ≤ 3.3% of the probability mass**, and flip the answer ≤ 1.5% of
+the time.
+
+**2.6 The primitive is an instrument, not a skin.** The same yes/no question is roughly **twice
+as well calibrated as a Noul than as a two-option Choice** at equal accuracy (BoolQ ECE 0.028 vs
+0.054; Civil Comments 0.056 vs 0.126). Score beats an unordered Choice over the same levels by
+~2.5 accuracy points on all three ordinal tasks. This directly shaped the Tier 1 head design.
+
+---
+
+## 3. What we got wrong in the benchmark
+
+Low scores can mean a weak model or a broken benchmark. Every weak result was checked by reading
+samples of the model's actual errors. *(full audit: [report](../reports/jev-1.13.0/README.md))*
+
+**3.1 Most labels hold up and Jev's low scores are real.** ChaosNLI, Civil Comments, Measuring
+Hate Speech and SST-5 errors are genuine — overconfidence on items where annotators split, and a
+stricter toxicity threshold than the raters used.
+
+**3.2 HelpSteer2 verbosity was our bug.** v0.1 framed levels 0/1 as "too short" and 2 as
+"appropriate". NVIDIA's verbatim scale is a *length* scale: 0 succinct → 4 verbose. The wrong
+wording pushed normal-length answers to 2–3 when annotators said 1. Replaced with the paper's
+exact wording (helpfulness too) in v0.1.1 and re-run.
+
+**3.3 GoEmotions hid its own disagreement.** The single-label subset discards the fact that
+raters disagree; several of Jev's "errors" were better than the label (*"You're a life saver,
+wish you a blessed new year"* labelled `admiration`, Jev says `gratitude` at p = 1.00 — Jev is
+right). Rebuilt in v0.1.1 from the raw per-rater annotations with vote shares as soft labels.
+**Mean rater agreement with the plurality label is 0.66**, which is the ceiling for exact
+accuracy on that config.
+
+**3.4 A benchmark must not rebalance classes.** jev-bench samples each source's natural label
+distribution. Stratifying would make a calibrated model look miscalibrated by shifting base
+rates; `--stratify` exists for building training mixes only.
+
+---
+
+## 4. Tier 0: any open LLM, with no training
+
+Render the question, score the allowed answers from the model's own logits, then fit a recipe
+(permutation averaging, contextual-prior correction, per-primitive temperature and a Platt bias
+for Noul) on **validation splits only**. Nine checkpoints, all 22,773 test records.
+
+**4.1 Tier 0 reaches Jev's calibration without any training.** Macro ECE 0.089–0.158 across the
+sweep against Jev's 0.113 — and **Qwen3.5-4B (0.093) and Qwen3.5-2B (0.089) are better calibrated
+than Jev.** What is missing is accuracy: 0.396–0.662 vs Jev's 0.733.
+
+**4.2 Every model needs a different recipe.** The contextual prior is worth ~10 Choice-accuracy
+points to Qwen and K2 and **exactly nothing** to Gemma, which instead needs aggressive temperature
+scaling (raw ECE 0.370 → 0.158). A single fixed recipe would mis-rank these models; the per-primitive
+search finds this automatically. ![recipe ladder](../results/figures/recipe_ladder.png)
+
+**4.3 A Platt bias on Noul is not optional for small models.** A temperature cannot move a binary
+decision threshold. Adding a learned bias on the yes log-score took Qwen3.5-0.8B's Noul accuracy
+from 0.654 to 0.759 and K2's from 0.517 to 0.670.
+
+**4.4 Permutation averaging is cheap insurance.** Raw, small models show severe first-option bias
+(Gemma-4-E2B base picks the first-listed option 91% of the time against Jev's 7%). Averaging two
+orderings recovers 2–4 Choice-accuracy points and cuts Choice ECE by a third.
+
+---
+
+## 5. Does instruction tuning hurt calibration?
+
+Yes, measurably — and less than you would expect after calibration.
+
+![instruct vs base](../results/figures/instruct_vs_base.png)
+
+**5.1 Instruct checkpoints start 1.3–1.8× worse calibrated.** Raw macro ECE: Qwen3.5-0.8B 0.191
+vs its base 0.146; Gemma-4-E2B-it **0.361** vs its base 0.201. Gemma-4-E2B-it is the worst-calibrated
+model in the sweep before calibration. This is the overconfidence/mode-dropping effect TypeSafe's
+own AI primer describes, reproduced.
+
+**5.2 But it is almost entirely a temperature problem, and temperature is free.** After one scalar
+per primitive fitted on validation, Gemma-it goes 0.361 → 0.158 and the pairs nearly converge
+(0.113 vs 0.105; 0.158 vs 0.115). Instruction tuning distorts the confidence *scale*, not the
+*ranking* — Gemma-it's accuracy barely moves under calibration (0.598 → 0.591).
+
+**5.3 The accuracy gain dwarfs the residual calibration cost.** Gemma-4-E2B-it is **+0.195 accuracy**
+over its base checkpoint for +0.043 ECE; Qwen3.5-0.8B is +0.060 for +0.008. Discrimination is the
+thing calibration cannot manufacture — temperature only rescales an existing ranking — and it shows
+in Brier, which penalizes both (0.502 vs 0.609 for the Gemma pair).
+
+**5.4 So: take the instruct checkpoint, and always fit the temperature.** The early hypothesis that
+base models would win because "RLHF wrecks calibration" was wrong in this setting, and the sweep
+is what corrected it. *Caveat:* base checkpoints run without a chat template, so prompt format
+differs between rows of a pair; the Qwen pair is the cleaner of the two and shows the same direction
+with a smaller gap.
+
+---
+
+## 6. Tier 1: trained decision heads
+
+A small head reads the backbone's hidden state at each option's own line, so it can score what an
+option *means* rather than how likely its identifier token is. Trained with strictly proper scoring
+rules — log score for Choice/Noul, ranked probability score for the ordinal Score. Six sources are
+held out of training entirely, plus ChaosNLI which has no train split.
+*(full write-up: [tier1](../reports/tier1/README.md))*
+
+![tier 1 story](../results/figures/tier1_story.png)
+
+**6.1 The finding: in-distribution evaluation would have shipped the wrong design.** A head that
+**replaces** the LM scorer gains +0.077 mean accuracy on trained sources (14 of 15 improved, ECE
+0.100 → 0.056) and loses **−0.098 on held-out sources**. Held out *records* would have shown only
+the win; held out *sources* showed the harm.
+
+**6.2 Structure generalizes; knowledge does not.** clinc150 has 151 options and the heads trained
+with at most 16 — it barely moves (−0.008), so the K-agnostic design works. What collapses is
+knowledge (`arc_challenge` −0.199, `mmlu` −0.119 **even though mmlu was in training**) and ordinal
+scales never seen (`measuring_hate_speech` −0.482, `yelp5` −0.091). The head discards what the
+backbone knows and relearns a scorer from 8,685 examples.
+![per source](../results/figures/tier1_per_source.png)
+
+**6.3 The fix is to correct the model's prior, not replace it.**
+`score_i = w·lm_i + f([h_dec, h_i, h_dec ⊙ h_i])` with `f`'s last layer zero-initialized, so training
+provably *starts at Tier 0* — a unit test asserts an untrained residual head reproduces Tier 0's
+distribution to 1e-4. Result: trained +0.080, **held-out −0.000**, better calibrated in both regimes.
+
+**6.4 The head chose to keep the prior at full strength.** Learned LM weights came out
+**0.95 / 0.98 / 1.01** for choice / score / noul — the model itself says the Tier 0 scorer was worth
+keeping, which is the cleanest evidence that replacement was the wrong design.
+
+**6.5 The residual model has the best calibration and the best human agreement of anything tested.**
+Macro ECE **0.069** against Jev's 0.113, and TVD to human label distributions **0.374** against Jev's
+0.432 — on the exact axis where Jev's calibration claim was weakest (§1.2), an open 2B model now wins.
+Jev still leads on raw accuracy.
+
+**6.6 What the heads actually buy** is semantic matching, not recall: GoEmotions +0.156,
+Civil Comments +0.203, HelpSteer2 verbosity +0.193, MASSIVE +0.145. These are tasks where the answer
+depends on reading option semantics — exactly where a learned matching function should beat a logit
+on an identifier token.
+
+**6.7 Ordinal generalization is the remaining weak spot.** Both held-out `score` sources still
+regress (−0.093, −0.069). Only four ordinal sources are in training and they share a
+sentiment/quality flavour, so an unseen scale gets mapped onto them.
+
+---
+
+## 7. Engineering findings
+
+**7.1 One answer-cue convention keeps every candidate single-token across every tokenizer tested.**
+`"Answer: "` followed by a bare candidate keeps digits, letters, two-letter identifiers and yes/no
+to one token in Qwen3.5, Gemma 4, K2-Horizon, SmolLM3, Olmo 3 and Apertus. With a leading-space
+candidate instead, Score digits silently became two tokens. Identifiers are then *discovered* per
+tokenizer (A–Z, then single-token AA–ZZ), so Choice up to K=255 stays on the batched path.
+
+**7.2 Tree attention is exact where it is supported, and must be verified per architecture.** Scoring
+every candidate in one sequence under a block-diagonal mask matches naive recompute to 2e-5 in fp32.
+In bf16 the difference reaches 0.04 in probability, so the engine's self-check runs in probability
+space and falls back to cache expansion on any architecture that ignores a custom 4D mask. Large-K
+items went 0.41 s → 0.15 s on an L4.
+
+**7.3 The LM head over every position is the hidden memory cost.** A 32×1500-token batch over
+Qwen's 250k vocab is a 24 GB logits tensor — an OOM that looks like a batch-size problem. Computing
+logits only at needed positions fixed it.
+
+**7.4 A feature extractor must reuse the scorer's exact tokenization.** Re-encoding the prompt text
+put the decision position at the cue's trailing space instead of the merged `" A"` token one position
+earlier — a ~0.5 nat disagreement that would have silently poisoned the residual. The two paths are
+now pinned together by a test.
+
+**7.5 Silent data bugs are the expensive ones.** The Modal job's dataset download never included
+`train.jsonl`, so the first Tier 1 job trained on **zero records** and reported a plausible-looking
+validation loss. A smoke run with tiny caps caught it before any real spend.
+
+**7.6 Cost.** The entire study — nine Tier 0 checkpoints, two Tier 1 variants, all 22,773 records
+each — ran for about **$11** of GPU on Modal (L4 for ≤1B, A100-80GB above), plus roughly $0.15 of
+Jev API calls for 37,573 requests.
+
+---
+
+## 8. Open questions
+
+- **Does the residual finding hold across backbones?** One backbone, one seed for the headline.
+  A Qwen3.5-4B replication is the immediate next run.
+- **Can ordinal generalization be fixed with data?** More diverse ordinal scales in training is the
+  obvious lever, and jev-bench has only four.
+- **Is the held-out set difficulty-matched?** It is not — it contains several of Jev's strongest
+  configs, which is why Jev scores *higher* on held-out (0.835) than on trained (0.694) sources.
+  Compare models within a column, never across. A matched split would be a better protocol.
+- **Tier 2 (LoRA)** remains untested: whether letting the backbone move buys anything the residual
+  head does not.
+- **Does any of this transfer to VLMs**, where the option semantics live in an image?

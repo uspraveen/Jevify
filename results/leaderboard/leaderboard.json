@@ -152,7 +152,7 @@
  },
  {
   "run": "qwen35-2b-t1r",
-  "label": "Qwen/Qwen3.5-2B [qwen35-2b-t1r]",
+  "label": "Qwen/Qwen3.5-2B (Tier 1 residual)",
   "tier": "Tier 1 residual",
   "params": "",
   "cost": 0.672,
@@ -189,7 +189,7 @@
  },
  {
   "run": "qwen35-2b-t1",
-  "label": "Qwen/Qwen3.5-2B [qwen35-2b-t1]",
+  "label": "Qwen/Qwen3.5-2B (Tier 1 replace)",
   "tier": "Tier 1 replace",
   "params": "",
   "cost": 0.624,

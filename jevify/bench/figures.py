@@ -473,21 +473,154 @@ def fig_models_map(rows: list[dict[str, Any]], out: Path, title: str = "Jevified
     plt = _mpl()
     fig, ax = plt.subplots(figsize=(7.4, 5.2))
     pts = []
+    style = {"API": ("#eb6834", "D", 74), "Tier 0": (PRIM_COLOR["choice"], "o", 42), "Tier 1": ("#1baf7a", "^", 62)}
     for e in rows:
         s = e["summary"]["macro"]
-        api = e.get("tier") == "API"
-        color = "#eb6834" if api else PRIM_COLOR["choice"]
-        ax.scatter(s["acc"], s["ece"], s=70 if api else 40, color=color, zorder=3, linewidths=0.8, edgecolors=SURFACE,
-                   marker="D" if api else "o")
-        pts.append((e["label"].split("/")[-1] if "/" in e["label"] else e["label"], s["acc"], s["ece"]))
+        kind = "API" if e.get("tier") == "API" else ("Tier 1" if str(e.get("tier", "")).startswith("Tier 1") else "Tier 0")
+        color, marker, size = style[kind]
+        ax.scatter(s["acc"], s["ece"], s=size, color=color, marker=marker, zorder=3, linewidths=0.8, edgecolors=SURFACE)
+        label = e["label"].split("/")[-1] if "/" in e["label"] else e["label"]
+        pts.append((label, s["acc"], s["ece"]))
     ax.set_xlabel("macro accuracy over 22 configs"); ax.set_ylabel("macro expected calibration error (lower is better)")
     ax.set_xlim(0.25, 1.0); ax.set_ylim(0, max(0.3, max(p[2] for p in pts) + 0.03))
     from matplotlib.lines import Line2D
-    ax.legend(handles=[Line2D([0], [0], marker="D", color="#eb6834", lw=0, markersize=7, label="Jev (API)"),
-                       Line2D([0], [0], marker="o", color=PRIM_COLOR["choice"], lw=0, markersize=6, label="Jevified open model (Tier 0)")],
+    ax.legend(handles=[Line2D([0], [0], marker="D", color="#eb6834", lw=0, markersize=7, label="Jev 1.13.0 (API)"),
+                       Line2D([0], [0], marker="o", color=PRIM_COLOR["choice"], lw=0, markersize=6, label="Jevified, Tier 0 (no training)"),
+                       Line2D([0], [0], marker="^", color="#1baf7a", lw=0, markersize=7, label="Jevified, Tier 1 (trained heads)")],
               loc="upper right", fontsize=8)
     fig.tight_layout(rect=_layout(fig, 2))
     _headline(fig, title, "Every model scored on the same 22,773 test records. Tier 0 = zero training: prompt + logit readout + a recipe fitted on validation only. Down and to the right is better.")
     _footer(fig)
     _annotate_without_overlap(fig, ax, pts)
     return _save(fig, out / "models_map")
+
+
+def fig_tier1_story(variants: list[dict[str, Any]], jev: dict[str, float], out: Path, model: str) -> Path:
+    """The Tier 1 result: trained vs held-out sources, for each head variant.
+
+    ``variants`` is an ordered list of {label, trained_acc, trained_ece, heldout_acc, heldout_ece}.
+    """
+    plt = _mpl()
+    fig, axes = plt.subplots(1, 2, figsize=(10.2, 4.2))
+    x = np.arange(len(variants))
+    w = 0.38
+    for ax, (metric, name, better) in zip(axes, (("acc", "accuracy", "higher is better"),
+                                                 ("ece", "expected calibration error", "lower is better"))):
+        tr = [v[f"trained_{metric}"] for v in variants]
+        ho = [v[f"heldout_{metric}"] for v in variants]
+        ax.bar(x - w / 2, tr, w, label="sources seen in training", color=BLUE_RAMP[5], edgecolor=SURFACE, linewidth=0.6)
+        ax.bar(x + w / 2, ho, w, label="held-out sources", color="#eb6834", edgecolor=SURFACE, linewidth=0.6)
+        for xi, (a, b) in enumerate(zip(tr, ho)):
+            ax.text(xi - w / 2, a, f"{a:.3f}", ha="center", va="bottom", fontsize=7.5, color=INK2)
+            ax.text(xi + w / 2, b, f"{b:.3f}", ha="center", va="bottom", fontsize=7.5, color=INK2)
+        ref = jev[f"heldout_{metric}"]
+        ax.axhline(ref, color=INK2, lw=1.0, ls=(0, (4, 3)), zorder=1, alpha=0.55)
+        ax.set_xticks(x); ax.set_xticklabels([v["label"] for v in variants], fontsize=8)
+        ax.set_ylabel(f"{name} ({better})"); ax.tick_params(length=0)
+        ax.set_ylim(0, max(max(tr), max(ho), ref) * 1.3)
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import Patch
+    axes[0].legend(handles=[Patch(color=BLUE_RAMP[5], label="sources seen in training"),
+                            Patch(color="#eb6834", label="held-out sources"),
+                            Line2D([0], [0], color=INK2, lw=1.0, ls=(0, (4, 3)), alpha=0.55, label="Jev 1.13.0, held-out sources")],
+                   loc="upper left", fontsize=7.5)
+    fig.tight_layout(rect=_layout(fig, 2))
+    _headline(fig, f"{model}: what trained decision heads buy, and where they cost",
+              "A head that replaces the model's own scorer wins on sources it trained on and loses on sources it never saw — "
+              "a result invisible to anyone holding out records instead of whole sources. A zero-initialized residual on that "
+              "scorer keeps the gain and erases the regression.")
+    _footer(fig)
+    return _save(fig, out / "tier1_story")
+
+
+def fig_tier1_per_source(deltas: list[tuple[str, bool, float, float]], out: Path, model: str) -> Path:
+    """Per-source accuracy change vs Tier 0 for both head variants."""
+    plt = _mpl()
+    deltas = sorted(deltas, key=lambda d: (d[1], d[2]))
+    fig, ax = plt.subplots(figsize=(8.4, 0.34 * len(deltas) + 1.9))
+    y = np.arange(len(deltas))
+    h = 0.38
+    ax.barh(y + h / 2, [d[2] for d in deltas], h, color="#e34948", label="heads replace the LM scorer", edgecolor=SURFACE, linewidth=0.5)
+    ax.barh(y - h / 2, [d[3] for d in deltas], h, color=BLUE_RAMP[4], label="heads residual on it", edgecolor=SURFACE, linewidth=0.5)
+    ax.axvline(0, color=INK2, lw=0.8)
+    ax.set_yticks(y)
+    ax.set_yticklabels([f"{d[0]}  ★" if d[1] else d[0] for d in deltas], fontsize=7.5)
+    ax.invert_yaxis(); ax.tick_params(length=0)
+    ax.set_xlabel("accuracy change vs Tier 0 on the same backbone")
+    ax.legend(loc="lower right", fontsize=7.5)
+    fig.tight_layout(rect=_layout(fig, 2))
+    _headline(fig, f"{model}: per-source effect of trained heads (★ = held out of training)",
+              "Replacement collapses on knowledge (arc_challenge, mmlu) and on ordinal scales it never saw "
+              "(measuring_hate_speech); it does not collapse on large option sets. The residual keeps the wins and recovers the losses.")
+    _footer(fig)
+    return _save(fig, out / "tier1_per_source")
+
+
+def fig_instruct_vs_base(pairs: list[dict[str, Any]], out: Path) -> Path:
+    """Raw vs calibrated ECE for instruct/base checkpoint pairs."""
+    plt = _mpl()
+    fig, ax = plt.subplots(figsize=(7.6, 4.2))
+    y = np.arange(len(pairs))
+    for i, p in enumerate(pairs):
+        color = "#eb6834" if p["instruct"] else BLUE_RAMP[5]
+        ax.annotate("", xy=(p["cal_ece"], i), xytext=(p["raw_ece"], i),
+                    arrowprops={"arrowstyle": "-|>", "color": color, "lw": 2.0, "shrinkA": 0, "shrinkB": 0})
+        ax.scatter([p["raw_ece"]], [i], s=36, color=color, zorder=3, edgecolors=SURFACE, linewidths=0.8)
+        ax.scatter([p["cal_ece"]], [i], s=36, color=color, zorder=3, marker="D", edgecolors=SURFACE, linewidths=0.8)
+        ax.text(p["raw_ece"] + 0.006, i - 0.22, f"raw {p['raw_ece']:.3f}", fontsize=7, color=INK2)
+        ax.text(p["cal_ece"] - 0.006, i - 0.22, f"{p['cal_ece']:.3f}", fontsize=7, color=INK2, ha="right")
+    ax.set_yticks(y); ax.set_yticklabels([p["label"] for p in pairs], fontsize=8.5)
+    ax.invert_yaxis(); ax.set_xlabel("expected calibration error"); ax.tick_params(length=0)
+    ax.set_xlim(0, max(p["raw_ece"] for p in pairs) * 1.15)
+    from matplotlib.lines import Line2D
+    ax.legend(handles=[Line2D([0], [0], marker="o", color="#eb6834", lw=0, markersize=6, label="instruction-tuned"),
+                       Line2D([0], [0], marker="o", color=BLUE_RAMP[5], lw=0, markersize=6, label="base checkpoint"),
+                       Line2D([0], [0], marker="D", color=INK2, lw=0, markersize=5, label="after calibration")],
+              loc="lower right", fontsize=7.5)
+    fig.tight_layout(rect=_layout(fig, 2))
+    _headline(fig, "Instruction tuning costs calibration — but it is mostly a temperature problem",
+              "Arrow start = raw ECE straight off the logits; arrow end = after one scalar per primitive fitted on validation splits. "
+              "Instruct checkpoints start 1.3–1.8x worse and land close to their base counterparts.")
+    _footer(fig)
+    return _save(fig, out / "instruct_vs_base")
+
+
+def _family_style(label: str, seen: dict[str, int]) -> tuple[str, str]:
+    """Colour by model family, vary the dash within it: nine similar lines are easier to
+    read as three families than as nine hues (and nine hues cannot pass the CVD gate)."""
+    fams = [("Qwen", [BLUE_RAMP[7], BLUE_RAMP[5], BLUE_RAMP[3], BLUE_RAMP[2]]),
+            ("gemma", ["#b84a1e", "#eb6834", "#f19468"]),
+            ("SmolLM", ["#1baf7a"]), ("K2", ["#4a3aa7"])]
+    for name, colors in fams:
+        if label.lower().startswith(name.lower()):
+            i = seen.get(name, 0)
+            seen[name] = i + 1
+            dashes = [(0, ()), (0, (5, 2)), (0, (1.5, 1.5)), (0, (6, 2, 1, 2))][i % 4]
+            return colors[i % len(colors)], dashes
+    i = seen.get("other", 0)
+    seen["other"] = i + 1
+    return ["#eda100", "#e87ba4", "#008300"][i % 3], (0, ())
+
+
+def fig_recipe_ladder(models: dict[str, list[dict[str, Any]]], out: Path) -> Path:
+    """Macro accuracy and ECE through the recipe steps, one line per model."""
+    plt = _mpl()
+    steps = ["raw", "+permutations", "+prior", "+temperature/bias"]
+    fig, axes = plt.subplots(1, 2, figsize=(11.6, 4.2))
+    seen: dict[str, int] = {}
+    styles = {label: _family_style(label, seen) for label in sorted(models)}
+    for ax, key, name in ((axes[0], "macro_acc", "macro accuracy"), (axes[1], "macro_ece", "macro expected calibration error")):
+        for label in sorted(models):
+            color, dash = styles[label]
+            ys = [r[key] for r in models[label]]
+            ax.plot(range(len(ys)), ys, marker="o", markersize=3.5, lw=1.6, color=color, ls=dash, zorder=3, label=label)
+        ax.set_xticks(range(len(steps))); ax.set_xticklabels(steps, fontsize=7.5, rotation=12, ha="right")
+        ax.set_ylabel(name); ax.tick_params(length=0); ax.set_xlim(-0.15, len(steps) - 0.85)
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="center right", fontsize=7.8, bbox_to_anchor=(1.0, 0.52))
+    fig.tight_layout(rect=(0, _layout(fig, 2)[1], 0.84, _layout(fig, 2)[3]))
+    _headline(fig, "What each calibration step is worth, per model",
+              "Every step is fitted on validation splits only. The contextual prior is worth ~10 accuracy points to Qwen and K2 "
+              "and nothing to Gemma; Gemma instead needs the temperature. A single fixed recipe would mis-rank these models.")
+    _footer(fig)
+    return _save(fig, out / "recipe_ladder")

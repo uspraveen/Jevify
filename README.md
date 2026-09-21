@@ -4,10 +4,13 @@
 
 **Turn any open LLM into a calibrated, Jev-style System One decision model.**
 
+[**Findings**](docs/FINDINGS.md) ·
 [jev-bench on the Hub](https://huggingface.co/datasets/Praveenrajus/jev-bench) ·
-[What we verified about Jev](docs/JEV_CONTRACT.md) ·
-[Dataset rationale](docs/DATASETS.md) ·
-[Baseline report + label audit](reports/jev-1.13.0/README.md)
+[Jev baseline + label audit](reports/jev-1.13.0/README.md) ·
+[Behavioral probes](reports/jev-1.13.0/probes/README.md) ·
+[Tier 1 write-up](reports/tier1/README.md) ·
+[Jev API contract](docs/JEV_CONTRACT.md) ·
+[Dataset rationale](docs/DATASETS.md)
 
 </div>
 
@@ -26,7 +29,60 @@ paper, weights or data. Jevify is the open version: a benchmark that can measure
 engine that gives any Hugging Face checkpoint the same interface, and a training recipe that
 optimizes the same objective.
 
-![Jev 1.13.0 on jev-bench: model probability vs human vote share](reports/jev-1.13.0/figures/human_vs_model.png)
+## Headline findings
+
+Full catalogue with evidence and caveats in **[docs/FINDINGS.md](docs/FINDINGS.md)**.
+
+**1 · Jev is calibrated right up until humans disagree — which is when calibration matters.**
+On ChaosNLI, where 100 annotators label every item, Jev answers at p = 0.94–0.98 on items the
+annotators split 60/40; its distributions sit **TVD 0.33** from the human ones, and 0.43 on
+hate-speech vote shares. It assigns ~0.29 "toxic" to comments *zero* Jigsaw annotators flagged.
+Meanwhile it is excellent and well calibrated on crisp, grounded questions (ARC 0.979, FEVER
+0.972, ECE ≤ 0.06).
+
+![Jev: model probability vs human vote share](reports/jev-1.13.0/figures/human_vs_model.png)
+
+**2 · Evaluating on held-out *records* instead of held-out *sources* would have shipped the
+wrong architecture.** A trained head that replaces the model's own scorer gains +0.077 accuracy
+on sources it trained on and loses **−0.098** on sources it never saw. Making it a
+zero-initialized residual on that scorer — so training provably starts at Tier 0 — keeps the gain
+(+0.080) and erases the regression (−0.000). The head then learns to keep the model's prior at
+full strength (LM weights **0.95 / 0.98 / 1.01**), which is itself the evidence that replacing it
+was wrong.
+
+![Tier 1: trained vs held-out sources](results/figures/tier1_story.png)
+
+**3 · An open 2B model, Jevified, is now better calibrated than Jev and closer to human
+uncertainty.** Macro **ECE 0.069 vs Jev's 0.113**, and **TVD to human label distributions 0.374
+vs 0.432** — on exactly the axis where Jev's own claim is weakest. Jev still leads on raw
+accuracy (0.733 vs 0.662 for the best Tier 0 model).
+
+**4 · Structure generalizes; knowledge does not.** Heads trained with ≤16 options transfer
+unchanged to K=151 (clinc150 moves −0.008). What collapses under replacement is knowledge
+(arc_challenge −0.199, mmlu −0.119 *even when trained*) and ordinal scales never seen
+(measuring_hate_speech −0.482).
+
+**5 · Instruction tuning does hurt calibration — 1.3–1.8× worse raw ECE — but it is almost
+entirely a temperature problem.** Gemma-4-E2B-it starts at ECE 0.361 and lands at 0.158 after one
+scalar per primitive; its accuracy is +0.195 over its base checkpoint for +0.043 ECE. Take the
+instruct checkpoint and always fit the temperature.
+[· detail](docs/FINDINGS.md#5-does-instruction-tuning-hurt-calibration)
+
+**6 · What hurts Jev is ambiguity, not option count.** Controlled within-item probes: with the
+gold answer always present, clinc150 goes 0.995 → 0.910 from K=2 to K=151, while GoEmotions is
+0.850 at K=2 and 0.300 by K=25. Option order flips 0–13% of answers, scaling with ambiguity
+rather than K; opaque option keys cost nothing as long as descriptions remain; nonsense options
+attract ≤3.3% of the mass.
+
+**7 · The primitives are different instruments.** The same yes/no question is ~2× better
+calibrated asked as a Noul than as a two-option Choice (ECE 0.028 vs 0.054); Score beats an
+unordered Choice over the same levels. This is why Tier 1 gives Noul its own absolute head
+instead of a softmax over {yes, no}.
+
+**8 · Two of our own benchmark bugs, found by reading the model's errors.** HelpSteer2 verbosity
+levels contradicted NVIDIA's verbatim scale, and GoEmotions' single-label subset hid rater
+disagreement (rebuilt from raw votes; plurality agreement is only 0.66, which is the accuracy
+ceiling). Low benchmark scores deserve an audit before they become claims.
 
 ## What's here
 
@@ -56,28 +112,32 @@ this repo. → `jevify/server.py`.
 **A Jev runner** — score the real API on the same records, same metrics, same figures.
 → `jevify-run api|report|recipe|compare`.
 
-## What we know about Jev so far
+## Leaderboard
 
-From 22,773 test records plus a manual audit of its errors
-([full report](reports/jev-1.13.0/README.md)):
+Every model on the same 22,773 test records. Tier 0 = no training (prompt + logit readout + a
+recipe fitted on validation splits only). Tier 1 = trained decision heads, six sources held out
+of training. **TVD→human** is the mean distance to human label distributions on the four
+calibration-gold configs — lower is better, and it is the number Jev's own claim rests on.
 
-- **Crisp, grounded decisions are excellent and calibrated** — ARC 97.9%, MMLU 92.3%,
-  FEVER-with-evidence 97.2%, BoolQ 91.7%, with ECE ≤ 0.06. As a router or guard on
-  well-specified questions, the confidence is usable as advertised.
-- **Where humans disagree, the probabilities do not track human uncertainty** — ChaosNLI TVD 0.33
-  with p=0.94–0.98 answers on items where 100 annotators split 60/40; hate-speech vote shares
-  TVD 0.43; ~0.29 "toxic" when zero Jigsaw raters flagged the comment. "Calibrated" fails on
-  exactly the inputs where it matters.
-- **The System Two gap is measurable** — 78.5% closed-book vs 95.6% grounded on the same
-  StrategyQA questions.
-- **Decision-set size is a cost, not a cliff** — within-item, with the gold answer always present,
-  clinc150 goes 99.5% → 91% from K=2 to K=151 with ECE ≤ 0.05, while GoEmotions is 85% at K=2 and
-  30% by K=25: ambiguity does the damage, not cardinality.
-- **The primitive is an instrument, not a skin** — the same yes/no question is twice as well
-  calibrated as Noul than as a 2-way Choice; Score beats an unordered Choice over the same levels.
-  Option order flips 0–13% of answers (scaling with ambiguity); opaque option keys cost nothing if
-  descriptions remain; nonsense options attract ≤3% of the mass.
-  → [behavioral probes](reports/jev-1.13.0/probes/README.md)
+| model | tier | macro acc | macro ECE | macro Brier | sel@90 | choice acc | score acc | noul acc | TVD→human | GPU | test cost |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| **Jev 1.13.0 (TypeSafe API)** | API | 0.733 | 0.113 | 0.349 | 0.760 | 0.770 | 0.503 | 0.881 | 0.432 |  |  |
+| Qwen/Qwen3.5-4B | Tier 0 | 0.662 | 0.093 | 0.402 | 0.689 | 0.687 | 0.468 | 0.796 | 0.438 | A100-80GB | $0.96 |
+| google/gemma-4-E4B-it | Tier 0 | 0.658 | 0.148 | 0.426 | 0.678 | 0.699 | 0.432 | 0.798 | 0.432 | A100-80GB | $1.00 |
+| Qwen/Qwen3.5-2B (Tier 1 residual) | Tier 1 residual | 0.632 | 0.069 | 0.445 | 0.657 | 0.596 | 0.449 | 0.835 | 0.374 | A100-80GB | $0.67 |
+| Qwen/Qwen3.5-2B (Tier 1 replace) | Tier 1 replace | 0.599 | 0.083 | 0.475 | 0.621 | 0.567 | 0.378 | 0.828 | 0.416 | A100-80GB | $0.62 |
+| google/gemma-4-E2B-it | Tier 0 | 0.591 | 0.158 | 0.502 | 0.609 | 0.595 | 0.440 | 0.716 | 0.490 | L4 | $0.75 |
+| Qwen/Qwen3.5-2B | Tier 0 | 0.577 | 0.089 | 0.485 | 0.599 | 0.545 | 0.424 | 0.750 | 0.458 | A100-80GB | $0.66 |
+| HuggingFaceTB/SmolLM3-3B | Tier 0 | 0.552 | 0.111 | 0.519 | 0.570 | 0.504 | 0.401 | 0.744 | 0.458 | A100-80GB | $0.64 |
+| Qwen/Qwen3.5-0.8B | Tier 0 | 0.526 | 0.113 | 0.543 | 0.544 | 0.435 | 0.388 | 0.759 | 0.440 | L4 | $0.55 |
+| Qwen/Qwen3.5-0.8B-Base | Tier 0 | 0.466 | 0.105 | 0.582 | 0.478 | 0.326 | 0.412 | 0.692 | 0.452 | L4 | $0.50 |
+| IFM/K2-Horizon-0.9B | Tier 0 | 0.448 | 0.119 | 0.589 | 0.461 | 0.344 | 0.343 | 0.670 | 0.479 | L4 | $0.35 |
+| google/gemma-4-E2B | Tier 0 | 0.396 | 0.115 | 0.609 | 0.404 | 0.247 | 0.382 | 0.600 | 0.496 | L4 | $0.69 |
+
+![models](results/leaderboard/models_map.png)
+
+Refresh with `python scripts/leaderboard.py`; every row has `results/<run>/` with its predictions,
+per-config metrics, recipe and figures.
 
 ## Roadmap
 
@@ -85,31 +145,10 @@ From 22,773 test records plus a manual audit of its errors
 - [x] Tier 0 engine + server + offline recipe search
 - [x] Tier 0 sweep: 9 open checkpoints scored on all 22,773 test records against Jev
 - [x] Tier 1 residual decision heads, with held-out-source generalization measured
+- [x] Findings, figures and reports published ([docs/FINDINGS.md](docs/FINDINGS.md))
 - [ ] Tier 1 on more backbones; more diverse ordinal scales in training
 - [ ] Tier 2: LoRA where Tier 1 leaves a gap the benchmark can see
 - [ ] Label-first synthetic data pipeline; HF Space; model zoo; VLM backbones; vision-tower autoresearch
-
-## Tier 1: what trained heads buy, and what they cost
-
-A head that **replaces** the LM head gains +0.077 accuracy on sources it trained on and
-loses −0.098 on sources held out of training. Measured only in-distribution it looks like a
-win; it is not one. The damage is knowledge (`arc_challenge` −0.199, `mmlu` −0.119 *even
-when trained*) and unseen ordinal scales (`measuring_hate_speech` −0.482) — the head throws
-away what the backbone knows and relearns a scorer from 8.6k examples. Structure, by
-contrast, generalizes fine: `clinc150` at K=151, with heads trained at K≤16, barely moves.
-
-A head that **corrects** it instead — `score_i = w·lm_i + f([h_dec, h_i, h_dec ⊙ h_i])`,
-with `f` zero-initialized so training starts exactly at Tier 0 — keeps the gain and erases
-the regression:
-
-| Qwen3.5-2B | held-out acc | held-out ECE | trained acc | trained ECE |
-|---|---|---|---|---|
-| Tier 0 (recipe refit without held-out sources) | 0.628 | 0.097 | 0.552 | 0.100 |
-| Tier 1, heads replace | 0.522 | 0.155 | 0.627 | 0.056 |
-| **Tier 1, heads residual** | **0.631** | **0.090** | **0.632** | **0.061** |
-
-The head chose to keep the model's prior at full strength (learned LM weights 0.95 / 0.98 /
-1.01 for choice / score / noul). → [full write-up](reports/tier1/README.md)
 
 ## Why tiers, and why no RL
 
