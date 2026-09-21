@@ -120,3 +120,22 @@ def test_write_vision_records_handles_nested_and_multiple_images(tmp_path):
     write_vision_records(out, [rec])
     state = json.loads(json.loads(out.read_text(encoding="utf-8"))["state"])
     assert state["panels"] == ["<image 1>", "<image 2>"] and state["caption"] == "two panels"
+
+
+def test_ask_answers_questions_about_an_image(scorer):
+    """The served path: images in `state`, the same typed questions, the same wire format."""
+    from jevify.load import JevifiedModel
+
+    model = JevifiedModel(scorer, {"backbone": TINY_VLM, "chat": True, "modality": "vision",
+                                   "recipe": {"mode": "index", "permutations": 1}})
+    assert model.vision and "vision" in repr(model)
+    out = model.ask({"image": _img("red"), "note": "a plain square"},
+                    {"q1": {"type": "noul", "instructions": "Is the image red?"},
+                     "q2": {"type": "choice", "instructions": "What colour is it?",
+                            "criteria": {"red": "red", "blue": "blue", "green": "green"}},
+                     "q3": {"type": "score", "instructions": "How bright?", "criteria": ["dark", "medium", "bright"]}})
+    assert set(out) == {"q1", "q2", "q3"}
+    assert out["q1"]["type"] == "noul" and 0.0 <= out["q1"]["noul"] <= 1.0
+    assert out["q2"]["choice"] in ("red", "blue", "green") and abs(sum(out["q2"]["probabilities"].values()) - 1) < 1e-3
+    assert set(out["q3"]["legend"]) == {"0", "1", "2"} and 0.0 <= out["q3"]["score"] <= 2.0
+    assert scorer.last_input_tokens > 0                     # the processor's count, for `usage`

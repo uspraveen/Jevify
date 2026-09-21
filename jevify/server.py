@@ -39,11 +39,15 @@ class SystemOneService:
 
     def answer(self, req: SystemOneRequest) -> SystemOneResponse:
         engine = self.engine
-        if self.jevified is not None and self.jevified.heads is not None:
+        if self.jevified is not None and (self.jevified.heads is not None or getattr(self.jevified, "vision", False)):
             qs = {k: q.model_dump(exclude_none=True) for k, q in req.questions.items()}
             answers = self.jevified.ask(req.state, qs, model_name=self.model_name)
-            tok = sum(len(engine.scorer.tokenize(engine._prefix(rd), rd.candidates).prefix_ids)
-                      for qid, qd in qs.items() for rd in engine._renderings(req.state, qd))
+            if getattr(self.jevified, "vision", False):
+                # image tokens are not text tokens; count what the processor actually produced
+                tok = getattr(engine.scorer, "last_input_tokens", 0) or 0
+            else:
+                tok = sum(len(engine.scorer.tokenize(engine._prefix(rd), rd.candidates).prefix_ids)
+                          for qid, qd in qs.items() for rd in engine._renderings(req.state, qd))
             return SystemOneResponse.model_validate({"model": self.model_name, "answers": answers,
                                                      "usage": {"input_tokens": tok, "output_tokens": len(qs)}})
         items: list[tuple[str, list[str]]] = []
@@ -110,11 +114,20 @@ def build_app(service: SystemOneService) -> FastAPI:
 
 
 def make_service(model_id: str, *, mode: str = "index", chat: bool = True, permutations: int = 1,
-                 temperature: dict[str, float] | None = None, device: str | None = None) -> SystemOneService:
-    """Serve either a plain HF checkpoint (Tier 0) or a published Jevified repo (Tier 0 or 1)."""
+                 temperature: dict[str, float] | None = None, device: str | None = None,
+                 vision: bool = False) -> SystemOneService:
+    """Serve either a plain HF checkpoint (Tier 0), a published Jevified repo (any tier), or --
+    with ``vision`` -- a plain vision-language checkpoint whose state may carry images."""
     from .engine.readout import HFScorer
 
     jevified = _try_load_jevified(model_id, device)
+    if jevified is None and vision:
+        from .load import JevifiedModel
+        from .engine.vision import VisionScorer
+
+        jevified = JevifiedModel(VisionScorer(model_id, hf_token=os.environ.get("HF_TOKEN")),
+                                 {"backbone": model_id, "chat": chat, "modality": "vision",
+                                  "recipe": {"mode": mode, "permutations": 1, "temperature": temperature}}, None)
     if jevified is not None:
         svc = SystemOneService(jevified.engine, model_name=model_id)
         svc.jevified = jevified
@@ -150,9 +163,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--permutations", type=int, default=1)
     ap.add_argument("--temperature", default="", help="e.g. choice=1.4,score=1.2,noul=1.1")
     ap.add_argument("--device", default=None)
+    ap.add_argument("--vision", action="store_true", help="the model is a vision-language checkpoint; `state` may carry images")
     a = ap.parse_args(argv)
     temps = {k: float(v) for k, v in (kv.split("=") for kv in a.temperature.split(",") if kv)} or None
-    svc = make_service(a.model, mode=a.mode, chat=not a.no_chat, permutations=a.permutations, temperature=temps, device=a.device)
+    svc = make_service(a.model, mode=a.mode, chat=not a.no_chat, permutations=a.permutations, temperature=temps, device=a.device,
+                       vision=a.vision)
     uvicorn.run(build_app(svc), host=a.host, port=a.port, log_level="info")
     return 0
 

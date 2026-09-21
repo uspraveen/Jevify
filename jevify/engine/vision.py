@@ -120,6 +120,7 @@ class VisionScorer:
         self.pad_id = self.tokenizer.pad_token_id if self.tokenizer.pad_token_id is not None else (
             self.tokenizer.eos_token_id or 0)
         self._identifiers: list[str] | None = None
+        self.last_input_tokens = 0
 
     # ------------------------------------------------------------------ identifiers
     def identifiers(self, k: int = 255) -> list[str]:
@@ -177,6 +178,8 @@ class VisionScorer:
                 kwargs["images"] = images
             enc = self.processor(**kwargs)
             enc = {k: (v.to(self.device) if hasattr(v, "to") else v) for k, v in enc.items()}
+            if "attention_mask" in enc:
+                self.last_input_tokens = int(enc["attention_mask"].sum())
             logits = self.model(**enc).logits[:, -1].float()
             logp = F.log_softmax(logits, dim=-1)
             for row, it in enumerate(chunk):

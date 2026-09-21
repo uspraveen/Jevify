@@ -38,6 +38,9 @@ class JevifiedModel:
             state_last=bool(recipe_cfg.get("state_last", False)),
         ))
         self._extractor = None
+        # a vision-language scorer renders its own prompts (images go through the processor,
+        # not the tokenizer), so `ask` takes a different path to the same wire format
+        self.vision = config.get("modality") == "vision" or type(scorer).__name__ == "VisionScorer"
         if heads is not None:
             from .engine.features import FeatureExtractor
 
@@ -49,9 +52,28 @@ class JevifiedModel:
         req = SystemOneRequest.model_validate({"state": state, "model": model_name or self.backbone,
                                                "questions": questions})
         qs = {k: q.model_dump(exclude_none=True) for k, q in req.questions.items()}
+        if self.vision:
+            return self._ask_vision(state, qs)
         if self.heads is None:
             return self._ask_tier0(state, qs)
         return self._ask_heads(state, qs)
+
+    def _ask_vision(self, state: Any, qs: dict[str, Any]) -> dict[str, Any]:
+        """Images in `state` (PIL, path, URL, data URI or bytes) reach the model through its
+        processor; everything after the logits is the text path's recipe and wire format."""
+        engine = self.engine
+        items, plan = [], []
+        for qid, qd in qs.items():
+            it, rd = engine.scorer.item(state, qd, mode=engine.recipe.mode)
+            items.append(it)
+            plan.append((qid, qd, rd))
+        scores = engine.scorer.score_many(items)
+        out = {}
+        for (qid, qd, rd), sc in zip(plan, scores):
+            pred = finalize(qd["type"], qd, {"mode": rd.mode, "runs": [{"keys": rd.keys, "logscores": sc}], "prior": None},
+                            engine.recipe)
+            out[qid] = _to_wire(qd, pred)
+        return out
 
     def _ask_tier0(self, state: Any, qs: dict[str, Any]) -> dict[str, Any]:
         engine = self.engine
@@ -95,6 +117,7 @@ class JevifiedModel:
 
     def __repr__(self) -> str:
         tier = "Tier 2" if self.config.get("lora") else ("Tier 1" if self.heads is not None else "Tier 0")
+        tier += " vision" if self.vision else ""
         return f"JevifiedModel({self.backbone!r}, {tier})"
 
 
@@ -137,6 +160,13 @@ def load_jevified(repo_or_path: str, *, device: str | None = None, hf_token: str
 
         path = Path(snapshot_download(repo_or_path, token=hf_token or os.environ.get("HF_TOKEN")))
     config = _config_for(path)
+    if config.get("modality") == "vision":
+        from .engine.vision import VisionScorer
+
+        scorer = VisionScorer(config["backbone"], trust_remote_code=trust_remote_code or config.get("trust_remote_code", False),
+                              hf_token=hf_token or os.environ.get("HF_TOKEN"),
+                              max_pixels=config.get("max_pixels") or None)
+        return JevifiedModel(scorer, config, None)
     if engine == "vllm":
         from .engine.vllm_readout import VLLMScorer
 
@@ -176,6 +206,7 @@ def _config_for(path: Path) -> dict[str, Any]:
     meta = json.loads(run.read_text(encoding="utf-8"))
     recipe = meta.get("recipe") or {}
     return {"backbone": meta["model_id"], "chat": meta.get("chat_applied", True), "tier": meta.get("tier", 0),
+            "modality": meta.get("modality", "text"), "max_pixels": meta.get("max_pixels"),
             "recipe": {"mode": recipe.get("mode", "index"), "permutations": recipe.get("permutations", 1),
                        "prior_weight": recipe.get("prior_weight", 0.0), "temperature": recipe.get("temperature"),
                        "bias": recipe.get("bias")},
