@@ -1,0 +1,39 @@
+{
+ "four_questions_url_ms": 602.2549644112587,
+ "one_question_url_ms": 452.51448825001717,
+ "four_questions_pil_ms": 220.9186591207981,
+ "one_question_pil_ms": 68.02041083574295,
+ "download_only_ms": 453.1145878136158,
+ "input_tokens_four": 343,
+ "answers": {
+  "cat": {
+   "noul": 0.0
+  },
+  "dog": {
+   "noul": 0.0
+  },
+  "where": {
+   "choice": "B",
+   "confidence": 0.6169,
+   "probabilities": {
+    "A": 0.0396,
+    "B": 0.7446,
+    "C": 0.2158
+   }
+  },
+  "sharp": {
+   "score": 3.0052,
+   "confidence": 0.9548,
+   "probabilities": {
+    "0": 0.0,
+    "1": 0.0,
+    "2": 0.0015,
+    "3": 0.9918,
+    "4": 0.0067
+   }
+  }
+ },
+ "device": "NVIDIA A40",
+ "model": "Praveenrajus/jevify-qwen3-vl-2b",
+ "note": "median of 5; four questions about one image go through one batched forward; the image is decoded once per request"
+}

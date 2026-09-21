@@ -59,7 +59,7 @@ in one call took 527 ms.
 
 ---
 
-**1.x Confidence that does not track agreement, in numbers.** Over the 1,599 ChaosNLI test items,
+**1.10 Confidence that does not track agreement, in numbers.** Over the 1,599 ChaosNLI test items,
 Pearson r between Jev's confidence and the annotators' agreement is **0.046**. By agreement band
 — split (< 50%, n = 191), contested (50–70%, n = 828), clear (70–90%, n = 523), consensus (≥ 90%,
 n = 57) — mean confidence is **0.81 / 0.84 / 0.83 / 0.88**, flat, while accuracy is
@@ -69,7 +69,7 @@ n = 57) — mean confidence is **0.81 / 0.84 / 0.83 / 0.88**, flat, while accura
 
 ---
 
-**1.y Where Jev's time goes.** Its round trip barely moves with the number of options (186 ms at
+**1.11 Where Jev's time goes.** Its round trip barely moves with the number of options (186 ms at
 K=4, 219 ms at K=151), which invites guesses about caching, set encoders or fixed compute windows.
 Controlled probes with the server's own clock (`x-envoy-upstream-service-time`, network excluded)
 rule all of those out: **server time is ~75 ms fixed plus ~5.5 µs per input token, linear to
@@ -424,21 +424,33 @@ The open questions used to end by asking whether a System One question survives
 when the option semantics live in an image. It does, and more of the text findings come
 with it than we expected.
 
-**9.1 A VLM Jevifies without changing the contract.** `state` carries PIL images, the
+**9.1 A VLM Jevifies without changing the contract.** `state` carries images, the
 question is the same typed object, and the answer set is the same single-token identifiers.
-Qwen3-VL-2B-Instruct, no training, 4,244 records:
+Qwen3-VL-2B-Instruct, no training, 4,244 test records; "raw" is the readout as-is, "fitted"
+is after the Tier 0 recipe — a temperature per primitive and a Noul bias, fitted on the
+validation splits only (401 A-OKVQA, 500 AI2D, 500 POPE):
 
-| source | primitive | n | acc | ECE | Brier | AUROC |
-|---|---|---|---|---|---|---|
-| `pope` (object hallucination) | noul | 2,000 | 0.899 | **0.083** | 0.090 | 0.960 |
-| `aokvqa` (knowledge VQA) | choice K=4 | 744 | 0.793 | 0.124 | 0.331 | — |
-| `ai2d` (science diagrams) | choice | 1,500 | 0.652 | 0.175 | 0.510 | — |
+| source | primitive | n | acc | ECE raw | ECE fitted | Brier fitted | AUROC |
+|---|---|---|---|---|---|---|---|
+| `pope` (object hallucination) | noul | 2,000 | 0.896 → 0.891 | 0.086 | **0.046** | 0.079 | 0.958 |
+| `aokvqa` (knowledge VQA) | choice K=4 | 744 | 0.793 | 0.124 | **0.037** | 0.299 | — |
+| `ai2d` (science diagrams) | choice | 1,500 | 0.652 | 0.175 | **0.059** | 0.454 | — |
+| macro | | | 0.780 → 0.779 | 0.128 | **0.047** | | |
 
-**9.2 The primitive ordering transfers intact.** In text we found Noul roughly twice as
-well calibrated as 2-way Choice. In vision, with a different model, different data and a
-different modality, the same ordering appears: Noul 0.083, Choice 0.124 and 0.175. Whatever
-makes an absolute yes/no question easier to calibrate than a relative one is not a property
-of text.
+Recipe: Choice temperature 1.92; Noul temperature 2.63 and a bias of **+1.8** log-odds toward
+*yes* — the untrained readout is reluctant to assert that an object is present, and the recipe
+has to push it. On POPE the bias moves the decision threshold, which costs 0.005 accuracy on
+test (it gained 0.004 on validation: noise at n=500).
+
+**9.2 The primitive ordering transfers on the raw readout — and the recipe erases it.** In
+text, on the *same* yes/no questions, Jev's Noul is about twice as well calibrated as its
+two-way Choice (§2.6). The raw vision readout shows the same ordering across different sources:
+Noul 0.086, Choice 0.124 and 0.175. After each primitive gets its temperature the three sit at
+0.046, 0.037 and 0.059 — within a few thousandths of each other, in a different order. What the
+raw ordering measured was how much of each primitive's miscalibration a scalar can remove, not
+which primitive is intrinsically easier. The text finding stands as stated (it is a fact about
+Jev's outputs, which we cannot refit); the vision replication is a statement about *untuned*
+readouts only, and the first version of this section overclaimed it.
 
 **9.3 Nearly a quarter of a "2B" VLM is vision.** The inventory `describe()` returns for
 Qwen3-VL-2B: a 407M-parameter, 24-layer `Qwen3VLVisionModel` tower (19.1% of the model) plus
@@ -484,6 +496,35 @@ instead, and a test asserts the vision pattern matches nothing under the decoder
 projector is trained against a specific encoder's output geometry, so the swap succeeds
 mechanically and destroys the model. Doing it honestly means retraining the projector, which is
 a larger job than Jevification and a different claim.
+
+**9.8 Served, an image question costs 68–79 ms — under Jev's text round trip.** The published
+vision model goes through the same `ask` path as the text models (`load_jevified`,
+`jevify-serve`); images arrive in `state` as a PIL object, a path, a URL, a data URI or bytes,
+go through the model's processor, and the answer is read from one position. On one A40, median
+over 30 real records per source:
+
+| source | primitive | K | p50 ms | p90 ms | input tokens | of which image |
+|---|---|---|---|---|---|---|
+| `pope` | noul | 2 | 68 | 80 | 352 | 300 |
+| `aokvqa` | choice | 4 | 79 | 83 | 351 | 260 |
+| `ai2d` | choice | 4 | 79 | 147 | 358 | 296 |
+
+Batched, 12.6 records/s at batch 8. Jev's text round trip on the same client is 180–220 ms
+(§1.11); Jev has no image input, so the comparison is only that a picture question answered
+locally is faster than a text question answered remotely. Two facts about the shape of the
+cost: the image is ~85% of the tokens, so the pixel budget (9.4) is the latency lever, and the
+research path here (Hugging Face eager) is *faster* than the same path on the text 2B at K=4
+(82 ms, `results/latency/`) — Qwen3-VL's decoder is plain attention while Qwen3.5's hybrid layers run on
+reference kernels. Several questions about one image are one batched forward: four questions
+cost 221 ms, one costs 68 ms, and a URL costs its download once per request (~450 ms for the
+sample image) rather than once per question — the first version of the served path fetched it
+per question and took 1.7 s for the same four (`results/latency/latency_vision*.json`).
+
+**9.9 A Tier 0 model is its recipe, so it ships as a repo.** `Praveenrajus/jevify-qwen3-vl-2b`
+holds `jevify_config.json` (backbone, modality, the fitted temperatures and bias) and the results
+table; `load_jevified("Praveenrajus/jevify-qwen3-vl-2b")` pulls Qwen3-VL-2B from its own repo
+and applies the recipe. Nothing is duplicated or relicensed. `scripts/publish_recipe.py` does
+this for any recipe-fitted run.
 
 ---
 

@@ -12,5 +12,6 @@
  "n": 4244,
  "load_s": 64.3,
  "wall_s": 375.1,
- "device": "NVIDIA A40"
+ "device": "NVIDIA A40",
+ "pope_split": "validation carved (10%) from POPE's single split; test sampled from the rest"
 }

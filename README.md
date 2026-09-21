@@ -109,14 +109,18 @@ levels contradicted NVIDIA's verbatim scale, and GoEmotions' single-label subset
 disagreement (rebuilt from raw votes; plurality agreement is only 0.66, which is the accuracy
 ceiling). Low benchmark scores deserve an audit before they become claims.
 
-**10 · It transfers to vision — and so does the ordering of the primitives.** Qwen3-VL-2B, no
-training, on POPE / A-OKVQA / AI2D (4,244 records): Noul **ECE 0.083** vs Choice 0.124 and 0.175,
-the same ~2× gap found in text with a different model, modality and data. Starving the vision
-encoder then costs accuracy *and* calibration together: from 42 to 187 image tokens, accuracy
-rises 0.048 and ECE falls 0.037. The dangerous regime — losing accuracy while keeping confidence
-— never appears; on the hallucination benchmark, a starved encoder produces doubt, not confident
-hallucination. And the budget saturates silently: 512 and 1024 patches both resolve to 280
-tokens, which only the *measured* token count reveals.
+**10 · It transfers to vision — and a picture question answers in under 80 ms.** Qwen3-VL-2B,
+no training, on POPE / A-OKVQA / AI2D (4,244 records): a recipe fitted on validation splits takes
+macro ECE from 0.128 to **0.047** (POPE 0.046, A-OKVQA 0.037, AI2D 0.059) at unchanged accuracy.
+The raw readout shows the text ordering — Noul better calibrated than Choice — and the recipe
+erases it: the raw gap measured what a temperature could fix, not which primitive is easier.
+Starving the vision encoder costs accuracy *and* calibration together (42 → 187 image tokens:
++0.048 accuracy, −0.037 ECE); the dangerous regime — losing accuracy while keeping confidence —
+never appears, and the budget saturates silently (512 and 1024 patches both give 280 tokens).
+Served through the same `ask` path as the text models, an image question takes **68–79 ms** on
+one A40 (~350 input tokens, 85% of them image), four questions about one image 221 ms, 12.6
+records/s batched — under Jev's 180–220 ms text round trip, and Jev takes no images.
+Published: [`Praveenrajus/jevify-qwen3-vl-2b`](https://huggingface.co/Praveenrajus/jevify-qwen3-vl-2b).
 [· detail](docs/FINDINGS.md#9-vision-does-any-of-this-transfer)
 
 ![What the vision encoder's budget buys](results/vision-budget/vision_budget.png)
@@ -202,12 +206,17 @@ this repo. → `jevify/server.py`.
 `python -m jevify.train tier1|tier2|vision --model-id … --run-id …`. The Modal app calls the same
 functions. → `jevify/train.py`.
 
-**Vision** — images ride on `state`; the question and answer set are unchanged. The vision tower is
-addressable, not opaque: `describe()` it, set a pixel budget and *measure* the tokens it actually
-produced, freeze it, or scope LoRA to it with a full-path regex (suffix names like `q_proj` exist on
-both halves of a VLM, so a suffix list silently adapts everything). Tower swapping is deliberately
-not offered — the projector is trained against one encoder's geometry. → `jevify/engine/vision.py`,
-`jevify/engine/vision_backbone.py`, `scripts/vision_budget.py`.
+**Vision** — images ride on `state` (PIL, path, URL, data URI or bytes); the question and answer set
+are unchanged, and so is the serving path: `load_jevified("Praveenrajus/jevify-qwen3-vl-2b")` or
+`jevify-serve --model Praveenrajus/jevify-qwen3-vl-2b` (or `--vision` with any VLM checkpoint). The
+vision tower is addressable, not opaque: `describe()` it, set a pixel budget and *measure* the tokens
+it actually produced, freeze it, or train a LoRA confined to it — `python -m jevify.train vision
+--lora vision|decoder|both` adapts the readout itself, since a VLM prompt has no per-option slot
+positions that survive image-token expansion. Scoping uses a full-path regex because suffix names
+like `q_proj` exist on both halves of a VLM, so a suffix list silently adapts everything. Tower
+swapping is deliberately not offered — the projector is trained against one encoder's geometry.
+→ `jevify/engine/vision.py`, `jevify/engine/vision_tier2.py`, `jevify/engine/vision_backbone.py`,
+`scripts/vision_budget.py`, `scripts/latency_vision.py`.
 
 ## Leaderboard
 
@@ -258,8 +267,9 @@ per-config metrics, recipe and figures.
 - [x] Latency: Jev's server-time law measured; vLLM serving path with the same numbers, 4-5x throughput
 - [x] Five-seed error bars on Tier 1: held-out generalization is seed-dependent (0.579 ± 0.049); README corrected
 - [x] Tier 2 at 4B: macro 0.747, above Jev's 0.733; Jev still leads on held-out sources
+- [x] Vision served at Jev speed: recipe-fitted Qwen3-VL-2B published; 68–79 ms per image question on one A40
 - [ ] Seeds on the Tier 2 arms and the 4B head (running); soft labels at the low learning rate
-- [ ] Vision-scoped LoRA on AI2D (the perceptual weak spot); more ordinal scales; Tier 1 at 7B+
+- [ ] Vision Tier 2: LoRA confined to the tower vs the decoder vs both (running); more ordinal scales; Tier 1 at 7B+
 - [ ] Label-first synthetic data pipeline; HF Space; model zoo
 
 ## Why tiers, and why no RL
