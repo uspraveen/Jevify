@@ -219,7 +219,7 @@ def run_tier2(model_id: str, run_id: str, out_dir: Path | str, root: Path | str,
               dim: int = 512, epochs: int = 3, head_lr: float = 3e-4, lora_lr: float = 1e-4, lora_r: int = 16,
               batch: int = 4, grad_accum: int = 2, trust_remote_code: bool = False,
               heldout: Sequence[str] | None = None, test_per_source: int = 0,
-              soft_labels: bool = False) -> dict[str, Any]:
+              soft_labels: bool = False, seed: int = 0) -> dict[str, Any]:
     """LoRA on the backbone, trained jointly with the residual decision heads."""
     import torch
 
@@ -251,7 +251,7 @@ def run_tier2(model_id: str, run_id: str, out_dir: Path | str, root: Path | str,
                      soft_labels=soft_labels)
     heads, info = train_tier2(fx, train_recs, val_recs, cfg, epochs=epochs, batch_size=batch,
                               grad_accum=grad_accum, head_lr=head_lr, lora_lr=lora_lr, max_slots=max_slots,
-                              checkpoint_dir=out_dir)
+                              checkpoint_dir=out_dir, seed=seed)
     save_heads(heads, info, out_dir / "heads")
     scorer.model.save_pretrained(str(out_dir / "lora"))
 
@@ -263,7 +263,7 @@ def run_tier2(model_id: str, run_id: str, out_dir: Path | str, root: Path | str,
         "run_id": run_id, "model_id": model_id, "tier": 2, "residual": True, "layer": layer,
         "chat_applied": fx.chat, "heldout_sources": held, "lora_r": lora_r, "lora_trainable": trainable,
         "n_train": len(train_recs), "n_val": len(val_recs), "n_test": len(test_recs), "max_slots": max_slots,
-        "dim": dim, "epochs": epochs, "head_lr": head_lr, "lora_lr": lora_lr, "soft_labels": soft_labels,
+        "dim": dim, "epochs": epochs, "head_lr": head_lr, "lora_lr": lora_lr, "soft_labels": soft_labels, "seed": seed,
         "best_epoch": info["best_epoch"], "best_val_loss": round(info["best_val_loss"], 4),
         "lm_weight": [round(float(x), 3) for x in heads.lm_weight.detach().cpu()],
         "wall_s": round(time.time() - t0, 1),
@@ -363,6 +363,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     ap.add_argument("--grad-accum", type=int, default=2)
     ap.add_argument("--replace", action="store_true", help="tier1: heads replace the LM score (default: residual)")
     ap.add_argument("--seeds", default="0", help="tier1: comma-separated seeds; features are extracted once and cached")
+    ap.add_argument("--seed", type=int, default=0, help="tier2: training seed (init, data order, slot subsampling)")
     ap.add_argument("--soft-labels", action="store_true",
                     help="train against human label distributions where a source has them")
     ap.add_argument("--heldout", default="", help="comma-separated; defaults to the standard six")
@@ -417,7 +418,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                   train_per_source=a.train_per_source or 400, val_per_source=a.val_per_source or 100,
                   max_slots=a.max_slots, dim=a.dim, epochs=a.epochs or 3, head_lr=a.head_lr,
                   lora_lr=a.lora_lr, lora_r=a.lora_r, batch=a.batch or 4, grad_accum=a.grad_accum,
-                  heldout=held, test_per_source=a.test_per_source, soft_labels=a.soft_labels)
+                  heldout=held, test_per_source=a.test_per_source, soft_labels=a.soft_labels, seed=a.seed)
     return 0
 
 
