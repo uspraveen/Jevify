@@ -69,6 +69,23 @@ n = 57) — mean confidence is **0.81 / 0.84 / 0.83 / 0.88**, flat, while accura
 
 ---
 
+**1.y Where Jev's time goes.** Its round trip barely moves with the number of options (186 ms at
+K=4, 219 ms at K=151), which invites guesses about caching, set encoders or fixed compute windows.
+Controlled probes with the server's own clock (`x-envoy-upstream-service-time`, network excluded)
+rule all of those out: **server time is ~75 ms fixed plus ~5.5 µs per input token, linear to
+27,000 tokens, and an option token costs exactly what a state token costs.** Nonces in every option
+(+851 tokens): +12 ms. Shuffled options: +0. Eight requests in flight: same server time as one.
+Eight questions in one request: +3 ms. The flat curve is arithmetic — 1,300 option tokens × 5.5 µs
+is 7 ms, invisible under the floor — and the difference from our engine (~120 µs/token on an A40
+research path) is throughput, not architecture. At K=255 the API reports 2,570 *output* tokens in
+128 ms of server time: an answer template of ~10 slots per option filled in one pass, not decoded.
+~180k input tokens/s per request is the throughput of a ~2B model on one H100-class GPU; a 30B
+model would need ~8-way tensor parallelism and, at $0.042/M input tokens, would lose money
+saturated. A bound from the outside, not an observation — but it makes the "30B-class" guess
+the expensive hypothesis. *(probes: `results/jev-latency-probe/`)*
+
+---
+
 ## 2. Controlled probes
 
 Within-item experiments: the same state and gold answer, one factor changed, 200 items per

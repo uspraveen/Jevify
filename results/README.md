@@ -15,6 +15,8 @@ on the Hub. **Each figure exists in exactly one place: next to the data that pro
 | `leaderboard/` | Every model on one table (`leaderboard.md/json`), one map (`models_map.png`), and per-config heatmaps of accuracy and ECE across all models | `scripts/leaderboard.py` |
 | `figures/` | Cross-cutting findings that aggregate *across* runs: `tier1_story`, `tier1_per_source`, `instruct_vs_base`, `recipe_ladder`, `confidence_vs_agreement` | `scripts/make_figures.py` |
 | `qwen3vl-2b/` | Vision Tier 0 (POPE / A-OKVQA / AI2D, 4,244 records) with a text-only records manifest, since images do not round-trip through the per-source layout | `python -m jevify.train vision` |
+| `latency/` | Single-request latency vs answer-set size and batched throughput for four sizes × three tiers on one A40, against Jev's measured round trip | `scripts/latency.py` |
+| `jev-latency-probe/` | Controlled probes of the Jev API with the server's own clock: fixed floor + per-token cost; options, questions and caching isolated | `scripts/probe_jev_latency.py` |
 | `vision-budget/` | The encoder budget sweep: `results.json`, table, `vision_budget.png` | `scripts/vision_budget.py` |
 
 Run ids: `<model>` is Tier 0; `<model>-t1` Tier 1 with heads replacing the LM score; `<model>-t1r`
