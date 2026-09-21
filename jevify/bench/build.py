@@ -210,6 +210,7 @@ def dataset_card(manifest: dict[str, Any], baselines: list[tuple[str, str]] | No
         "`manifest.json`.",
         baselines_section(baselines or []), "",
         probes_section(hero, manifest.get("_probes_summary")), "",
+        jevified_section(manifest.get("_jevified")), "",
         "## Label audit", "",
         "Every weak result was checked by reading samples of the model's errors. Verdicts, examples and the two v0.1.1 fixes that",
         f"came out of it are in [`results/{audit_dir}/README.md`](results/{audit_dir}/README.md).", "",
@@ -220,6 +221,31 @@ def dataset_card(manifest: dict[str, Any], baselines: list[tuple[str, str]] | No
         f"Built by [`jevify-bench`](https://github.com/uspraveen/Jevify) at commit `{manifest.get('git_commit', '?')[:10]}`, {manifest['built_at']}.", "",
     ]
     return NL.join(lines)
+
+
+def jevified_section(info: dict[str, Any] | None) -> str:
+    """Results for open models Jevified against this benchmark."""
+    if not info:
+        return ""
+    NL = chr(10)
+    return NL.join([
+        "## Jevified open models", "",
+        "Open checkpoints given the same interface by [Jevify](https://github.com/uspraveen/Jevify) and scored on "
+        "these exact records. **Tier 0** is zero training — prompt, logit readout, and a recipe fitted on the "
+        "validation splits only. **Tier 1** adds decision heads trained with strictly proper scoring rules, with six "
+        "sources held out of training so generalization to unseen question types is measured rather than assumed.", "",
+        info["table"], "",
+        f"![models]({info['map']})", "",
+        "Two results worth pulling out:", "",
+        "- **A Jevified 2B model is better calibrated than Jev and closer to human uncertainty** — macro ECE "
+        "**0.069** vs 0.113, and TVD to human label distributions **0.374** vs 0.432, which is the axis these "
+        "calibration-gold configs exist to measure. Jev still leads on raw accuracy.",
+        "- **Held-out sources changed the architecture.** Heads that replace the model's own scorer gain +0.077 "
+        "accuracy on trained sources and lose −0.098 on held-out ones; a zero-initialized residual on that scorer "
+        "keeps the gain and erases the regression. Holding out records instead of whole sources would have hidden it.", "",
+        f"![tier 1]({info['tier1_fig']})", "",
+        "Full catalogue of findings: "
+        "[docs/FINDINGS.md](https://github.com/uspraveen/Jevify/blob/main/docs/FINDINGS.md).", ""])
 
 
 def probes_section(model: str | None, summary: dict[str, Any] | None) -> str:
