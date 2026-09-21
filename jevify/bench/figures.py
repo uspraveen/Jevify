@@ -46,10 +46,25 @@ def _headline(fig, title: str, subtitle: str | None = None) -> None:
     """Left-aligned title hanging from the top edge, with a muted subtitle wrapped to the figure width."""
     import textwrap
     h, w = fig.get_figheight(), fig.get_figwidth()
-    fig.text(0.012, 1 - 0.08 / h, title, fontsize=11, weight="semibold", color=INK, va="top", ha="left")
+    # a long model name used to run off the right edge of the canvas; the title wraps now,
+    # and the subtitle drops by however many lines the title took
+    title_lines = textwrap.wrap(title, width=max(20, int(w * 11.5))) or [title]
+    fig.text(0.012, 1 - 0.08 / h, chr(10).join(title_lines), fontsize=11, weight="semibold", color=INK,
+             va="top", ha="left", linespacing=1.3)
     if subtitle:
         wrapped = textwrap.fill(subtitle, width=int(w * 14.5))
-        fig.text(0.012, 1 - 0.30 / h, wrapped, fontsize=8.2, color=INK2, va="top", ha="left", linespacing=1.35)
+        fig.text(0.012, 1 - (0.30 + 0.17 * (len(title_lines) - 1)) / h, wrapped, fontsize=8.2, color=INK2,
+                 va="top", ha="left", linespacing=1.35)
+
+
+def _wrapped_lines(fig, title: str, subtitle: str | None) -> int:
+    """How many text lines the headline will occupy, for reserving top margin."""
+    import textwrap
+    w = fig.get_figwidth()
+    n = len(textwrap.wrap(title, width=max(20, int(w * 11.5))) or [title])
+    if subtitle:
+        n += len(textwrap.fill(subtitle, width=int(w * 14.5)).split(chr(10)))
+    return n
 
 
 def _footer(fig, note: str | None = None) -> None:
@@ -158,22 +173,39 @@ def fig_calibration_map(ev: dict[str, dict[str, Any]], out: Path, model: str) ->
         ax.scatter(acc, ece, s=34, color=c, zorder=3, linewidths=0.8, edgecolors=SURFACE)
         pts.append((src, acc, ece, d["primitive"]))
     ymax = max(0.4, max(p[2] for p in pts) + 0.03)
-    # ideal region: high accuracy, low calibration error
-    ax.add_patch(plt.Rectangle((0.85, 0), 0.30, 0.07, facecolor="#1baf7a", alpha=0.08, edgecolor="none", zorder=0))
-    ax.annotate("", xy=(1.03, 0.02), xytext=(0.62, 0.30), arrowprops={"arrowstyle": "-|>", "color": GRID, "lw": 1.0}, zorder=0)
-    ax.text(0.615, 0.305, "better", fontsize=7.5, color=INK2, va="bottom")
+    xlo = min(0.25, min(p[1] for p in pts) - 0.04)
+    # Accuracy cannot exceed 1.0. The axis used to run to 1.12 and the "ideal" band to 1.15,
+    # drawing a region no model can reach and inviting the eye to read the gap as headroom.
+    ax.add_patch(plt.Rectangle((0.85, 0), 1.0 - 0.85, 0.07, facecolor="#1baf7a", alpha=0.08,
+                               edgecolor="none", zorder=0))
     ax.set_xlabel("accuracy"); ax.set_ylabel("expected calibration error (lower is better)")
-    ax.set_xlim(0.25, 1.12); ax.set_ylim(0, ymax)
+    ax.set_xlim(xlo, 1.0); ax.set_ylim(0, ymax)
+    # direction cue in axes coordinates, so it lands in the same empty upper-right corner for
+    # every model, with the word at the arrow's head rather than its tail
+    ax.annotate("", xy=(0.88, 0.70), xytext=(0.64, 0.88), xycoords="axes fraction",
+                textcoords="axes fraction", arrowprops={"arrowstyle": "-|>", "color": GRID, "lw": 1.0}, zorder=0)
+    ax.text(0.895, 0.695, "better", fontsize=7.5, color=INK2, va="center", ha="left",
+            transform=ax.transAxes)
     from matplotlib.lines import Line2D
     prims = [q for q in ("choice", "score", "noul") if any(d["primitive"] == q for d in ev.values())]
     ax.legend(handles=[Line2D([0], [0], marker="o", color=PRIM_COLOR[q], lw=0, markersize=6, label=q) for q in prims],
               loc="lower left", fontsize=8)
-    fig.tight_layout(rect=_layout(fig, 2))
-    _headline(fig, f"{model}: accuracy vs calibration, one point per jev-bench config",
-              "Test splits: 1,000 records per config (2,000 civil_comments; 1,599 chaosnli). Bars are 95% bootstrap intervals. "
-              "Down and to the right is better; the shaded corner (accuracy ≥ 0.85, ECE ≤ 0.07) is where a decision model earns its confidence.")
+
+    # Labelling all 22 points crushed the high-accuracy corner into unreadable overlap. The
+    # corner is the uniform "good" region, so its members are named in the subtitle and only
+    # the points that carry information by position are labelled on the plot.
+    in_corner = sorted(src for src, acc, ece, _ in pts if acc >= 0.85 and ece <= 0.07)
+    labelled = [(src, acc, ece) for src, acc, ece, _ in pts if src not in set(in_corner)]
+    title = f"{model}: accuracy vs calibration, one point per jev-bench config"
+    subtitle = ("Test splits: 1,000 records per config (2,000 civil_comments; 1,599 chaosnli). Bars are 95% "
+                "bootstrap intervals. Down and to the right is better; the shaded corner (accuracy ≥ 0.85, "
+                "ECE ≤ 0.07) is where a decision model earns its confidence.")
+    if in_corner:
+        subtitle += "  Unlabelled, inside the corner: " + ", ".join(in_corner) + "."
+    fig.tight_layout(rect=_layout(fig, _wrapped_lines(fig, title, subtitle) - 1))
+    _headline(fig, title, subtitle)
     _footer(fig)
-    _annotate_without_overlap(fig, ax, [(src, acc, ece) for src, acc, ece, _ in pts])
+    _annotate_without_overlap(fig, ax, labelled)
     return _save(fig, out / "calibration_map")
 
 
@@ -382,10 +414,34 @@ def _annotate_without_overlap(fig, ax, pts: list[tuple[str, float, float]], font
                 chosen = box
                 break
             ann.remove()
-        if chosen is None:   # nothing fit: fall back to the nearest offset
-            ann = ax.annotate(src, (x, y), xytext=near[0], textcoords="offset points", fontsize=fontsize, color=INK2)
-            chosen = ann.get_window_extent(renderer)
+        if chosen is None:
+            # Nothing fit. Falling back to the first offset is what produced the collided
+            # labels in the dense high-accuracy corner; pick the candidate that overlaps
+            # least instead, so a crowded plot degrades rather than breaks.
+            best = None
+            for dx, dy in near + far:
+                ha = "left" if dx > 0 else "right"
+                ann = ax.annotate(src, (x, y), xytext=(dx, dy), textcoords="offset points",
+                                  fontsize=fontsize, color=INK2, ha=ha)
+                box = ann.get_window_extent(renderer).expanded(1.06, 1.2)
+                cost = sum(_overlap_area(box, b) for b in placed + point_boxes)
+                if not (box.x0 >= axes_box.x0 - 2 and box.x1 <= axes_box.x1 + 2
+                        and box.y0 >= axes_box.y0 - 2 and box.y1 <= axes_box.y1 + 2):
+                    cost += 1e6                       # never let a label leave the axes, on either axis
+                if best is None or cost < best[0]:
+                    if best is not None:
+                        best[1].remove()
+                    best = (cost, ann, box)
+                else:
+                    ann.remove()
+            chosen = best[2]
         placed.append(chosen)
+
+
+def _overlap_area(a, b) -> float:
+    dx = min(a.x1, b.x1) - max(a.x0, b.x0)
+    dy = min(a.y1, b.y1) - max(a.y0, b.y0)
+    return dx * dy if dx > 0 and dy > 0 else 0.0
 
 
 def _box(x0, y0, x1, y1):
