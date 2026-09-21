@@ -101,6 +101,21 @@ def main() -> int:
     if models:
         made.append(F.fig_recipe_ladder(models, out))
 
+    # collect the headline figures into one predictable folder, wherever they were generated
+    import shutil
+    for src in (ROOT / "results" / "leaderboard" / "models_map",
+                ROOT / "results" / a.tier1 / "figures" / "calibration_map",
+                ROOT / "results" / "jev-1.13.0" / "probes" / "probe_cardinality",
+                a.records / "results" / "jev-1.13.0" / "probes" / "probe_cardinality",
+                a.records / "results" / "jev-1.13.0" / "figures" / "human_vs_model"):
+        for ext in (".png", ".svg"):
+            f = src.with_suffix(ext)
+            if f.exists():
+                dest = out / f.name
+                if not dest.exists() or f.stat().st_mtime > dest.stat().st_mtime:
+                    shutil.copy2(f, dest)
+                    made.append(dest)
+
     for m in made:
         print(m)
     if a.push and made:
