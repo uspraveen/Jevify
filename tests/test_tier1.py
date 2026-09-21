@@ -171,3 +171,30 @@ def test_tier2_gradients_reach_lora(extractor):
     grads = [p.grad for n, p in model.named_parameters() if p.requires_grad and p.grad is not None]
     assert grads, "no LoRA parameter received a gradient"
     assert any(float(g.abs().sum()) > 0 for g in grads), "LoRA gradients are all zero"
+
+
+def test_load_features_reads_each_array_once(tmp_path, monkeypatch):
+    """Regression: indexing the NpzFile per row re-decompressed the whole array every time and
+    pinned a full copy per row -- 22,773 rows x 93 MB took a 1 TB host to the OOM killer."""
+    import numpy as np
+
+    from jevify.engine.features import load_features, save_features
+
+    rows = [{"id": f"x/{i}", "source": "x", "primitive": "choice", "keys": ["a", "b", "c"][: 2 + i % 2], "label": 0, "soft": None,
+             "decision": np.random.rand(8).astype(np.float16), "slots": np.random.rand(2 + i % 2, 8).astype(np.float16),
+             "lm": np.random.rand(2 + i % 2).astype(np.float32)} for i in range(50)]
+    path = tmp_path / "f.npz"
+    save_features(path, rows)
+
+    reads: dict[str, int] = {}
+    real_getitem = np.lib.npyio.NpzFile.__getitem__
+
+    def counting(self, key):
+        reads[key] = reads.get(key, 0) + 1
+        return real_getitem(self, key)
+
+    monkeypatch.setattr(np.lib.npyio.NpzFile, "__getitem__", counting)
+    back = load_features(path)
+    assert len(back) == 50
+    assert all(v == 1 for v in reads.values()), reads          # no per-row re-reads
+    assert np.allclose(back[7]["slots"], rows[7]["slots"]) and back[7]["keys"] == rows[7]["keys"]

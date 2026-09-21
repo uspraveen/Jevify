@@ -245,12 +245,16 @@ def load_features(path) -> list[dict[str, Any]]:
 
     z = np.load(path, allow_pickle=False)
     meta = json.loads(str(z["meta"]))
-    counts, slots = z["counts"], z["slots"]
+    # Every array is read from the archive exactly once. Indexing the NpzFile inside the
+    # loop (z["decision"][i]) re-reads and decompresses the whole array per row, and each
+    # row's slice then pins its own private full copy: 22,773 rows x ~93 MB took a 1 TB host
+    # to the OOM killer. Local names below are plain ndarrays; slices of them are views.
+    counts, slots, lm, decision, labels = z["counts"], z["slots"], z["lm"], z["decision"], z["labels"]
     rows, off = [], 0
     for i, m in enumerate(meta):
         n = int(counts[i])
-        rows.append({**m, "decision": z["decision"][i], "slots": slots[off:off + n], "lm": z["lm"][off:off + n],
-                     "label": int(z["labels"][i]), "soft": m.get("soft")})
+        rows.append({**m, "decision": decision[i], "slots": slots[off:off + n], "lm": lm[off:off + n],
+                     "label": int(labels[i]), "soft": m.get("soft")})
         off += n
     return rows
 
