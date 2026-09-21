@@ -42,6 +42,10 @@ class HeadConfig:
     layer: int = -1           # which backbone layer the features came from
     backbone: str = ""
     residual: bool = True     # start from the Tier 0 log-score and learn a correction
+    # train against the human label distribution where a source has one (jev-bench keeps
+    # annotator vote shares on four sources) instead of the majority label alone. The proper
+    # scoring rules below are unchanged; only the target moves from one-hot to the votes.
+    soft_labels: bool = False
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -116,16 +120,25 @@ class DecisionHeads(nn.Module):
                 continue
             sel = torch.tensor(idx, device=batch.decision.device)
             t = temps[self.prim_index[prim]]
+            # per-row targets: one-hot from the label, or the human distribution where the
+            # source has one and the head was configured to use it
+            n_slots = o["relative"].shape[-1]
+            target = F.one_hot(batch.label[sel], num_classes=n_slots).float()
+            if self.cfg.soft_labels and batch.soft is not None and batch.has_soft is not None:
+                use = batch.has_soft[sel]
+                if bool(use.any()):
+                    target = torch.where(use[:, None], batch.soft[sel], target)
             if prim == "noul":
                 yes_pos = torch.tensor([batch.keys[i].index("1") if "1" in batch.keys[i] else 0 for i in idx],
                                        device=sel.device)
                 logit = o["absolute"][sel, yes_pos] / t
-                target = (batch.label[sel] == yes_pos).float()
-                loss = F.binary_cross_entropy_with_logits(logit, target)
+                p_yes = target.gather(1, yes_pos[:, None]).squeeze(1)
+                loss = F.binary_cross_entropy_with_logits(logit, p_yes)
             elif prim == "choice":
-                loss = F.cross_entropy(o["relative"][sel] / t, batch.label[sel])
+                logp = F.log_softmax(o["relative"][sel] / t, dim=-1)
+                loss = -(target * logp * batch.mask[sel]).sum(-1).mean()
             else:
-                loss = ranked_probability_loss(o["relative"][sel] / t, batch.label[sel], batch.mask[sel])
+                loss = ranked_probability_loss(o["relative"][sel] / t, target, batch.mask[sel])
             total = total + loss * len(idx)
             parts[prim] = float(loss.detach())
             counts[prim] = len(idx)
@@ -133,14 +146,17 @@ class DecisionHeads(nn.Module):
         return total / n, {**parts, **{f"n_{k}": v for k, v in counts.items()}}
 
 
-def ranked_probability_loss(logits: torch.Tensor, labels: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
-    """Mean RPS over a batch of ordinal rows: squared distance between the predicted and
-    the one-hot cumulative distributions. Strictly proper, and unlike cross-entropy it
-    charges less for a near miss than for a distant one."""
+def ranked_probability_loss(logits: torch.Tensor, target: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+    """Mean RPS over a batch of ordinal rows: squared distance between the predicted and the
+    target cumulative distributions. Strictly proper, and unlike cross-entropy it charges
+    less for a near miss than for a distant one. ``target`` is a distribution over slots --
+    one-hot for a hard label, the annotators' vote shares for a soft one -- so the same
+    rule scores both."""
+    if target.dtype == torch.long:                        # a label index; keep the old call working
+        target = F.one_hot(target, num_classes=logits.shape[-1]).float()
     p = F.softmax(logits, dim=-1) * mask
     p = p / p.sum(dim=-1, keepdim=True).clamp_min(1e-9)
-    onehot = F.one_hot(labels, num_classes=logits.shape[-1]).float()
-    cum_p, cum_y = p.cumsum(-1), onehot.cumsum(-1)
+    cum_p, cum_y = p.cumsum(-1), target.cumsum(-1)
     k = mask.sum(-1).clamp_min(2) - 1
     return (((cum_p - cum_y) ** 2) * mask).sum(-1).div(k).mean()
 

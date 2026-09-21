@@ -39,10 +39,54 @@ class SlotBatch:
     primitive: list[str]
     ids: list[str]
     keys: list[list[str]]           # answer key per kept slot
+    # the human label distribution over the kept slots, where the source has one; rows
+    # without one carry zeros and has_soft=False, so a loss can fall back to the hard label
+    soft: torch.Tensor | None = None        # (B, S)
+    has_soft: torch.Tensor | None = None    # (B,) bool
 
     def to(self, device: str) -> "SlotBatch":
         return SlotBatch(self.decision.to(device), self.slots.to(device), self.lm.to(device), self.mask.to(device),
-                         self.label.to(device), self.primitive, self.ids, self.keys)
+                         self.label.to(device), self.primitive, self.ids, self.keys,
+                         None if self.soft is None else self.soft.to(device),
+                         None if self.has_soft is None else self.has_soft.to(device))
+
+
+def soft_targets(r: BenchRecord, kept_keys: Sequence[str]) -> list[float] | None:
+    """The human label distribution over the kept answer keys, or None if the record has none.
+
+    jev-bench stores distributions in the shape of the primitive: a dict over option keys
+    (Choice), a list over levels (Score), or P(yes) (Noul). Slot subsampling can drop
+    options that carried mass, so the kept mass is renormalized; the gold option is always
+    kept, and it is the argmax of the distribution, so nothing important is lost.
+    """
+    sl = r.soft_label
+    if sl is None:
+        return None
+    keys = [str(k) for k in kept_keys]
+    if r.primitive == "noul":
+        p_yes = float(sl)
+        vals = [p_yes if k == "1" else 1.0 - p_yes for k in keys]
+    elif isinstance(sl, dict):
+        vals = [float(sl.get(k, 0.0)) for k in keys]
+    else:                                                # list over levels, index == key
+        try:
+            vals = [float(sl[int(k)]) for k in keys]
+        except (ValueError, IndexError, TypeError):
+            return None
+    total = sum(vals)
+    if total <= 0:
+        return None
+    return [v / total for v in vals]
+
+
+def _pad_soft(softs: Sequence[list[float] | None], S: int) -> tuple[torch.Tensor, torch.Tensor]:
+    soft = torch.zeros(len(softs), S)
+    has = torch.zeros(len(softs), dtype=torch.bool)
+    for i, q in enumerate(softs):
+        if q is not None:
+            soft[i, :len(q)] = torch.tensor(q)
+            has[i] = True
+    return soft, has
 
 
 def _line_end_positions(scorer: HFScorer, prefix: str, needles: Sequence[str]) -> list[int]:
@@ -140,7 +184,7 @@ class FeatureExtractor:
         last = len(tok.prefix_ids) - 1
         pos = [min(p, last) for p in _line_end_positions(self.scorer, prefix, [needles[i] for i in keep])]
         kept = [keys[i] for i in keep]
-        return tok.prefix_ids, pos, kept, kept.index(str(r.label)), [cand_tokens[i] for i in keep]
+        return tok.prefix_ids, pos, kept, kept.index(str(r.label)), [cand_tokens[i] for i in keep], soft_targets(r, kept)
 
     @torch.inference_mode()
     def extract(self, records: Sequence[BenchRecord], *, max_slots: int = 0, rng: np.random.Generator | None = None,
@@ -166,14 +210,14 @@ class FeatureExtractor:
             hs = self._captured
             assert hs is not None, "forward hook did not fire"
             for row, i in enumerate(chunk):
-                seq, pos, keys, label, cand = plans[i]
+                seq, pos, keys, label, cand, soft = plans[i]
                 last = len(seq) - 1
                 logp = torch.log_softmax(res.logits[row, last].float(), dim=-1)
                 out.append({"id": records[i].id, "source": records[i].source, "primitive": records[i].primitive,
                             "decision": hs[row, last].to(torch.float16).cpu().numpy(),
                             "slots": hs[row, torch.tensor(pos, device=hs.device)].to(torch.float16).cpu().numpy(),
                             "lm": logp[torch.tensor(cand, device=logp.device)].to(torch.float32).cpu().numpy(),
-                            "keys": keys, "label": label})
+                            "keys": keys, "label": label, "soft": soft})
         by_id = {r["id"]: r for r in out}
         return [by_id[r.id] for r in records if r.id in by_id]
 
@@ -190,7 +234,8 @@ def save_features(path, rows: list[dict[str, Any]]) -> int:
     slots = np.concatenate([r["slots"] for r in rows], axis=0)
     lm = np.concatenate([r["lm"] for r in rows], axis=0)
     labels = np.array([r["label"] for r in rows], dtype=np.int32)
-    meta = [{"id": r["id"], "source": r["source"], "primitive": r["primitive"], "keys": r["keys"]} for r in rows]
+    meta = [{"id": r["id"], "source": r["source"], "primitive": r["primitive"], "keys": r["keys"],
+             "soft": r.get("soft")} for r in rows]
     np.savez_compressed(path, decision=dec, slots=slots, lm=lm, counts=counts, labels=labels, meta=json.dumps(meta))
     return len(rows)
 
@@ -205,7 +250,7 @@ def load_features(path) -> list[dict[str, Any]]:
     for i, m in enumerate(meta):
         n = int(counts[i])
         rows.append({**m, "decision": z["decision"][i], "slots": slots[off:off + n], "lm": z["lm"][off:off + n],
-                     "label": int(z["labels"][i])})
+                     "label": int(z["labels"][i]), "soft": m.get("soft")})
         off += n
     return rows
 
@@ -226,5 +271,6 @@ def collate(rows: Sequence[dict[str, Any]]) -> SlotBatch:
         lm[i, :n] = torch.from_numpy(np.asarray(r["lm"], dtype=np.float32))
         mask[i, :n] = True
         label[i] = r["label"]
+    soft, has_soft = _pad_soft([r.get("soft") for r in rows], S)
     return SlotBatch(dec, slots, lm, mask, label, [r["primitive"] for r in rows], [r["id"] for r in rows],
-                     [r["keys"] for r in rows])
+                     [r["keys"] for r in rows], soft, has_soft)

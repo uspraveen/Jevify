@@ -19,7 +19,7 @@ import torch
 import torch.nn as nn
 
 from ..bench.record import BenchRecord
-from .features import FeatureExtractor, SlotBatch
+from .features import FeatureExtractor, SlotBatch, _pad_soft
 from .heads import DecisionHeads, HeadConfig, evaluate_loss
 
 
@@ -115,7 +115,7 @@ class DifferentiableSlots:
         label = torch.zeros(B, dtype=torch.long, device=dev)
         last_logits = res.logits[:, -1].float()               # (B, vocab) only
         logp = torch.log_softmax(last_logits, dim=-1)
-        for row, (seq, pos, keys, lab, cand) in enumerate(plans):
+        for row, (seq, pos, keys, lab, cand, _soft) in enumerate(plans):
             off = offsets[row]
             n = len(keys)
             dec[row] = hs[row, -1].float()
@@ -123,8 +123,9 @@ class DifferentiableSlots:
             lm[row, :n] = logp[row, torch.tensor(cand, device=dev)]
             mask[row, :n] = True
             label[row] = lab
+        soft, has_soft = _pad_soft([p[5] for p in plans], S)
         return SlotBatch(dec, slots, lm, mask, label, [r.primitive for r in records],
-                         [r.id for r in records], [p[2] for p in plans])
+                         [r.id for r in records], [p[2] for p in plans], soft.to(dev), has_soft.to(dev))
 
 
 def train_tier2(extractor: FeatureExtractor, train_recs: Sequence[BenchRecord], val_recs: Sequence[BenchRecord],

@@ -135,7 +135,8 @@ def run_tier1(model_id: str, run_id: str, out_dir: Path | str, root: Path | str,
               chat: bool = True, train_per_source: int = 600, val_per_source: int = 150, max_slots: int = 16,
               dim: int = 512, epochs: int = 20, lr: float = 3e-4, batch: int = 8,
               trust_remote_code: bool = False, heldout: Sequence[str] | None = None,
-              test_per_source: int = 0, residual: bool = True, device: str | None = None) -> dict[str, Any]:
+              test_per_source: int = 0, residual: bool = True, device: str | None = None,
+              soft_labels: bool = False) -> dict[str, Any]:
     """Frozen backbone, trained decision heads. Features are extracted once and reused."""
     import numpy as np
     import torch
@@ -168,7 +169,8 @@ def run_tier1(model_id: str, run_id: str, out_dir: Path | str, root: Path | str,
     feat_s = time.time() - t_feat
     print(f"[{run_id}] features in {feat_s:.0f}s", flush=True)
 
-    cfg = HeadConfig(hidden=fx.hidden, dim=dim, layer=layer, backbone=model_id, residual=residual)
+    cfg = HeadConfig(hidden=fx.hidden, dim=dim, layer=layer, backbone=model_id, residual=residual,
+                     soft_labels=soft_labels)
     dev = device or scorer.device
     t_train = time.time()
     heads, info = train_heads(train_rows, val_rows, cfg, epochs=epochs, lr=lr, device=dev, verbose=True)
@@ -181,7 +183,7 @@ def run_tier1(model_id: str, run_id: str, out_dir: Path | str, root: Path | str,
     return _finish(out_dir, {
         "run_id": run_id, "model_id": model_id, "tier": 1, "layer": layer, "chat_applied": fx.chat,
         "heldout_sources": held, "n_train": len(train_recs), "n_val": len(val_recs), "n_test": len(test_recs),
-        "max_slots": max_slots, "dim": dim, "epochs": epochs, "lr": lr, "residual": residual,
+        "max_slots": max_slots, "dim": dim, "epochs": epochs, "lr": lr, "residual": residual, "soft_labels": soft_labels,
         "lm_weight": [round(float(x), 3) for x in heads.lm_weight.detach().cpu()],
         "best_epoch": info["best_epoch"], "best_val_loss": round(info["best_val_loss"], 4),
         "feat_s": round(feat_s, 1), "train_s": round(train_s, 1), "wall_s": round(time.time() - t0, 1),
@@ -193,7 +195,8 @@ def run_tier2(model_id: str, run_id: str, out_dir: Path | str, root: Path | str,
               chat: bool = True, train_per_source: int = 400, val_per_source: int = 100, max_slots: int = 16,
               dim: int = 512, epochs: int = 3, head_lr: float = 3e-4, lora_lr: float = 1e-4, lora_r: int = 16,
               batch: int = 4, grad_accum: int = 2, trust_remote_code: bool = False,
-              heldout: Sequence[str] | None = None, test_per_source: int = 0) -> dict[str, Any]:
+              heldout: Sequence[str] | None = None, test_per_source: int = 0,
+              soft_labels: bool = False) -> dict[str, Any]:
     """LoRA on the backbone, trained jointly with the residual decision heads."""
     import torch
 
@@ -221,7 +224,8 @@ def run_tier2(model_id: str, run_id: str, out_dir: Path | str, root: Path | str,
     print(f"[{run_id}] {model_id}: {len(train_recs)} train / {len(val_recs)} val / {len(test_recs)} test; "
           f"heldout={held}", flush=True)
 
-    cfg = HeadConfig(hidden=fx.hidden, dim=dim, layer=layer, backbone=model_id, residual=True)
+    cfg = HeadConfig(hidden=fx.hidden, dim=dim, layer=layer, backbone=model_id, residual=True,
+                     soft_labels=soft_labels)
     heads, info = train_tier2(fx, train_recs, val_recs, cfg, epochs=epochs, batch_size=batch,
                               grad_accum=grad_accum, head_lr=head_lr, lora_lr=lora_lr, max_slots=max_slots)
     save_heads(heads, info, out_dir / "heads")
@@ -235,7 +239,7 @@ def run_tier2(model_id: str, run_id: str, out_dir: Path | str, root: Path | str,
         "run_id": run_id, "model_id": model_id, "tier": 2, "residual": True, "layer": layer,
         "chat_applied": fx.chat, "heldout_sources": held, "lora_r": lora_r, "lora_trainable": trainable,
         "n_train": len(train_recs), "n_val": len(val_recs), "n_test": len(test_recs), "max_slots": max_slots,
-        "dim": dim, "epochs": epochs, "head_lr": head_lr, "lora_lr": lora_lr,
+        "dim": dim, "epochs": epochs, "head_lr": head_lr, "lora_lr": lora_lr, "soft_labels": soft_labels,
         "best_epoch": info["best_epoch"], "best_val_loss": round(info["best_val_loss"], 4),
         "lm_weight": [round(float(x), 3) for x in heads.lm_weight.detach().cpu()],
         "wall_s": round(time.time() - t0, 1),
@@ -334,6 +338,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     ap.add_argument("--batch", type=int, default=0)
     ap.add_argument("--grad-accum", type=int, default=2)
     ap.add_argument("--replace", action="store_true", help="tier1: heads replace the LM score (default: residual)")
+    ap.add_argument("--soft-labels", action="store_true",
+                    help="train against human label distributions where a source has them")
     ap.add_argument("--heldout", default="", help="comma-separated; defaults to the standard six")
     ap.add_argument("--sources", default="", help="tier0/vision: comma-separated source names")
     ap.add_argument("--mode", default="index", help="tier0: how options are presented (index|...)")
@@ -372,13 +378,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         run_tier1(**common, root=root, layer=a.layer, chat=not a.no_chat,
                   train_per_source=a.train_per_source or 600, val_per_source=a.val_per_source or 150,
                   max_slots=a.max_slots, dim=a.dim, epochs=a.epochs or 20, lr=a.lr, batch=a.batch or 8,
-                  heldout=held, test_per_source=a.test_per_source, residual=not a.replace)
+                  heldout=held, test_per_source=a.test_per_source, residual=not a.replace,
+                  soft_labels=a.soft_labels)
     else:
         run_tier2(**common, root=root, layer=a.layer, chat=not a.no_chat,
                   train_per_source=a.train_per_source or 400, val_per_source=a.val_per_source or 100,
                   max_slots=a.max_slots, dim=a.dim, epochs=a.epochs or 3, head_lr=a.head_lr,
                   lora_lr=a.lora_lr, lora_r=a.lora_r, batch=a.batch or 4, grad_accum=a.grad_accum,
-                  heldout=held, test_per_source=a.test_per_source)
+                  heldout=held, test_per_source=a.test_per_source, soft_labels=a.soft_labels)
     return 0
 
 
