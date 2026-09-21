@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import math
 import time
+from pathlib import Path
 from typing import Any, Sequence
 
 import numpy as np
@@ -20,7 +21,7 @@ import torch.nn as nn
 
 from ..bench.record import BenchRecord
 from .features import FeatureExtractor, SlotBatch, _pad_soft
-from .heads import DecisionHeads, HeadConfig, evaluate_loss
+from .heads import DecisionHeads, HeadConfig, evaluate_loss, save_heads
 
 
 def apply_lora(model, r: int = 16, alpha: int = 32, dropout: float = 0.05,
@@ -131,8 +132,13 @@ class DifferentiableSlots:
 def train_tier2(extractor: FeatureExtractor, train_recs: Sequence[BenchRecord], val_recs: Sequence[BenchRecord],
                 cfg: HeadConfig, *, epochs: int = 3, batch_size: int = 4, grad_accum: int = 2,
                 head_lr: float = 3e-4, lora_lr: float = 1e-4, max_slots: int = 16, seed: int = 0,
-                eval_every: int = 1) -> tuple[DecisionHeads, dict[str, Any]]:
-    """Joint LoRA + head training. The head keeps its residual on the LM log-score."""
+                eval_every: int = 1, checkpoint_dir: Path | str | None = None) -> tuple[DecisionHeads, dict[str, Any]]:
+    """Joint LoRA + head training. The head keeps its residual on the LM log-score.
+
+    ``checkpoint_dir``: the best-so-far heads and adapter are written there at the end of
+    every epoch that improves validation loss. A run that dies mid-way -- a host reboot took
+    a six-hour 4B run with it once -- then loses at most the epoch in progress, not the run.
+    """
     torch.manual_seed(seed)
     dev = extractor.scorer.device
     heads = DecisionHeads(cfg).to(dev)
@@ -175,6 +181,12 @@ def train_tier2(extractor: FeatureExtractor, train_recs: Sequence[BenchRecord], 
 
             best = (val["loss"], {k: v.detach().clone() for k, v in heads.state_dict().items()},
                     deepcopy({k: v.detach().cpu() for k, v in _lora_state(extractor.scorer.model).items()}), epoch)
+            if checkpoint_dir is not None:
+                ck = Path(checkpoint_dir)
+                save_heads(heads, {"history": history, "best_epoch": epoch, "best_val_loss": val["loss"],
+                                   "config": cfg.as_dict(), "partial": True}, ck / "heads")
+                extractor.scorer.model.save_pretrained(str(ck / "lora"))
+                print(f"  checkpoint: epoch {epoch} written to {ck}", flush=True)
     if best[1] is not None:
         heads.load_state_dict(best[1])
         _load_lora_state(extractor.scorer.model, best[2])

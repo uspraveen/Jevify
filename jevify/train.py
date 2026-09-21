@@ -250,7 +250,8 @@ def run_tier2(model_id: str, run_id: str, out_dir: Path | str, root: Path | str,
     cfg = HeadConfig(hidden=fx.hidden, dim=dim, layer=layer, backbone=model_id, residual=True,
                      soft_labels=soft_labels)
     heads, info = train_tier2(fx, train_recs, val_recs, cfg, epochs=epochs, batch_size=batch,
-                              grad_accum=grad_accum, head_lr=head_lr, lora_lr=lora_lr, max_slots=max_slots)
+                              grad_accum=grad_accum, head_lr=head_lr, lora_lr=lora_lr, max_slots=max_slots,
+                              checkpoint_dir=out_dir)
     save_heads(heads, info, out_dir / "heads")
     scorer.model.save_pretrained(str(out_dir / "lora"))
 
