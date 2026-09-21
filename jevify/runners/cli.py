@@ -20,6 +20,18 @@ from .base import Prediction, done_ids, read_predictions, write_predictions
 
 
 def iter_records(root: Path, sources: list[str] | None, split: str, limit: int | None) -> Iterator[BenchRecord]:
+    """Records from a jev-bench root, or from a single JSONL file.
+
+    The file form is what lets an ad-hoc run be scored by the same command as a bench
+    run: a vision run, for instance, ships its own records manifest beside its
+    predictions because images cannot round-trip through the per-source layout.
+    """
+    root = Path(root)
+    if root.is_file():
+        for rec in read_jsonl(root, limit=limit):
+            if not sources or rec.source in sources:
+                yield rec
+        return
     data = root / "data"
     for src_dir in sorted(p for p in data.iterdir() if p.is_dir()):
         if sources and src_dir.name not in sources:

@@ -209,7 +209,8 @@ def run_vision(model_id: str, run_id: str, out_dir: Path | str, *, sources: Sequ
     import torch
 
     from .bench.adapters import VISION_REGISTRY
-    from .engine.vision import VisionScorer
+    from .engine.vision import VisionScorer, split_images
+    from .engine.vision_backbone import describe, image_tokens, pixel_budget
     from .runners.base import write_predictions
     from .runners.vision_runner import VisionRunner, build_vision_records, write_vision_records
 
@@ -223,13 +224,26 @@ def run_vision(model_id: str, run_id: str, out_dir: Path | str, *, sources: Sequ
                           max_pixels=max_pixels or None, trust_remote_code=trust_remote_code,
                           hf_token=os.environ.get("HF_TOKEN"))
     t_load = time.time() - t0
+
+    # A pixel budget that was *set* is not necessarily a budget that *took*: processors
+    # ignore keys they do not have. Record what applied, and the token count it actually
+    # produced, so a sweep over budgets compares measured visual signal and not intent.
+    budget = pixel_budget(scorer.processor, max_pixels=max_pixels or None)
+    sample = [im for r in recs[:24] for im in split_images(r.state)[1]][:24]
+    if sample:
+        counts = sorted(image_tokens(scorer.processor, im) for im in sample)
+        budget["image_tokens"] = {"median": counts[len(counts) // 2], "min": counts[0], "max": counts[-1],
+                                  "n_sampled": len(counts)}
+
     n = write_predictions(out_dir / f"{split}_predictions.jsonl",
                           VisionRunner(scorer).predict(recs, batch=batch), progress_every=200)
     # the records carry PIL images; write_vision_records strips them before the row is built
     write_vision_records(out_dir / f"{split}_records.jsonl", recs)
     return _finish(out_dir, {
         "run_id": run_id, "model_id": model_id, "modality": "vision", "tier": 0, "sources": want,
-        "split": split, "n": n, "load_s": round(t_load, 1), "wall_s": round(time.time() - t0, 1),
+        "split": split, "n": n, "max_pixels": max_pixels or None, "budget": budget,
+        "vision_stage": describe(scorer.model), "load_s": round(t_load, 1),
+        "wall_s": round(time.time() - t0, 1),
         "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu"})
 
 
