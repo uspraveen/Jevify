@@ -1,4 +1,4 @@
-"""Score a Tier 1 run, split by held-out vs trained sources, against Jev and its own Tier 0.
+"""Score a Tier 1 or Tier 2 run, split by held-out vs trained sources, against Jev and its own Tier 0.
 
     python scripts/process_tier1.py --run-id qwen35-2b-t1 --tier0 qwen35-2b [--push]
 
@@ -63,7 +63,8 @@ def main() -> int:
         pull(a.run_id, runs, ["test_predictions.jsonl", "run.json"])
     meta = json.loads((runs / "run.json").read_text())
     held = meta["heldout_sources"]
-    label = a.label or f"{meta['model_id']} (Tier 1)"
+    tier = f"Tier {meta.get('tier', 1)}"
+    label = a.label or f"{meta['model_id']} ({tier})"
     results = ROOT / "results" / a.run_id
     results.mkdir(parents=True, exist_ok=True)
 
@@ -73,7 +74,7 @@ def main() -> int:
     t1_preds = list(read_predictions(runs / "test_predictions.jsonl"))
     t1_reports = score(test_recs, t1_preds)
 
-    rows: list[dict] = [{"model": label, "variant": "Tier 1 heads", **{f"heldout_{k}": v for k, v in macro(t1_reports, held).items()},
+    rows: list[dict] = [{"model": label, "variant": f"{tier} heads" + (" + LoRA" if meta.get("tier") == 2 else ""), **{f"heldout_{k}": v for k, v in macro(t1_reports, held).items()},
                          **{f"trained_{k}": v for k, v in macro(t1_reports, trained).items()}}]
 
     # Jev on the same records
@@ -99,7 +100,7 @@ def main() -> int:
 
     NL = chr(10)
     cols = ["model", "variant", "held-out acc", "held-out ECE", "held-out Brier", "trained acc", "trained ECE", "trained Brier"]
-    md = [f"# {label}: Tier 1 vs Tier 0 vs Jev", "",
+    md = [f"# {label}: {tier} vs Tier 0 vs Jev", "",
           f"Heads trained on {meta['n_train']:,} records from {len(trained)} sources (max {meta['max_slots']} options per record), "
           f"early-stopped on {meta['n_val']:,} validation records; epoch {meta['best_epoch']}.", "",
           f"**Held-out sources** (never seen in training): {', '.join('`' + s + '`' for s in held)}. "
@@ -124,7 +125,7 @@ def main() -> int:
 
         HfApi(token=os.environ.get("HF_TOKEN")).upload_folder(folder_path=str(results), path_in_repo=f"results/{a.run_id}",
                                                              repo_id="Praveenrajus/jev-bench", repo_type="dataset",
-                                                             commit_message=f"results: {a.run_id} (Tier 1)")
+                                                             commit_message=f"results: {a.run_id} ({tier})")
         print("pushed results/" + a.run_id)
     return 0
 
