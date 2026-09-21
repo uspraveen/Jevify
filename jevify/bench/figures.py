@@ -48,7 +48,7 @@ def _headline(fig, title: str, subtitle: str | None = None) -> None:
     h, w = fig.get_figheight(), fig.get_figwidth()
     # a long model name used to run off the right edge of the canvas; the title wraps now,
     # and the subtitle drops by however many lines the title took
-    title_lines = textwrap.wrap(title, width=max(20, int(w * 11.5))) or [title]
+    title_lines = textwrap.wrap(title, width=max(20, int(w * 9.3))) or [title]
     fig.text(0.012, 1 - 0.08 / h, chr(10).join(title_lines), fontsize=11, weight="semibold", color=INK,
              va="top", ha="left", linespacing=1.3)
     if subtitle:
@@ -61,7 +61,7 @@ def _wrapped_lines(fig, title: str, subtitle: str | None) -> int:
     """How many text lines the headline will occupy, for reserving top margin."""
     import textwrap
     w = fig.get_figwidth()
-    n = len(textwrap.wrap(title, width=max(20, int(w * 11.5))) or [title])
+    n = len(textwrap.wrap(title, width=max(20, int(w * 9.3))) or [title])
     if subtitle:
         n += len(textwrap.fill(subtitle, width=int(w * 14.5)).split(chr(10)))
     return n
@@ -398,6 +398,9 @@ def _annotate_without_overlap(fig, ax, pts: list[tuple[str, float, float]], font
         point_boxes.append(_box(px - 5, py - 5, px + 5, py + 5))
     near = [(5, 3), (5, -9), (-5, 3), (-5, -9), (5, 11), (-5, 11)]
     far = [(14, 16), (14, -18), (-14, 16), (-14, -18), (22, 28), (22, -30), (-22, 28), (-22, -30), (30, 40), (-30, 40)]
+    # a label that had to move away from its point gets a thin line back to it; without
+    # one, a displaced label in a crowded region reads as belonging to nothing
+    leader = {"arrowstyle": "-", "color": INK2, "alpha": 0.45, "lw": 0.7, "shrinkA": 0, "shrinkB": 3}
     axes_box = ax.get_window_extent(renderer)
     for src, x, y in sorted(pts, key=lambda q: (q[1], q[2])):
         chosen = None
@@ -405,7 +408,7 @@ def _annotate_without_overlap(fig, ax, pts: list[tuple[str, float, float]], font
             ha = "left" if dx > 0 else "right"
             kw = {}
             if (dx, dy) in far:
-                kw["arrowprops"] = {"arrowstyle": "-", "color": GRID, "lw": 0.7, "shrinkA": 0, "shrinkB": 3}
+                kw["arrowprops"] = leader
             ann = ax.annotate(src, (x, y), xytext=(dx, dy), textcoords="offset points", fontsize=fontsize, color=INK2, ha=ha, **kw)
             box = ann.get_window_extent(renderer).expanded(1.06, 1.2)
             inside = box.x0 >= axes_box.x0 - 2 and box.x1 <= axes_box.x1 + 2 and box.y0 >= axes_box.y0 - 2 and box.y1 <= axes_box.y1 + 2
@@ -421,8 +424,9 @@ def _annotate_without_overlap(fig, ax, pts: list[tuple[str, float, float]], font
             best = None
             for dx, dy in near + far:
                 ha = "left" if dx > 0 else "right"
+                kw = {"arrowprops": leader} if (dx, dy) in far else {}
                 ann = ax.annotate(src, (x, y), xytext=(dx, dy), textcoords="offset points",
-                                  fontsize=fontsize, color=INK2, ha=ha)
+                                  fontsize=fontsize, color=INK2, ha=ha, **kw)
                 box = ann.get_window_extent(renderer).expanded(1.06, 1.2)
                 cost = sum(_overlap_area(box, b) for b in placed + point_boxes)
                 if not (box.x0 >= axes_box.x0 - 2 and box.x1 <= axes_box.x1 + 2
