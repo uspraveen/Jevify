@@ -169,6 +169,13 @@ def load_jevified(repo_or_path: str, *, device: str | None = None, hf_token: str
         scorer = VisionScorer(config["backbone"], trust_remote_code=trust_remote_code or config.get("trust_remote_code", False),
                               hf_token=hf_token or os.environ.get("HF_TOKEN"),
                               max_pixels=config.get("max_pixels") or None)
+        if (path / "lora" / "adapter_config.json").exists():
+            # a vision Tier 2: the adapter -- on the tower, the decoder or both -- merges into
+            # the weights, so it serves at the speed of the plain checkpoint
+            from peft import PeftModel
+
+            scorer.model = PeftModel.from_pretrained(scorer.model, str(path / "lora")).merge_and_unload().eval()
+            config = {**config, "lora": True}
         return JevifiedModel(scorer, config, None)
     if engine == "vllm":
         from .engine.vllm_readout import VLLMScorer

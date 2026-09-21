@@ -270,11 +270,20 @@ def run_tier2(model_id: str, run_id: str, out_dir: Path | str, root: Path | str,
         "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu"})
 
 
-# --------------------------------------------------------------------------- vision Tier 0
+# --------------------------------------------------------------------------- vision Tier 0 / Tier 2
 def run_vision(model_id: str, run_id: str, out_dir: Path | str, *, sources: Sequence[str] | None = None,
                split: str = "test", limit: int = 0, batch: int = 8, max_pixels: int = 0,
-               trust_remote_code: bool = False) -> dict[str, Any]:
-    """Score a vision-language model on the vision configs of jev-bench, untrained."""
+               trust_remote_code: bool = False, lora: str = "", train_sources: Sequence[str] | None = None,
+               epochs: int = 3, lr: float = 1e-4, lora_r: int = 16, grad_accum: int = 2, seed: int = 0,
+               soft_labels: bool = False) -> dict[str, Any]:
+    """Score a vision-language model on the vision configs of jev-bench.
+
+    Untrained by default (Tier 0). With ``lora`` set to ``vision``, ``decoder`` or ``both``,
+    a LoRA confined to that half of the model is first trained on the readout over the
+    ``train_sources`` train split (Tier 2), early-stopped on their validation split; the
+    validation *and* test splits of every source are then scored, so the recipe can be
+    fitted on validation and the held-out sources read on test.
+    """
     import torch
 
     from .bench.adapters import VISION_REGISTRY
@@ -294,6 +303,33 @@ def run_vision(model_id: str, run_id: str, out_dir: Path | str, *, sources: Sequ
                           hf_token=os.environ.get("HF_TOKEN"))
     t_load = time.time() - t0
 
+    trained: dict[str, Any] = {}
+    if lora:
+        from .engine.vision_tier2 import attach_lora, train_vision_tier2
+
+        tr_src = list(train_sources) if train_sources else [
+            s for s in want if VISION_REGISTRY[s].spec.caps.get("train", 0) > 0]
+        train_recs = build_vision_records(tr_src, "train", 0)
+        stop_recs = build_vision_records(tr_src, "validation", 0)
+        pattern, trainable = attach_lora(scorer, where=lora, r=lora_r)
+        print(f"[{run_id}] LoRA({lora}) on {len(train_recs)} train records from {tr_src}, "
+              f"early stopping on {len(stop_recs)}", flush=True)
+        info = train_vision_tier2(scorer, train_recs, stop_recs, epochs=epochs, batch_size=batch,
+                                  grad_accum=grad_accum, lr=lr, seed=seed, soft_labels=soft_labels,
+                                  checkpoint_dir=out_dir)
+        scorer.model.save_pretrained(str(out_dir / "lora"))
+        trained = {"tier": 2, "lora_where": lora, "lora_pattern": pattern, "lora_r": lora_r,
+                   "lora_trainable": trainable, "train_sources": tr_src, "n_train": len(train_recs),
+                   "n_val": len(stop_recs), "epochs": epochs, "lr": lr, "grad_accum": grad_accum,
+                   "seed": seed, "soft_labels": soft_labels, "heldout_sources": [s for s in want if s not in tr_src],
+                   **info}
+        # the recipe is fitted on validation predictions from the *adapted* model
+        val_recs = build_vision_records(want, "validation", 0)
+        n_val = write_predictions(out_dir / "validation_predictions.jsonl",
+                                  VisionRunner(scorer).predict(val_recs, batch=batch), progress_every=200)
+        write_vision_records(out_dir / "validation_records.jsonl", val_recs)
+        trained["n_validation_scored"] = n_val
+
     # A pixel budget that was *set* is not necessarily a budget that *took*: processors
     # ignore keys they do not have. Record what applied, and the token count it actually
     # produced, so a sweep over budgets compares measured visual signal and not intent.
@@ -312,6 +348,7 @@ def run_vision(model_id: str, run_id: str, out_dir: Path | str, *, sources: Sequ
         "run_id": run_id, "model_id": model_id, "modality": "vision", "tier": 0, "sources": want,
         "split": split, "n": n, "max_pixels": max_pixels or None, "budget": budget,
         "vision_stage": describe(scorer.model), "load_s": round(t_load, 1),
+        **trained,
         "wall_s": round(time.time() - t0, 1),
         "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu"})
 
@@ -378,6 +415,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--max-pixels", type=int, default=0)
     ap.add_argument("--trust-remote-code", action="store_true")
+    ap.add_argument("--lora", default="", choices=["", "vision", "decoder", "both"],
+                    help="vision: train a LoRA confined to this half of the model on the readout (Tier 2)")
+    ap.add_argument("--train-sources", default="", help="vision --lora: comma-separated; defaults to sources with a train split")
     ap.add_argument("--describe", action="store_true",
                     help="vision: print the model's vision-stage inventory and exit")
     a = ap.parse_args(argv)
@@ -393,7 +433,10 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if a.tier == "vision":
         run_vision(**common, sources=[s for s in a.sources.split(",") if s] or None, split=a.split,
-                   limit=a.limit, batch=a.batch or 8, max_pixels=a.max_pixels)
+                   limit=a.limit, batch=a.batch or (4 if a.lora else 8), max_pixels=a.max_pixels,
+                   lora=a.lora, train_sources=[s for s in a.train_sources.split(",") if s] or None,
+                   epochs=a.epochs or 3, lr=a.lora_lr, lora_r=a.lora_r, grad_accum=a.grad_accum,
+                   seed=a.seed, soft_labels=a.soft_labels)
         return 0
 
     root = Path(a.bench) if a.bench else bench_root(Path(a.out) / "jev-bench", a.bench_repo)
