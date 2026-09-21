@@ -1,11 +1,15 @@
 """Package a Jevified model and publish it to the Hub so anyone can load it.
 
     python scripts/publish_model.py --run-id qwen35-4b-t1r --repo Praveenrajus/jevify-qwen3.5-4b [--push]
+    python scripts/publish_model.py --run-id qwen35-4b-t2 --from runs/qwen35-4b-t2 --repo Praveenrajus/jevify-qwen3.5-4b-t2 --push
 
 A Jevified model is a *small* artifact: the backbone stays on the Hub as-is, and this
-repo carries only what Jevify adds — the trained decision heads (a few MB), the recipe,
-the benchmark numbers it earned, and a config naming the backbone it attaches to. Loading
-it pulls the backbone from its own repo, so no weights are duplicated or relicensed.
+repo carries only what Jevify adds — the trained decision heads (a few MB), a LoRA adapter
+if the backbone was allowed to move (Tier 2; merged into the weights at load, so it serves
+at the backbone's own speed), the recipe, the benchmark numbers it earned, and a config
+naming the backbone it attaches to. Loading it pulls the backbone from its own repo, so no
+weights are duplicated or relicensed. ``--from`` packages a run directory that is already
+local (a run trained on one GPU rather than on Modal).
 """
 from __future__ import annotations
 
@@ -42,8 +46,8 @@ questions, and returns calibrated probability distributions your code can branch
 | `noul` | is this true? | a single `P(yes)` |
 
 This repo holds only what Jevify adds to `{backbone}`: **{n_params:,} parameters** of trained
-decision heads ({size_mb:.1f} MB) plus the calibration recipe. The backbone is pulled from its
-own repo at load time, so nothing is duplicated or relicensed.
+decision heads ({size_mb:.1f} MB){adapter_note} plus the calibration recipe. The backbone is pulled
+from its own repo at load time, so nothing is duplicated or relicensed.
 
 ## Results on [jev-bench]({bench_url})
 
@@ -109,7 +113,8 @@ measured rather than assumed. Full method, findings and limitations:
 - Ordinal (`score`) questions on scales unlike those in training are the weakest case.
 - The heads are trained on jev-bench's own train splits, so "held out" means held-out *source*,
   not a wholly different data universe.
-- One seed per backbone. Directions replicate across two backbones; magnitudes will move.
+- This run is one seed. The seed study in FINDINGS §6.3a found held-out accuracy to move by ±0.05 across
+  seeds for a 2B residual head, so differences of that size between models are noise, not signal.
 """
 
 
@@ -123,16 +128,31 @@ def main() -> int:
     ap.add_argument("--repo", required=True)
     ap.add_argument("--tier0", default=None, help="Tier 0 run of the same backbone, for the comparison row")
     ap.add_argument("--records", type=Path, default=ROOT / "data" / "jev-bench")
+    ap.add_argument("--from", dest="src", type=Path, default=None,
+                    help="a local run directory (heads/, lora/, run.json) instead of the Modal volume")
     ap.add_argument("--push", action="store_true")
     a = ap.parse_args()
 
     out = ROOT / "artifacts" / a.run_id
     (out / "heads").mkdir(parents=True, exist_ok=True)
-    for name in ("heads/heads.pt", "heads/heads.json", "run.json"):
-        r = sh([MODAL, "volume", "get", "jevify-runs", f"{a.run_id}/{name}", str(out / name), "--force"])
-        if r.returncode != 0 and not (out / name).exists():
-            print(f"missing: {name}", file=sys.stderr)
-            return 1
+    wanted = ["heads/heads.pt", "heads/heads.json", "run.json"]
+    if a.src is not None:
+        import shutil
+
+        if (a.src / "lora" / "adapter_config.json").exists():
+            wanted += ["lora/" + f.name for f in (a.src / "lora").iterdir() if f.is_file()]
+        for name in wanted:
+            (out / name).parent.mkdir(parents=True, exist_ok=True)
+            if not (a.src / name).exists():
+                print(f"missing: {a.src / name}", file=sys.stderr)
+                return 1
+            shutil.copy(a.src / name, out / name)
+    else:
+        for name in wanted:
+            r = sh([MODAL, "volume", "get", "jevify-runs", f"{a.run_id}/{name}", str(out / name), "--force"])
+            if r.returncode != 0 and not (out / name).exists():
+                print(f"missing: {name}", file=sys.stderr)
+                return 1
     meta = json.loads((out / "run.json").read_text())
     heads_info = json.loads((out / "heads" / "heads.json").read_text())
     backbone = meta["model_id"]
@@ -142,6 +162,13 @@ def main() -> int:
     state = torch.load(out / "heads" / "heads.pt", map_location="cpu")
     n_params = sum(v.numel() for v in state.values())
     size_mb = (out / "heads" / "heads.pt").stat().st_size / 1e6
+    lora_dir = out / "lora"
+    has_lora = (lora_dir / "adapter_config.json").exists()
+    adapter_note = ""
+    if has_lora:
+        lora_mb = sum(f.stat().st_size for f in lora_dir.iterdir() if f.is_file()) / 1e6
+        adapter_note = (f" and a rank-{meta.get('lora_r', 16)} LoRA adapter ({lora_mb:.0f} MB, "
+                        f"{meta.get('lora_trainable', 0):,} parameters) that is merged into the backbone at load")
 
     # the config a loader needs: which backbone, which layer, which recipe
     cfg = {"jevify_version": 1, "tier": meta.get("tier", 1), "backbone": backbone,
@@ -150,6 +177,9 @@ def main() -> int:
            "heldout_sources": meta.get("heldout_sources", []),
            "trained_on": "Praveenrajus/jev-bench", "n_train": meta.get("n_train"),
            "lm_weight": meta.get("lm_weight"), "best_epoch": meta.get("best_epoch")}
+    if has_lora:
+        cfg["lora"] = {"r": meta.get("lora_r", 16), "lr": meta.get("lora_lr"), "epochs": meta.get("epochs"),
+                       "trainable": meta.get("lora_trainable"), "merged_at_load": True}
     (out / "jevify_config.json").write_text(json.dumps(cfg, indent=1), encoding="utf-8")
 
     # results table straight from the scored run
@@ -177,7 +207,15 @@ def main() -> int:
            f"log-score** — `score_i = w·lm_i + f(...)` with `f` zero-initialized — so training starts exactly at the "
            f"untrained baseline and can only add to it. Trained on {meta.get('n_train', 0):,} records from 16 sources "
            f"with at most {meta.get('max_slots', 16)} options each, which is what keeps the head usable at any K.")
+    if has_lora:
+        NL = chr(10)
+        how += (f"{NL}{NL}This is a **Tier 2** model: a rank-{meta.get('lora_r', 16)} LoRA on the backbone's attention and MLP "
+                f"projections was trained *jointly* with the heads (LoRA learning rate {meta.get('lora_lr')}, "
+                f"{meta.get('epochs')} epochs, best epoch {meta.get('best_epoch')} by validation loss), so the backbone "
+                f"can learn to put the judgment at the option's position instead of only being read there. The adapter "
+                f"is merged into the weights when the model loads, so inference costs exactly what the plain backbone costs.")
     card = CARD.format(name=a.repo.split("/")[-1], backbone=backbone, n_params=n_params, size_mb=size_mb,
+                       adapter_note=adapter_note,
                        n_test=meta.get("n_test", 22773), bench_url="https://huggingface.co/datasets/Praveenrajus/jev-bench",
                        results_table=chr(10).join(lines), tier_note=tier_note, repo=a.repo, how_built=how)
     (out / "README.md").write_text(card, encoding="utf-8")
@@ -189,7 +227,8 @@ def main() -> int:
         api = HfApi(token=os.environ.get("HF_TOKEN"))
         api.create_repo(a.repo, repo_type="model", exist_ok=True)
         api.upload_folder(folder_path=str(out), repo_id=a.repo, repo_type="model",
-                          ignore_patterns=["run.json"], commit_message="Jevified decision heads")
+                          ignore_patterns=["run.json"],
+                          commit_message="Jevified decision heads" + (" + LoRA adapter" if has_lora else ""))
         print(f"pushed https://huggingface.co/{a.repo}")
     return 0
 
