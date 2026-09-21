@@ -49,9 +49,11 @@ def main() -> int:
                     "metrics": json.loads((jev_dir / "test_metrics.json").read_text(encoding="utf-8")),
                     "preds": jev_dir / "test_predictions.jsonl", "cost": None, "gpu": None})
     for d in sorted((ROOT / "results").glob("*/")):
-        if not (d / "test_metrics.json").exists() or d.name == "leaderboard":
+        # a Jevified run always carries run.json; results/jev-1.13.0 (the baseline, added
+        # explicitly above) and results/leaderboard do not, and neither is a model row
+        if not (d / "test_metrics.json").exists() or not (d / "run.json").exists():
             continue
-        run = json.loads((d / "run.json").read_text()) if (d / "run.json").exists() else {}
+        run = json.loads((d / "run.json").read_text())
         if run.get("modality") == "vision":
             # vision runs score different sources (POPE, A-OKVQA, AI2D); averaging them into the
             # text leaderboard would compare nothing with nothing. They have their own card section.
@@ -62,7 +64,9 @@ def main() -> int:
         entries.append({"run": d.name, "label": run.get("model_id", d.name) + ("" if not run.get("tier") else f" ({tier})"),
                         "tier": tier, "params": "",
                         "metrics": json.loads((d / "test_metrics.json").read_text(encoding="utf-8")),
-                        "preds": d / "test_predictions.jsonl", "cost": run.get("est_cost_usd"), "gpu": run.get("gpu"),
+                        "preds": d / "test_predictions.jsonl", "cost": run.get("est_cost_usd"),
+                        # rented runs record the Modal GPU name; runs on our own hardware record the device
+                        "gpu": run.get("gpu") or (run.get("device", "").replace("NVIDIA ", "") or None),
                         "chat": run.get("chat_applied"), "recipe": recipe.get("recipe")})
     rows = []
     for e in entries:
