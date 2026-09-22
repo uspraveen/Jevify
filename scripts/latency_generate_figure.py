@@ -47,7 +47,7 @@ def main() -> int:
         return 1
 
     plt = F._mpl()
-    fig, ax = plt.subplots(figsize=(11.0, 4.9))
+    fig, ax = plt.subplots(figsize=(11.0, 5.3))
     series = [("readout (one forward pass)", F.PRIM_COLOR["choice"])] + \
              [(f"generate {n} token{'s' if n > 1 else ''}", F.BLUE_RAMP[i]) for i, n in zip((1, 4, 7), new_tokens)]
     x = np.arange(len(cols)); n_s = len(series); w = 0.8 / n_s
@@ -65,13 +65,17 @@ def main() -> int:
     ax.set_ylabel("median latency per request (ms)", fontsize=9); ax.tick_params(length=0)
     ax.set_ylim(0, top * 1.38)
     ax.grid(True, axis="y", color=F.GRID, lw=0.6, zorder=0); ax.grid(False, axis="x")
-    ax.legend(loc="upper left", fontsize=7.6, ncol=2)
+    handles, labels = ax.get_legend_handles_labels()
+    h_in = fig.get_figheight()
+    fig.legend(handles, labels, loc="lower center", ncol=4, fontsize=7.6, frameon=False,
+               bbox_to_anchor=(0.5, 0.30 / h_in), handlelength=1.6, columnspacing=1.6)
 
     title = f"Reading the answer against decoding it, same model, same prompt, one {device}"
     sub = ("A Jevified answer is the prefill alone: the prompt goes through once and every allowed answer's probability is read "
            "from the last position. Decoding the same answer as text pays the prefill and then one decoder step per token "
            "(Hugging Face eager, greedy). A one-word answer is a wash; anything longer is not.")
-    fig.tight_layout(rect=F._layout(fig, F._wrapped_lines(fig, title, sub)))
+    left, bottom, right, top_ = F._layout(fig, F._wrapped_lines(fig, title, sub))
+    fig.tight_layout(rect=(left, bottom + 0.34 / h_in, right, top_))
     F._headline(fig, title, sub)
     F.PROVENANCE = f"jev-bench v0.1.1 · {datetime.date.today().isoformat()}"
     F._footer(fig)
