@@ -49,7 +49,7 @@ def main() -> int:
         return 1
 
     plt = F._mpl()
-    fig, axes = plt.subplots(1, 2, figsize=(11.4, 4.6))
+    fig, axes = plt.subplots(1, 2, figsize=(11.4, 5.0))
     x = np.arange(len(SOURCES))
     n = len(arms)
     w = 0.8 / n
@@ -69,7 +69,11 @@ def main() -> int:
         # accuracy is bounded: never draw an axis past 1.0 (a defect this project has shipped before)
         ax.set_ylim(0, min(1.0, top * 1.42) if metric == "accuracy" else top * (1.42 if n > 3 else 1.3))
         ax.grid(True, axis="y", color=F.GRID, lw=0.6, zorder=0); ax.grid(False, axis="x")
-    axes[0].legend(loc="upper left", fontsize=7.4, ncol=2)
+    # the tall POPE bars leave no corner free inside the axes: one legend for both panels, under them
+    handles, labels = axes[0].get_legend_handles_labels()
+    h_in = fig.get_figheight()
+    fig.legend(handles, labels, loc="lower center", ncol=4, fontsize=7.6, frameon=False,
+               bbox_to_anchor=(0.5, 0.30 / h_in), handlelength=1.6, columnspacing=1.6)
 
     tr = next((arm for arm in arms if arm["run"].endswith("-vision")), None)
     n_train = (tr or arms[-1])["meta"].get("n_train", 0)
@@ -77,7 +81,8 @@ def main() -> int:
     sub = (f"Each LoRA (rank 16) is trained on the readout itself over {n_train:,} A-OKVQA records, early-stopped on A-OKVQA "
            "validation, and then given its own calibration recipe. POPE and AI2D never appeared in training. "
            "A tower-scoped adapter can only change what the model sees; a decoder-scoped one only how it decides.")
-    fig.tight_layout(rect=F._layout(fig, F._wrapped_lines(fig, title, sub)))
+    left, bottom, right, top = F._layout(fig, F._wrapped_lines(fig, title, sub))
+    fig.tight_layout(rect=(left, bottom + 0.34 / h_in, right, top))       # room for the legend row
     F._headline(fig, title, sub)
     F.PROVENANCE = f"jev-bench v0.1.1 · {datetime.date.today().isoformat()}"
     F._footer(fig)
