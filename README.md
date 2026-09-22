@@ -130,8 +130,16 @@ never appears, and the budget saturates silently (512 and 1024 patches both give
 Served through the same `ask` path as the text models, an image question takes **68–79 ms** on
 one A40 (~350 input tokens, 85% of them image), four questions about one image 221 ms, 12.6
 records/s batched — under Jev's 180–220 ms text round trip, and Jev takes no images.
-Published: [`Praveenrajus/jevify-qwen3-vl-2b`](https://huggingface.co/Praveenrajus/jevify-qwen3-vl-2b).
+And the vision tower was the wrong place to look: a LoRA trained on the readout over 2,000 A-OKVQA
+records transfers to science diagrams it never saw when it lives in the **decoder** (AI2D 0.652 →
+**0.707**, macro ECE 0.047 → **0.035**) and barely when confined to the tower (0.669); after the
+decoder LoRA the fitted Choice temperature is 1.001 — training on a proper scoring rule made the
+recipe redundant on the trained primitive.
+Published: [`Praveenrajus/jevify-qwen3-vl-2b`](https://huggingface.co/Praveenrajus/jevify-qwen3-vl-2b) (Tier 0) ·
+[`Praveenrajus/jevify-qwen3-vl-2b-t2`](https://huggingface.co/Praveenrajus/jevify-qwen3-vl-2b-t2) (decoder LoRA).
 [· detail](docs/FINDINGS.md#9-vision-does-any-of-this-transfer)
+
+![Three LoRA scopes against the untrained readout](results/figures/vision_lora_scopes.png)
 
 ![What the vision encoder's budget buys](results/vision-budget/vision_budget.png)
 
@@ -178,7 +186,8 @@ with TypeSafeClient() as client:
 (Tier 2: heads + a LoRA merged at load, 97 MB — macro accuracy 0.747, above Jev's 0.733) ·
 [jevify-qwen3.5-4b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b) ·
 [jevify-qwen3.5-2b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b) (Tier 1, ~11 MB each) ·
-[jevify-qwen3-vl-2b](https://huggingface.co/Praveenrajus/jevify-qwen3-vl-2b) (vision, Tier 0 recipe).
+[jevify-qwen3-vl-2b](https://huggingface.co/Praveenrajus/jevify-qwen3-vl-2b) (vision, Tier 0 recipe) ·
+[jevify-qwen3-vl-2b-t2](https://huggingface.co/Praveenrajus/jevify-qwen3-vl-2b-t2) (vision, decoder LoRA merged at load).
 The backbone is pulled from its own repo, so nothing is duplicated.
 
 ```python
@@ -284,7 +293,8 @@ per-config metrics, recipe and figures.
 - [x] Vision served at Jev speed: recipe-fitted Qwen3-VL-2B published; 68–79 ms per image question on one A40
 - [x] Seeds on the Tier 2 arms: the learning-rate result holds (3 seeds each); LoRA held-out accuracy is seed-stable
 - [ ] Soft labels at the low learning rate; the low learning rate at 4B
-- [ ] Vision Tier 2: LoRA confined to the tower vs the decoder vs both (running); more ordinal scales; Tier 1 at 7B+
+- [x] Vision Tier 2: LoRA on the readout, tower vs decoder vs both — the decoder is where transfer lives (AI2D +0.055 held out)
+- [ ] 8B-class vision and text (Qwen3-VL-8B, Gemma 4) — latency and Tier 0 quality on one A40; more ordinal scales; Tier 1 at 7B+
 - [ ] Label-first synthetic data pipeline; HF Space; model zoo
 
 ## Why tiers, and why no RL

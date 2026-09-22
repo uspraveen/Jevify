@@ -17,6 +17,8 @@ on the Hub. **Each figure exists in exactly one place: next to the data that pro
 | `qwen3vl-2b/` | Vision Tier 0 (POPE / A-OKVQA / AI2D, 4,244 records), recipe-fitted on validation splits (`recipe.json`, `ablation.md`), with a text-only records manifest since images do not round-trip through the per-source layout; published as `Praveenrajus/jevify-qwen3-vl-2b` | `python -m jevify.train vision`, `jevify-run recipe`, `scripts/publish_recipe.py` |
 | `latency/` | Single-request latency vs answer-set size and batched throughput for four sizes × three tiers on one A40, against Jev's measured round trip | `scripts/latency.py` |
 | `jev-latency-probe/` | Controlled probes of the Jev API with the server's own clock: fixed floor + per-token cost; options, questions and caching isolated | `scripts/probe_jev_latency.py` |
+| `qwen3vl-2b-t2-{vision,decoder,both}/` | Vision Tier 2: a rank-16 LoRA on the readout confined to the tower, the decoder, or both (A-OKVQA train; POPE/AI2D held out), each with its own recipe; `lora/` is the adapter | `python -m jevify.train vision --lora …`, `jevify-run recipe` |
+| `figures/vision_lora_scopes.*` | The three scopes against Tier 0, per source, with the table the docs quote | `scripts/vision_lora_figure.py` |
 | `latency/latency_vision.*` | Vision serving latency on one A40: per-source p50/p90, input and image tokens, batched throughput; `latency_vision_multi.json` times several questions about one image | `scripts/latency_vision.py` |
 | `vision-budget/` | The encoder budget sweep: `results.json`, table, `vision_budget.png` | `scripts/vision_budget.py` |
 

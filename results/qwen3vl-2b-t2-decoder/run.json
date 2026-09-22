@@ -1,0 +1,99 @@
+{
+ "run_id": "qwen3vl-2b-t2-decoder",
+ "model_id": "Qwen/Qwen3-VL-2B-Instruct",
+ "modality": "vision",
+ "tier": 2,
+ "sources": [
+  "pope",
+  "aokvqa",
+  "ai2d"
+ ],
+ "split": "test",
+ "n": 4244,
+ "max_pixels": null,
+ "budget": {
+  "effective": {
+   "max_pixels": 16777216,
+   "min_pixels": 65536
+  },
+  "size": {
+   "longest_edge": 16777216,
+   "shortest_edge": 65536
+  },
+  "image_tokens": {
+   "median": 300,
+   "min": 192,
+   "max": 400,
+   "n_sampled": 24
+  }
+ },
+ "vision_stage": {
+  "is_vlm": true,
+  "total_params": 2144964608,
+  "vision_tower": {
+   "path": "base_model.model.model.visual",
+   "class": "Qwen3VLVisionModel",
+   "params": 406957056,
+   "share_of_model": 0.1897,
+   "layers": 24,
+   "frozen": true
+  },
+  "projector": {
+   "path": "base_model.model.model.visual.deepstack_merger_list",
+   "class": "ModuleList",
+   "params": 75540480,
+   "share_of_model": 0.0352
+  },
+  "decoder_params": 1662467072,
+  "vision_config": {
+   "hidden_size": 1024,
+   "patch_size": 16,
+   "num_attention_heads": 16,
+   "spatial_merge_size": 2
+  }
+ },
+ "load_s": 31.1,
+ "lora_where": "decoder",
+ "lora_pattern": "^(?!model\\.visual\\.).*\\.(down_proj|gate_proj|k_proj|o_proj|q_proj|up_proj|v_proj)$",
+ "lora_r": 16,
+ "lora_trainable": 17432576,
+ "train_sources": [
+  "aokvqa"
+ ],
+ "n_train": 2000,
+ "n_val": 401,
+ "epochs": 3,
+ "lr": 0.0001,
+ "grad_accum": 2,
+ "seed": 0,
+ "soft_labels": false,
+ "heldout_sources": [
+  "pope",
+  "ai2d"
+ ],
+ "history": [
+  {
+   "epoch": 0,
+   "train": 0.5343,
+   "loss": 0.427,
+   "choice": 0.4255
+  },
+  {
+   "epoch": 1,
+   "train": 0.3013,
+   "loss": 0.4852,
+   "choice": 0.4817
+  },
+  {
+   "epoch": 2,
+   "train": 0.0754,
+   "loss": 0.7858,
+   "choice": 0.78
+  }
+ ],
+ "best_epoch": 0,
+ "best_val_loss": 0.4269683377403868,
+ "n_validation_scored": 1401,
+ "wall_s": 1993.7,
+ "device": "NVIDIA A40"
+}

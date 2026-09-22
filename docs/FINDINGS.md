@@ -591,6 +591,52 @@ table; `load_jevified("Praveenrajus/jevify-qwen3-vl-2b")` pulls Qwen3-VL-2B from
 and applies the recipe. Nothing is duplicated or relicensed. `scripts/publish_recipe.py` does
 this for any recipe-fitted run.
 
+**9.10 Letting the vision tower move buys a third of what letting the decoder move buys.**
+Section 9.6 made the tower addressable; this is the experiment it was built for. A VLM prompt
+has no per-option slot positions that survive image-token expansion, so the vision Tier 2
+trains the *readout itself* — the restricted log-softmax over the allowed answers at the answer
+position, the quantity Tier 0 reads — with the primitive's proper scoring rule, and the adapter
+merges into the backbone at load. Three rank-16 LoRAs, identical data (2,000 A-OKVQA train
+records), identical early stopping (A-OKVQA validation), identical learning rate (1e-4), each
+followed by its own recipe fit; POPE and AI2D never appeared in training:
+
+| arm | trainable | A-OKVQA (trained) acc / ECE | POPE (held out) | AI2D (held out) | macro acc | macro ECE |
+|---|---|---|---|---|---|---|
+| Tier 0, no training | — | 0.793 / 0.037 | 0.891 / 0.046 | 0.652 / 0.059 | 0.779 | 0.047 |
+| LoRA on the vision tower (+ projector) | 7.2M | 0.792 / 0.046 | 0.887 / **0.030** | 0.669 / 0.057 | 0.783 | 0.045 |
+| LoRA on the decoder | 17.4M | 0.813 / **0.027** | **0.893** / 0.037 | **0.707** / 0.041 | **0.804** | **0.035** |
+| LoRA on both | 24.7M | **0.819** / 0.040 | 0.880 / 0.032 | 0.697 / 0.040 | 0.799 | 0.037 |
+
+![Three LoRA scopes against the untrained readout](../results/figures/vision_lora_scopes.png)
+
+Four things to read off it.
+
+*The decoder is where the transfer lives.* Trained on photographs with knowledge questions, the
+decoder adapter gains **+0.055 on AI2D** — science diagrams, a source it never saw and the one we
+called "plausibly perceptual" in the open questions — and lowers its ECE from 0.059 to 0.041. The
+tower adapter, which can only change what the model sees, gains +0.017 on the same source and
+nothing on the source it trained on. AI2D's weakness was not (mostly) in the eyes.
+
+*Adapting both is not additive.* "Both" lands between the two on every held-out number and
+below the decoder alone on macro accuracy (0.799 vs 0.804): with the tower free to move as well,
+the same 2,000 records are spent on two halves and generalize slightly worse.
+
+*Training the readout on a proper scoring rule makes the temperature redundant — on the trained
+primitive.* After the decoder LoRA, the fitted Choice temperature is **1.001** (Tier 0 needed
+1.92): the raw readout is already calibrated (Choice ECE 0.033 before any recipe, 0.149 at Tier
+0), and the recipe changes nothing. On Noul, which the adapter never trained, the recipe still
+works — but less than at Tier 0 (temperature 1.31 and bias +1.4, against 2.63 and +1.8): the
+decoder's yes/no readout moved toward calibration on a primitive it was not trained on.
+
+*It overfits after one pass, like the text 2B.* Every arm's best epoch is 0; validation loss then
+rises (decoder 0.427 → 0.485 → 0.786). The 2,000-record budget is the constraint, not the
+adapter.
+
+One seed per arm, so read differences under ~0.02 with the Tier 2 seed study (7.5) in mind; the
+decoder-vs-tower gap on AI2D (0.038) and on macro accuracy (0.021) are the claims.
+*(`results/qwen3vl-2b-t2-{vision,decoder,both}/`, `scripts/vision_lora_figure.py`; published:
+`Praveenrajus/jevify-qwen3-vl-2b-t2`.)*
+
 ---
 
 ## 10. Open questions
@@ -609,9 +655,9 @@ this for any recipe-fitted run.
   what the Noul head actually predicts under soft targets, are the next two runs.
 - **Does the LoRA learning-rate result hold at 4B?** At 2B it holds across three seeds (7.5); the 4B
   run used the high learning rate and one seed.
-- **Does a vision-scoped LoRA help where a decoder-scoped one cannot?** Section 8 makes the
-  tower addressable but does not adapt it. The natural test is AI2D, the weakest source by a
-  wide margin (0.652) and the one whose difficulty is most plausibly perceptual rather than
-  linguistic.
+- **Does a vision-scoped LoRA help where a decoder-scoped one cannot?** Answered in 9.10 for one
+  backbone and one training source: no — the decoder adapter transfers to diagrams (+0.055 on
+  AI2D) and the tower adapter barely does (+0.017). Open: whether that reverses with a training
+  source whose difficulty *is* perceptual, and whether it holds at 8B.
 - **Does the budget/calibration relationship hold for a model that is badly calibrated to
   begin with?** Qwen3-VL-2B degrades gracefully. A model that starts overconfident may not.
