@@ -113,6 +113,19 @@ def fit_temperature_k(ls: list[list[float]], y: list[int], ks: list[int], T0: fl
     return best[1], best[2], best[0], base
 
 
+def fit_temperature_and_bias(ls: list[list[float]], y: list[int]) -> tuple[float, float]:
+    """Platt scaling for a fixed binary answer set: search a scalar bias on the 'yes' log-score
+    (index 1) and fit the temperature for each; return the pair with the lowest NLL."""
+    best = (float("inf"), 1.0, 0.0)
+    for b in [x / 10 for x in range(-40, 41)]:
+        shifted = [[s0, s1 + b] for s0, s1 in ls]
+        T = fit_temperature(shifted, y)
+        val = float(np.mean([-np.log(max(softmax(s, T)[yy], 1e-12)) for s, yy in zip(shifted, y)]))
+        if val < best[0]:
+            best = (val, T, b)
+    return best[1], best[2]
+
+
 def fit_recipe(records: Sequence[BenchRecord], preds: Sequence[Prediction], base: Recipe,
                *, k_slope: bool = True) -> tuple[Recipe, dict[str, Any]]:
     """Per primitive, grid over {permutations: 1 | all stored} x {prior_weight: 0 | 1}, fit the
