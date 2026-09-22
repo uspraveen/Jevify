@@ -58,10 +58,15 @@ def test_loss_covers_every_primitive(scorer):
     assert detail["n_choice"] == detail["n_noul"] == detail["n_score"] == 1
 
 
-def test_vision_scoped_lora_touches_only_the_tower_and_learns():
+def test_vision_scoped_lora_touches_only_the_tower_and_restores_the_best_epoch():
+    """The mechanism, not the outcome: a toy of six solid-colour images says nothing about whether
+    a tower adapter *helps* (that is what the A-OKVQA run measures), but it can check that only the
+    tower moves, that the base weights never do, and that what remains after training is the best
+    epoch by validation loss rather than the last one."""
     sc = VisionScorer(TINY_VLM, device="cpu", dtype=torch.float32, batch_size=2)
     tower_name, _ = find_vision_tower(sc.model)
     assert tower_name
+    base_before = {n: p.detach().clone() for n, p in sc.model.named_parameters()}
     pattern, trainable = attach_lora(sc, where="vision", r=4)
     assert trainable > 0
     grads = [n for n, p in sc.model.named_parameters() if p.requires_grad]
@@ -71,11 +76,15 @@ def test_vision_scoped_lora_touches_only_the_tower_and_learns():
     train = [_rec(i, c, c) for i, c in enumerate(["red", "blue", "green", "red", "blue", "green"])]
     val = [_rec(10, "red", "red"), _rec(11, "blue", "blue")]
     readout = VisionReadout(sc)
-    before = readout_loss(readout.batch(val))[0].item()
-    info = train_vision_tier2(sc, train, val, epochs=2, batch_size=2, grad_accum=1, lr=5e-3, checkpoint_dir=None)
+    info = train_vision_tier2(sc, train, val, epochs=2, batch_size=2, grad_accum=1, lr=1e-3, checkpoint_dir=None)
     assert info["best_epoch"] >= 0 and len(info["history"]) == 2
     after = readout_loss(readout.batch(val))[0].item()
-    assert after <= before + 1e-6, (before, after)
+    best = min(h["loss"] for h in info["history"])
+    assert abs(after - best) < 1e-3, (after, best, info["history"])      # the best epoch is what remains
+    live = dict(sc.model.named_parameters())
+    for n, v in base_before.items():                                     # the base weights never moved
+        wrapped = next((m for m in live if m.endswith(n)), None)
+        assert wrapped is not None and torch.equal(live[wrapped], v), n
 
 
 def test_decoder_scoped_lora_leaves_the_tower_alone():
