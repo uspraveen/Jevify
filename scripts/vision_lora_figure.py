@@ -66,7 +66,8 @@ def main() -> int:
                     top = max(top, v)
         ax.set_xticks(x); ax.set_xticklabels([lbl for _, lbl in SOURCES], fontsize=8)
         ax.set_ylabel(f"{name} ({better})", fontsize=9); ax.tick_params(length=0)
-        ax.set_ylim(0, top * (1.42 if n > 3 else 1.3))
+        # accuracy is bounded: never draw an axis past 1.0 (a defect this project has shipped before)
+        ax.set_ylim(0, min(1.0, top * 1.42) if metric == "accuracy" else top * (1.42 if n > 3 else 1.3))
         ax.grid(True, axis="y", color=F.GRID, lw=0.6, zorder=0); ax.grid(False, axis="x")
     axes[0].legend(loc="upper left", fontsize=7.4, ncol=2)
 
