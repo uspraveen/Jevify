@@ -7,14 +7,15 @@
    "score": 1,
    "noul": 1
   },
+  "state_last": false,
   "prior_weight": {
    "choice": 1.0,
    "score": 0.0,
    "noul": 1.0
   },
   "temperature": {
-   "choice": 0.8692,
-   "score": 2.8255,
+   "choice": 0.8691,
+   "score": 2.8249,
    "noul": 1.0286
   },
   "bias": {
@@ -27,14 +28,14 @@
     "permutations": 1,
     "prior_weight": 0.0,
     "choice": {
-     "T": 12.9765,
+     "T": 5.0977,
      "bias": 0.0,
-     "nll": 3.1153,
-     "nll_raw": 4.8569,
+     "nll": 3.0772,
+     "nll_raw": 4.2345,
      "n": 1600
     },
     "score": {
-     "T": 2.8255,
+     "T": 2.8249,
      "bias": 0.0,
      "nll": 1.4908,
      "nll_raw": 1.6354,
@@ -52,14 +53,14 @@
     "permutations": 1,
     "prior_weight": 1.0,
     "choice": {
-     "T": 1.0286,
+     "T": 1.0289,
      "bias": 0.0,
-     "nll": 2.6159,
-     "nll_raw": 2.6163,
+     "nll": 2.6164,
+     "nll_raw": 2.6167,
      "n": 1600
     },
     "score": {
-     "T": 3.6509,
+     "T": 3.6507,
      "bias": 0.0,
      "nll": 1.5244,
      "nll_raw": 1.6994,
@@ -77,14 +78,14 @@
     "permutations": 2,
     "prior_weight": 0.0,
     "choice": {
-     "T": 2.8063,
+     "T": 2.3913,
      "bias": 0.0,
-     "nll": 2.9841,
-     "nll_raw": 3.4242,
+     "nll": 2.9395,
+     "nll_raw": 3.2986,
      "n": 1600
     },
     "score": {
-     "T": 2.8255,
+     "T": 2.8249,
      "bias": 0.0,
      "nll": 1.4908,
      "nll_raw": 1.6354,
@@ -102,14 +103,14 @@
     "permutations": 2,
     "prior_weight": 1.0,
     "choice": {
-     "T": 0.8692,
+     "T": 0.8691,
      "bias": 0.0,
-     "nll": 2.5093,
-     "nll_raw": 2.5195,
+     "nll": 2.5092,
+     "nll_raw": 2.5194,
      "n": 1600
     },
     "score": {
-     "T": 3.6509,
+     "T": 3.6507,
      "bias": 0.0,
      "nll": 1.5244,
      "nll_raw": 1.6994,
@@ -128,15 +129,17 @@
    "choice": {
     "permutations": 2,
     "prior_weight": 1.0,
-    "T": 0.8692,
+    "T": 0.8691,
     "bias": 0.0,
-    "val_nll": 2.5093
+    "k_slope": 0.0,
+    "val_nll": 2.5092
    },
    "score": {
     "permutations": 1,
     "prior_weight": 0.0,
-    "T": 2.8255,
+    "T": 2.8249,
     "bias": 0.0,
+    "k_slope": 0.0,
     "val_nll": 1.4908
    },
    "noul": {
@@ -144,6 +147,7 @@
     "prior_weight": 1.0,
     "T": 1.0286,
     "bias": -1.2,
+    "k_slope": 0.0,
     "val_nll": 0.5859
    }
   }

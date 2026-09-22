@@ -149,15 +149,17 @@ rates; `--stratify` exists for building training mixes only.
 
 Render the question, score the allowed answers from the model's own logits, then fit a recipe
 (permutation averaging, contextual-prior correction, per-primitive temperature and a Platt bias
-for Noul) on **validation splits only**. Nine checkpoints, all 22,773 test records.
+for Noul) on **validation splits only**. Twelve checkpoints, all 22,773 test records.
 
-**4.1 Tier 0 reaches Jev's calibration without any training.** Macro ECE 0.089–0.158 across the
-sweep against Jev's 0.113 — and **Qwen3.5-4B (0.093) and Qwen3.5-2B (0.089) are better calibrated
-than Jev.** What is missing is accuracy: 0.396–0.662 vs Jev's 0.733.
+**4.1 Tier 0 reaches Jev's calibration without any training.** Macro ECE 0.086–0.123 across the
+sweep against Jev's 0.113, and **nine of the twelve checkpoints are better calibrated than Jev**
+(Gemma-4-12B 0.086, Qwen3.5-2B 0.089, Qwen3.5-4B 0.090). What is missing is accuracy:
+0.396–0.716 vs Jev's 0.733 — Gemma-4-12B at 0.716 is the closest, with no training at all.
+*(Numbers after the fitter fix of 4.5.)*
 
 **4.2 Every model needs a different recipe.** The contextual prior is worth ~10 Choice-accuracy
 points to Qwen and K2 and **exactly nothing** to Gemma, which instead needs aggressive temperature
-scaling (raw ECE 0.370 → 0.158). A single fixed recipe would mis-rank these models; the per-primitive
+scaling (Choice temperatures of 2.6–3.3, where Qwen's sit between 1.0 and 1.2). A single fixed recipe would mis-rank these models; the per-primitive
 search finds this automatically. ![recipe ladder](../results/figures/recipe_ladder.png)
 
 **4.3 A Platt bias on Noul is not optional for small models.** A temperature cannot move a binary
@@ -167,6 +169,42 @@ from 0.654 to 0.759 and K2's from 0.517 to 0.670.
 **4.4 Permutation averaging is cheap insurance.** Raw, small models show severe first-option bias
 (Gemma-4-E2B base picks the first-listed option 91% of the time against Jev's 7%). Averaging two
 orderings recovers 2–4 Choice-accuracy points and cuts Choice ECE by a third.
+
+**4.5 The recipe was fitted on rounded probabilities, and it cost the Gemma models 0.03–0.06 ECE.**
+The answer path rounds each distribution to the wire format's 4 decimals. The fitter took the log
+of that rounded distribution, so on a 151-option source every option below 5·10⁻⁵ — a genuine
+probability at that K — became exactly zero and entered the temperature fit as log(10⁻¹²) = −27.6.
+A temperature then had to explain outliers the model never produced. It only bites a model that
+is overconfident *at high K*, because that is what produces sub-10⁻⁴ probabilities, and the Gemma-4
+instruct models are exactly that. Refitting every Tier 0 run from its stored log-scores with the
+exact distribution (no re-inference):
+
+| model | macro ECE, published | refitted | change |
+|---|---|---|---|
+| Gemma-4-12B-it | 0.149 | **0.086** | −0.063 |
+| Gemma-4-E4B-it | 0.148 | **0.092** | −0.056 |
+| Gemma-4-E2B-it | 0.158 | **0.123** | −0.035 |
+| the other nine checkpoints | | | ≤ 0.003 either way |
+
+Accuracy moves by at most 0.001 (a temperature cannot reorder options; only the permutation choice can shift). The earlier story that
+Gemma "needs the most calibration and gets the least from it" was substantially the fitter's fault.
+Every Tier 0 number in this document and on the leaderboard is now from the corrected fitter; a test
+pins that the fitter sees the exact distribution while the answer keeps the wire precision.
+*(`results/recipe-k/`)*
+
+**4.6 A temperature that varies with the option count: sometimes, so it is an option.** Gemma-4-12B
+was ECE 0.10 at K≤5 and 0.34 at K>30 before the fix; Qwen3.5-9B the reverse (0.15 / 0.06). One
+scalar per primitive is fitted across both regimes, so we tried T(K) = T + b·log₂(K/2), fitted on
+validation, kept only when it lowers validation NLL by ≥1% and the option counts span at least two
+doublings. Across twelve models it helped five (Gemma-4-E2B-it 0.123 → 0.103, K2-0.9B 0.119 →
+0.105, Qwen3.5-9B 0.092 → 0.085, Gemma-4-12B 0.086 → 0.083, Gemma-4-E4B-it 0.092 → 0.090), left six
+alone (validation did not ask for it), and **hurt one on test** despite validation approving it
+(Olmo-3-7B 0.091 → 0.108). A parameter that validation cannot reliably gate is not a default; it is
+`fit_recipe(..., k_slope=True)`. Two lessons from building it: the Score sources span only K=5–7,
+where a fitted slope (−1.4 to −2.2) was pure overfitting — hence the range guard; and the
+objective is a ridge (lower T and steeper slope together), on which one-parameter-at-a-time search
+stalled at a slope of 0.15 where the optimum was 0.75.
+![one temperature vs T(K)](../results/recipe-k/recipe_k.png)
 
 ---
 
@@ -182,14 +220,14 @@ model in the sweep before calibration. This is the overconfidence/mode-dropping 
 own AI primer describes, reproduced.
 
 **5.2 But it is almost entirely a temperature problem, and temperature is free.** After one scalar
-per primitive fitted on validation, Gemma-it goes 0.361 → 0.158 and the pairs nearly converge
-(0.113 vs 0.105; 0.158 vs 0.115). Instruction tuning distorts the confidence *scale*, not the
+per primitive fitted on validation, Gemma-it goes 0.361 → 0.123 and the pairs nearly converge
+(0.112 vs 0.105; 0.123 vs 0.115 — after the fitter fix of 4.5; 0.158 before it). Instruction tuning distorts the confidence *scale*, not the
 *ranking* — Gemma-it's accuracy barely moves under calibration (0.598 → 0.591).
 
 **5.3 The accuracy gain dwarfs the residual calibration cost.** Gemma-4-E2B-it is **+0.195 accuracy**
-over its base checkpoint for +0.043 ECE; Qwen3.5-0.8B is +0.060 for +0.008. Discrimination is the
+over its base checkpoint for +0.008 ECE (+0.043 before the fitter fix); Qwen3.5-0.8B is +0.060 for +0.007. Discrimination is the
 thing calibration cannot manufacture — temperature only rescales an existing ranking — and it shows
-in Brier, which penalizes both (0.502 vs 0.609 for the Gemma pair).
+in Brier, which penalizes both (0.484 vs 0.609 for the Gemma pair).
 
 **5.4 So: take the instruct checkpoint, and always fit the temperature.** The early hypothesis that
 base models would win because "RLHF wrecks calibration" was wrong in this setting, and the sweep
@@ -289,6 +327,23 @@ accuracy is 0.688 ± 0.005 against 0.641 (**+0.047**, every seed). The LM-weight
 too: the two seeds above 0.73 held-out carry weights of 0.952 and 0.964, the three near 0.70
 carry 0.928–0.933, ρ = 0.97. These ran the 20-epoch schedule; the six-epoch cap has not been run
 at 4B. *(`results/qwen35-2b-t1r-e6-s0` … `-s4`, `results/qwen35-4b-t1r-s1` … `-s4`)*
+
+**6.3c At 9B, with the six-epoch cap from the start: seed-stable, and ahead of Jev where it trained.**
+Qwen3.5-9B residual heads, three seeds, the schedule 6.3a found stable:
+
+| Qwen3.5-9B residual, seed | held-out acc | held-out ECE | trained acc | trained ECE | macro acc | macro ECE | LM weight (choice) |
+|---|---|---|---|---|---|---|---|
+| 0 | 0.744 | 0.084 | 0.703 | 0.068 | 0.715 | 0.072 | 0.957 |
+| 1 | 0.743 | 0.092 | 0.704 | 0.059 | 0.714 | 0.068 | 0.963 |
+| 2 | 0.741 | 0.092 | 0.702 | 0.066 | 0.713 | 0.074 | 0.959 |
+| **mean** | **0.743 ± 0.002** | 0.089 | **0.703** | **0.064** | 0.714 | **0.071** | |
+| Jev 1.13.0 | 0.835 | 0.090 | 0.694 | 0.122 | 0.733 | 0.113 | |
+
+The spread is ±0.002 — the capped schedule is as stable at 9B as at 2B. On the sixteen trained
+sources the frozen 9B with heads beats Jev on accuracy *and* calibration (0.703 / 0.064 vs 0.694 /
+0.122); over all 22 configs its macro ECE of 0.071 is the second best of anything tested, behind
+only the 2B head's 0.069. Jev still leads the held-out sources by 0.09, as it does against every
+model here. *(`results/qwen35-9b-t1r-s0` … `-s2`)*
 
 **6.4 Both heads chose to keep the prior at full strength.** Learned LM weights came out
 **0.95 / 0.98 / 1.01** on 2B and **0.96 / 0.97 / 1.01** on 4B for choice / score / noul — two
@@ -409,6 +464,14 @@ calibration" on ambiguous questions. ChaosNLI ECE spans 0.159–0.328 within the
 1 residual's 0.077. The LoRA's cost on contested items is real, seed-independent, and not
 removed by the learning rate. The one-seed comparison (0.196 vs 0.215) was noise.
 
+**Soft labels at the low learning rate — the combination left open above — settle it.** Held-out
+0.711 / 0.100 (hard labels at the same rate: 0.714 / 0.086), macro accuracy 0.694 (0.690), but TVD
+to human distributions **0.364 against 0.332** and ChaosNLI ECE 0.300 against 0.196. The earlier
+soft-label arm's accuracy loss was the learning rate's; its failure to improve agreement with
+humans is the loss's own, and it holds at the right learning rate too. Training on vote
+distributions makes the model *worse* at reproducing them than training on the majority label.
+*(`results/qwen35-2b-t2-lowlr-soft/`)*
+
 One general lesson survives either way: with LoRA capacity, a small change in learning rate moves
 calibration by more than the entire Tier 0 → Tier 1 step did. Calibration under fine-tuning is a
 hyperparameter question before it is an objective question. *(`results/qwen35-2b-t2{,-s1,-s2}/`,
@@ -423,6 +486,22 @@ accuracy **0.769** (Tier 0: 0.714) with held-out ECE **0.107** (Tier 0: 0.139); 
 the six held-out sources (0.835 vs 0.769). One seed; effect sizes (+0.049 macro over the 4B residual
 head, +0.085 over Tier 0) are larger than the Tier 1 seed spread, but the 4B Tier 2 spread itself is
 unmeasured.
+
+**7.7 At the low learning rate the 4B matches Jev's accuracy and beats it on both calibration
+numbers.** Same model, lr 3e-5, two epochs:
+
+| Qwen3.5-4B, Tier 2 | macro acc | macro ECE | TVD→human | held-out acc / ECE | trained acc / ECE | ChaosNLI ECE |
+|---|---|---|---|---|---|---|
+| lr 1e-4 (7.6) | **0.747** | 0.110 | 0.347 | **0.769** / 0.107 | **0.739** / 0.111 | 0.290 |
+| **lr 3e-5** | 0.734 | **0.096** | **0.337** | 0.765 / **0.098** | 0.722 / **0.095** | **0.211** |
+| Jev 1.13.0 | 0.733 | 0.113 | 0.432 | 0.835 / 0.090 | 0.694 / 0.122 | 0.222 |
+
+The learning-rate result replicates at 4B in the same direction as at 2B: a little accuracy on
+trained sources traded for calibration everywhere, held-out accuracy essentially unchanged (0.765 vs
+0.769). It is the first model here that is not behind Jev on any of the three macro numbers —
+accuracy level, ECE and human agreement better — while Jev remains ahead on the held-out sources.
+One seed; the 2B seed study (7.5) puts the noise on held-out accuracy at ±0.003. Published as
+`Praveenrajus/jevify-qwen3.5-4b-t2-lowlr`. *(`results/qwen35-4b-t2-lowlr/`)*
 
 *Reproduce: `python -m jevify.train tier2 --model-id Qwen/Qwen3.5-2B --run-id qwen35-2b-t2`, then
 `scripts/process_tier1.py --run-id qwen35-2b-t2 --tier0 qwen35-2b`. Results: `results/qwen35-2b-t2/`.*
@@ -480,6 +559,21 @@ cache-friendly for the "one state, many questions" pattern, which is how the API
 **8.8 Cost.** The entire study — nine Tier 0 checkpoints, two Tier 1 variants, all 22,773 records
 each — ran for about **$11** of GPU on Modal (L4 for ≤1B, A100-80GB above), plus roughly $0.15 of
 Jev API calls for 37,573 requests.
+
+**8.9 A fitter must never see the wire format.** The rounding defect of 4.5 is a cousin of 8.4:
+two paths that should have been one — the answer the API returns and the distribution the recipe is
+fitted on — were the same function, and the answer's formatting leaked into the fit. It passed every
+test we had, because every test used K ≤ 5, where nothing rounds to zero. The regression test now
+uses K=151.
+
+**8.10 The Qwen3.5 hybrid layers were running on reference kernels.** Qwen3.5's Gated DeltaNet
+layers fall back to a pure-PyTorch implementation unless `flash-linear-attention` (and its separate
+`fla-core` ops package) is installed; the fallback is correct and roughly half the speed. Installed
+into the project's own environment: 9.7 → **18.7 records/s** on the Qwen3.5-2B Tier 0 readout,
+warmed (the first pass compiles Triton kernels and is slower), with the readout unchanged —
+|Δp| against the stored reference predictions is the same 0.010 median before and after. Every
+Qwen3.5 run in this document before this point used the slow path; none of their numbers change,
+only their cost.
 
 ---
 
@@ -722,20 +816,18 @@ text round trip with an image attached. Throughput: 12.6 → 5.3 records/s on on
 
 ## 11. Open questions
 
-- **How far does the residual finding go?** Five seeds on each of two backbones (6.3a, 6.3b): the
-  trained-source gain is robust at both sizes; the held-out result is Tier 0 on average and depends
-  on stopping early. Whether it holds at 7B+ and across families is untested, and the epoch cap has
-  not been tried at 4B.
+- **How far does the residual finding go?** Three backbones now (2B, 4B, 9B; 6.3a–c): the
+  trained-source gain is robust at every size, and with the six-epoch cap the held-out result is
+  seed-stable (±0.004 at 2B, ±0.002 at 9B). Untested: other families, and the cap at 4B.
 - **Can ordinal generalization be fixed with data?** More diverse ordinal scales in training is the
   obvious lever, and jev-bench has only four.
 - **Is the held-out set difficulty-matched?** It is not — it contains several of Jev's strongest
   configs, which is why Jev scores *higher* on held-out (0.835) than on trained (0.694) sources.
   Compare models within a column, never across. A matched split would be a better protocol.
-- **Why does soft-label training hurt agreement with human distributions on Noul?** It helps on
-  GoEmotions and fails on `civil_comments` (7.5). Soft labels at the low learning rate, and a look at
-  what the Noul head actually predicts under soft targets, are the next two runs.
-- **Does the LoRA learning-rate result hold at 4B?** At 2B it holds across three seeds (7.5); the 4B
-  run used the high learning rate and one seed.
+- **Why does soft-label training hurt agreement with human distributions?** It does at both learning
+  rates (7.5), so it is the loss, not the schedule. The obvious next look is what the heads predict
+  under soft targets on the Noul source, where it fails most.
+- **Does the LoRA learning-rate result hold at 4B?** Yes, in the same direction (7.7); one seed.
 - **Does a vision-scoped LoRA help where a decoder-scoped one cannot?** Answered in 9.10 for one
   backbone and one training source: no — the decoder adapter transfers to diagrams (+0.055 on
   AI2D) and the tower adapter barely does (+0.017). Open: whether that reverses with a training
@@ -744,7 +836,11 @@ text round trip with an image attached. Throughput: 12.6 → 5.3 records/s on on
   at 1.1–1.4 with no Noul bias (10.1); every other checkpoint, text or vision, needs 2–3.6. Whether
   the smaller Qwen3.5 checkpoints share it on the vision configs, and what in the post-training
   produced it, is untested.
-- **Gemma-4 over-asserts presence on POPE (Noul bias −2.8).** The recipe corrects it; whether the
-  same lean shows up on the text Noul sources is answered by its text Tier 0 run when that finishes.
+- **Gemma-4 over-asserts presence in images; on text, nearly everyone over-asserts.** On POPE the
+  fitted Noul bias splits by family (Gemma-4-12B −2.8 toward *no*; Qwen3-VL and Qwen3.5 +2.3 and +0.1
+  toward *yes*). On the text Noul sources there is no split: ten of twelve checkpoints need a bias
+  toward *no* (−0.5 to −1.9 — Qwen, K2 and Gemma alike). An untrained readout says "yes" too readily
+  to a text claim; whether that is instruction tuning (the base checkpoints lean the same way, −0.7
+  and −1.4) or the yes/no framing itself is open.
 - **Does the budget/calibration relationship hold for a model that is badly calibrated to
   begin with?** Qwen3-VL-2B degrades gracefully. A model that starts overconfident may not.

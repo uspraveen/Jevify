@@ -1,0 +1,91 @@
+{
+ "rows": [
+  {
+   "model": "Qwen/Qwen3.5-2B (Tier 2)",
+   "variant": "Tier 2 heads + LoRA",
+   "heldout_n_sources": 6,
+   "heldout_acc": 0.7106305191654537,
+   "heldout_ece": 0.10027370188314016,
+   "heldout_brier": 0.36734421801645506,
+   "heldout_sel90": 0.7431355627472133,
+   "trained_n_sources": 16,
+   "trained_acc": 0.6876785312565714,
+   "trained_ece": 0.10645978979420712,
+   "trained_brier": 0.39872125717305607,
+   "trained_sel90": 0.716745827298638
+  },
+  {
+   "model": "Jev 1.13.0",
+   "variant": "API (zero-shot)",
+   "heldout_n_sources": 6,
+   "heldout_acc": 0.8353886462882096,
+   "heldout_ece": 0.09009604803493447,
+   "heldout_brier": 0.2351535246967492,
+   "heldout_sel90": 0.8580438691118304,
+   "trained_n_sources": 16,
+   "trained_acc": 0.694114363832062,
+   "trained_ece": 0.12201773757854939,
+   "trained_brier": 0.39103513879224117,
+   "trained_sel90": 0.7226123321295803
+  },
+  {
+   "model": "Qwen/Qwen3.5-2B",
+   "variant": "Tier 0 (recipe refit w/o held-out)",
+   "heldout_n_sources": 6,
+   "heldout_acc": 0.6278350315380884,
+   "heldout_ece": 0.09726949961338989,
+   "heldout_brier": 0.435648041025813,
+   "heldout_sel90": 0.6484825602301331,
+   "trained_n_sources": 16,
+   "trained_acc": 0.552478635835443,
+   "trained_ece": 0.09954499178203241,
+   "trained_brier": 0.5059366617786281,
+   "trained_sel90": 0.57726701285109
+  }
+ ],
+ "heldout": [
+  "clinc150",
+  "arc_challenge",
+  "yelp5",
+  "measuring_hate_speech",
+  "fever_evidence",
+  "strategyqa_grounded"
+ ],
+ "meta": {
+  "run_id": "qwen35-2b-t2-lowlr-soft",
+  "model_id": "Qwen/Qwen3.5-2B",
+  "tier": 2,
+  "residual": true,
+  "layer": -1,
+  "chat_applied": true,
+  "heldout_sources": [
+   "clinc150",
+   "arc_challenge",
+   "yelp5",
+   "measuring_hate_speech",
+   "fever_evidence",
+   "strategyqa_grounded"
+  ],
+  "lora_r": 16,
+  "lora_trainable": 10911744,
+  "n_train": 5885,
+  "n_val": 1500,
+  "n_test": 22773,
+  "max_slots": 16,
+  "dim": 512,
+  "epochs": 2,
+  "head_lr": 0.0003,
+  "lora_lr": 3e-05,
+  "soft_labels": true,
+  "seed": 0,
+  "best_epoch": 1,
+  "best_val_loss": 0.6824,
+  "lm_weight": [
+   0.991,
+   0.979,
+   0.996
+  ],
+  "wall_s": 6453.1,
+  "device": "NVIDIA A40"
+ }
+}

@@ -7,13 +7,14 @@
    "score": 1,
    "noul": 1
   },
+  "state_last": false,
   "prior_weight": {
    "choice": 0.0,
    "score": 0.0,
    "noul": 0.0
   },
   "temperature": {
-   "choice": 1.1359,
+   "choice": 1.0999,
    "score": 1.362,
    "noul": 0.8366
   },
@@ -27,10 +28,10 @@
     "permutations": 1,
     "prior_weight": 0.0,
     "choice": {
-     "T": 1.2785,
+     "T": 1.2108,
      "bias": 0.0,
-     "nll": 1.1334,
-     "nll_raw": 1.1825,
+     "nll": 1.0552,
+     "nll_raw": 1.0839,
      "n": 1600
     },
     "score": {
@@ -52,17 +53,17 @@
     "permutations": 1,
     "prior_weight": 1.0,
     "choice": {
-     "T": 1.8101,
+     "T": 1.5148,
      "bias": 0.0,
-     "nll": 1.7337,
-     "nll_raw": 2.0749,
+     "nll": 1.4848,
+     "nll_raw": 1.6498,
      "n": 1600
     },
     "score": {
-     "T": 3.1003,
+     "T": 3.0997,
      "bias": 0.0,
-     "nll": 1.4343,
-     "nll_raw": 1.756,
+     "nll": 1.4342,
+     "nll_raw": 1.7559,
      "n": 1200
     },
     "noul": {
@@ -77,10 +78,10 @@
     "permutations": 2,
     "prior_weight": 0.0,
     "choice": {
-     "T": 1.1359,
+     "T": 1.0999,
      "bias": 0.0,
-     "nll": 1.0631,
-     "nll_raw": 1.0755,
+     "nll": 1.0173,
+     "nll_raw": 1.024,
      "n": 1600
     },
     "score": {
@@ -102,17 +103,17 @@
     "permutations": 2,
     "prior_weight": 1.0,
     "choice": {
-     "T": 1.1973,
+     "T": 1.146,
      "bias": 0.0,
-     "nll": 1.2749,
-     "nll_raw": 1.302,
+     "nll": 1.2073,
+     "nll_raw": 1.2224,
      "n": 1600
     },
     "score": {
-     "T": 3.1003,
+     "T": 3.0997,
      "bias": 0.0,
-     "nll": 1.4343,
-     "nll_raw": 1.756,
+     "nll": 1.4342,
+     "nll_raw": 1.7559,
      "n": 1200
     },
     "noul": {
@@ -128,15 +129,17 @@
    "choice": {
     "permutations": 2,
     "prior_weight": 0.0,
-    "T": 1.1359,
+    "T": 1.0999,
     "bias": 0.0,
-    "val_nll": 1.0631
+    "k_slope": 0.0,
+    "val_nll": 1.0173
    },
    "score": {
     "permutations": 1,
     "prior_weight": 0.0,
     "T": 1.362,
     "bias": 0.0,
+    "k_slope": 0.0,
     "val_nll": 1.222
    },
    "noul": {
@@ -144,6 +147,7 @@
     "prior_weight": 0.0,
     "T": 0.8366,
     "bias": -1.0,
+    "k_slope": 0.0,
     "val_nll": 0.401
    }
   }

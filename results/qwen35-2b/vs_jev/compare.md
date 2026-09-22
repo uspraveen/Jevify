@@ -1,4 +1,4 @@
-| source | prim | Jev 1.13.0 acc | Jev 1.13.0 ECE | Jev 1.13.0 Brier | Qwen3.5-2B (Tier 0) acc | Qwen3.5-2B (Tier 0) ECE | Qwen3.5-2B (Tier 0) Brier |
+| source | prim | Jev 1.13.0 acc | Jev 1.13.0 ECE | Jev 1.13.0 Brier | Qwen/Qwen3.5-2B (Tier 0) acc | Qwen/Qwen3.5-2B (Tier 0) ECE | Qwen/Qwen3.5-2B (Tier 0) Brier |
 |---|---|---|---|---|---|---|---|
 | `arc_challenge` | choice | 0.979 | 0.010 | 0.037 | 0.797 | 0.123 | 0.316 |
 | `banking77` | choice | 0.796 | 0.095 | 0.317 | 0.524 | 0.065 | 0.639 |
@@ -8,7 +8,7 @@
 | `ledgar` | choice | 0.751 | 0.117 | 0.374 | 0.662 | 0.055 | 0.495 |
 | `massive` | choice | 0.808 | 0.090 | 0.295 | 0.431 | 0.052 | 0.713 |
 | `mmlu` | choice | 0.923 | 0.027 | 0.124 | 0.581 | 0.065 | 0.530 |
-| `mnli` | choice | 0.883 | 0.032 | 0.176 | 0.682 | 0.017 | 0.427 |
+| `mnli` | choice | 0.883 | 0.032 | 0.176 | 0.682 | 0.018 | 0.427 |
 | `boolq` | noul | 0.917 | 0.021 | 0.061 | 0.810 | 0.019 | 0.133 |
 | `civil_comments` | noul | 0.729 | 0.045 | 0.183 | 0.720 | 0.077 | 0.200 |
 | `fever_evidence` | noul | 0.972 | 0.028 | 0.025 | 0.882 | 0.044 | 0.087 |
@@ -18,7 +18,7 @@
 | `strategyqa_grounded` | noul | 0.956 | 0.059 | 0.038 | 0.662 | 0.134 | 0.209 |
 | `helpsteer2_helpfulness` | score | 0.363 | 0.232 | 0.812 | 0.338 | 0.043 | 0.715 |
 | `helpsteer2_verbosity` | score | 0.341 | 0.231 | 0.793 | 0.437 | 0.141 | 0.724 |
-| `measuring_hate_speech` | score | 0.527 | 0.237 | 0.669 | 0.545 | 0.074 | 0.637 |
+| `measuring_hate_speech` | score | 0.527 | 0.237 | 0.669 | 0.545 | 0.071 | 0.637 |
 | `sst5` | score | 0.565 | 0.190 | 0.618 | 0.373 | 0.107 | 0.732 |
 | `stsb` | score | 0.538 | 0.119 | 0.594 | 0.366 | 0.060 | 0.734 |
 | `yelp5` | score | 0.685 | 0.174 | 0.483 | 0.483 | 0.022 | 0.639 |

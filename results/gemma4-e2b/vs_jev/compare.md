@@ -1,4 +1,4 @@
-| source | prim | Jev 1.13.0 acc | Jev 1.13.0 ECE | Jev 1.13.0 Brier | Gemma-4-E2B (Tier 0) acc | Gemma-4-E2B (Tier 0) ECE | Gemma-4-E2B (Tier 0) Brier |
+| source | prim | Jev 1.13.0 acc | Jev 1.13.0 ECE | Jev 1.13.0 Brier | google/gemma-4-E2B (Tier 0) acc | google/gemma-4-E2B (Tier 0) ECE | google/gemma-4-E2B (Tier 0) Brier |
 |---|---|---|---|---|---|---|---|
 | `arc_challenge` | choice | 0.979 | 0.010 | 0.037 | 0.465 | 0.082 | 0.652 |
 | `banking77` | choice | 0.796 | 0.095 | 0.317 | 0.102 | 0.032 | 0.957 |
@@ -7,7 +7,7 @@
 | `go_emotions` | choice | 0.282 | 0.384 | 1.040 | 0.155 | 0.046 | 0.928 |
 | `ledgar` | choice | 0.751 | 0.117 | 0.374 | 0.226 | 0.130 | 0.915 |
 | `massive` | choice | 0.808 | 0.090 | 0.295 | 0.048 | 0.038 | 0.974 |
-| `mmlu` | choice | 0.923 | 0.027 | 0.124 | 0.384 | 0.078 | 0.691 |
+| `mmlu` | choice | 0.923 | 0.027 | 0.124 | 0.383 | 0.079 | 0.691 |
 | `mnli` | choice | 0.883 | 0.032 | 0.176 | 0.360 | 0.150 | 0.694 |
 | `boolq` | noul | 0.917 | 0.021 | 0.061 | 0.372 | 0.293 | 0.318 |
 | `civil_comments` | noul | 0.729 | 0.045 | 0.183 | 0.923 | 0.248 | 0.134 |

@@ -61,16 +61,20 @@ it — and **capping the schedule at six epochs collapses the spread to 0.621 ±
 weight at 0.965 for every seed and the trained gain intact. So Tier 1 is "+0.08 where it trained,
 Tier 0 where it did not, if it stops early", and the LM weight is the diagnostic. At 4B, five
 seeds: trained +0.047 every time, held-out 0.715 ± 0.025 against Tier 0's 0.714 — the +0.035 first
-reported was one seed at the top of the spread.
+reported was one seed at the top of the spread. At 9B, three seeds with the cap from the start:
+held-out **0.743 ± 0.002**, and on the sources it trained on it beats Jev on accuracy and calibration
+(0.703 / ECE 0.064 vs 0.694 / 0.122) with the backbone frozen.
 
 ![Tier 1: trained vs held-out sources](results/figures/tier1_story.png)
 
-**3 · An open 4B now beats Jev on the overall number — and Jev still wins where it counts most.**
-Qwen3.5-4B with LoRA and residual heads (Tier 2): macro accuracy **0.747 vs Jev's 0.733**, macro
-ECE 0.110 vs 0.113, Noul accuracy 0.903 vs 0.881, Score accuracy 0.529 vs 0.503, TVD to human
-label distributions 0.347 vs 0.432. The qualifier is the split: on the six sources it never
-trained on, Jev leads **0.835 to 0.769**; the open model's overall edge comes from the sixteen it
-did train on. One seed. Without touching the backbone, Qwen3.5-4B with residual heads alone
+**3 · An open 4B now matches or beats Jev on every macro number — and Jev still wins where it counts
+most.** Qwen3.5-4B with LoRA and residual heads (Tier 2) at LoRA lr 3e-5: macro accuracy **0.734 vs
+Jev's 0.733**, macro ECE **0.096 vs 0.113**, TVD to human label distributions **0.337 vs 0.432**,
+ChaosNLI ECE 0.211 vs 0.222. At lr 1e-4 the same model reaches **0.747** accuracy for a worse
+ECE (0.110). The qualifier is the split: it wins 9 of 22 configs on accuracy and 12 on ECE, not all 22, and on the
+six sources it never trained on Jev leads **0.835 to 0.765** — the open model's overall edge comes
+from the sixteen it did train on (0.722 vs 0.694). One seed each.
+[`Praveenrajus/jevify-qwen3.5-4b-t2-lowlr`](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-t2-lowlr). Without touching the backbone, Qwen3.5-4B with residual heads alone
 reaches 0.698 / ECE 0.089 / TVD 0.360; the 2B head's ECE of 0.069 is the best of anything tested
 but, per (2), seed-dependent on unseen sources.
 
@@ -92,15 +96,18 @@ learning rate does *not* rescue the ambiguous-question calibration the LoRA cost
 ranges 0.16–0.33 across seeds in both arms, at Jev's level (0.222) and far from the Tier 1
 residual's 0.077. One thing they added: Tier 2's held-out accuracy is seed-stable (±0.003) where
 Tier 1's was bimodal (±0.049) — partly because every LoRA run stops after one or two passes, the
-regime in which (2) showed the head is stable too. At 4B the LoRA improves held-out accuracy
-(0.714 → 0.769) and held-out ECE (0.139 → 0.107) at once and does not overfit after one pass;
-that run is one seed at the high learning rate.
+regime in which (2) showed the head is stable too. At 4B the same learning-rate trade holds: 3e-5
+gives held-out 0.765 / ECE 0.098 against 0.769 / 0.107 at 1e-4. And soft labels fail at the low
+learning rate as well (TVD 0.364 vs 0.332 for hard labels): the loss, not the schedule, is what
+makes them worse at matching human distributions.
 [· detail](docs/FINDINGS.md#7-tier-2-letting-the-backbone-move)
 
 **6 · Instruction tuning does hurt calibration — 1.3–1.8× worse raw ECE — but it is almost
-entirely a temperature problem.** Gemma-4-E2B-it starts at ECE 0.361 and lands at 0.158 after one
-scalar per primitive; its accuracy is +0.195 over its base checkpoint for +0.043 ECE. Take the
-instruct checkpoint and always fit the temperature.
+entirely a temperature problem.** Gemma-4-E2B-it starts at ECE 0.361 and lands at 0.123 after one
+scalar per primitive; its accuracy is +0.195 over its base checkpoint for +0.008 ECE. Take the
+instruct checkpoint and always fit the temperature — on the exact distribution: our own fitter read
+the 4-decimal wire format, which zeroed real high-K probabilities and cost the Gemma models 0.03–0.06
+ECE until it was fixed. [· detail](docs/FINDINGS.md#4-tier-0-any-open-llm-with-no-training)
 [· detail](docs/FINDINGS.md#5-does-instruction-tuning-hurt-calibration)
 
 **7 · What hurts Jev is ambiguity, not option count.** Controlled within-item probes: with the
@@ -196,7 +203,9 @@ with TypeSafeClient() as client:
                           questions={"refund": Noul(instructions="Is this a refund request?")})
 ```
 
-**Models:** [jevify-qwen3.5-4b-t2](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-t2)
+**Models:** [jevify-qwen3.5-4b-t2-lowlr](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-t2-lowlr)
+(Tier 2, the balanced one: accuracy 0.734 = Jev, ECE 0.096 and TVD 0.337 both better) ·
+[jevify-qwen3.5-4b-t2](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-t2)
 (Tier 2: heads + a LoRA merged at load, 97 MB — macro accuracy 0.747, above Jev's 0.733) ·
 [jevify-qwen3.5-4b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b) ·
 [jevify-qwen3.5-2b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b) (Tier 1, ~11 MB each) ·
@@ -257,22 +266,32 @@ swapping is deliberately not offered — the projector is trained against one en
 ## Leaderboard
 
 Every model on the same 22,773 test records. Tier 0 = no training (prompt + logit readout + a
-recipe fitted on validation splits only). Tier 1 = trained decision heads, six sources held out
+recipe fitted on validation splits only, with the corrected fitter of FINDINGS 4.5). Tier 1 = trained decision heads, six sources held out
 of training. **TVD→human** is the mean distance to human label distributions on the four
 calibration-gold configs — lower is better, and it is the number Jev's own claim rests on.
 
 | model | tier | macro acc | macro ECE | macro Brier | sel@90 | choice acc | score acc | noul acc | TVD→human | GPU | test cost |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | **Jev 1.13.0 (TypeSafe API)** | API | 0.733 | 0.113 | 0.349 | 0.760 | 0.770 | 0.503 | 0.881 | 0.432 |  |  |
+| Qwen/Qwen3.5-4B (Tier 2 residual) | Tier 2 residual | 0.747 | 0.110 | 0.342 | 0.774 | 0.770 | 0.529 | 0.903 | 0.347 | A40 |  |
+| Qwen/Qwen3.5-4B (Tier 2 residual, lr 3e-05) | Tier 2 residual | 0.734 | 0.096 | 0.342 | 0.762 | 0.761 | 0.518 | 0.884 | 0.337 | A40 |  |
+| google/gemma-4-12B-it | Tier 0 | 0.716 | 0.086 | 0.359 | 0.740 | 0.749 | 0.507 | 0.855 | 0.405 | A40 |  |
+| Qwen/Qwen3.5-9B (Tier 1 residual, 6-epoch cap, mean of 3 seeds) | Tier 1 residual | 0.714 | 0.071 | 0.362 | 0.740 | 0.725 | 0.507 | 0.878 | 0.376 | A40 |  |
 | Qwen/Qwen3.5-4B (Tier 1 residual) | Tier 1 residual | 0.698 | 0.089 | 0.378 | 0.729 | 0.699 | 0.507 | 0.862 | 0.360 | A100-80GB | $1.28 |
-| Qwen/Qwen3.5-4B | Tier 0 | 0.662 | 0.093 | 0.402 | 0.689 | 0.687 | 0.468 | 0.796 | 0.438 | A100-80GB | $0.96 |
-| google/gemma-4-E4B-it | Tier 0 | 0.658 | 0.148 | 0.426 | 0.678 | 0.699 | 0.432 | 0.798 | 0.432 | A100-80GB | $1.00 |
+| Qwen/Qwen3.5-2B (Tier 2 residual, lr 3e-05, soft labels) | Tier 2 residual | 0.694 | 0.105 | 0.390 | 0.724 | 0.697 | 0.497 | 0.859 | 0.364 | A40 |  |
+| Qwen/Qwen3.5-2B (Tier 2 residual, lr 3e-05) | Tier 2 residual | 0.690 | 0.103 | 0.389 | 0.720 | 0.693 | 0.510 | 0.840 | 0.332 | A40 |  |
+| Qwen/Qwen3.5-9B | Tier 0 | 0.689 | 0.092 | 0.379 | 0.717 | 0.716 | 0.503 | 0.815 | 0.423 | A40 |  |
+| Qwen/Qwen3.5-2B (Tier 2 residual) | Tier 2 residual | 0.685 | 0.116 | 0.410 | 0.713 | 0.671 | 0.508 | 0.854 | 0.370 | A40 |  |
+| Qwen/Qwen3.5-2B (Tier 2 residual, soft labels) | Tier 2 residual | 0.674 | 0.116 | 0.412 | 0.703 | 0.682 | 0.471 | 0.837 | 0.433 | A40 |  |
+| Qwen/Qwen3.5-4B | Tier 0 | 0.662 | 0.090 | 0.401 | 0.689 | 0.687 | 0.468 | 0.796 | 0.438 | A100-80GB | $0.96 |
+| google/gemma-4-E4B-it | Tier 0 | 0.658 | 0.092 | 0.398 | 0.682 | 0.700 | 0.432 | 0.798 | 0.434 | A100-80GB | $1.00 |
 | Qwen/Qwen3.5-2B (Tier 1 residual) | Tier 1 residual | 0.632 | 0.069 | 0.445 | 0.657 | 0.596 | 0.449 | 0.835 | 0.374 | A100-80GB | $0.67 |
+| IFM/K2-Horizon-7B | Tier 0 | 0.623 | 0.093 | 0.436 | 0.647 | 0.617 | 0.409 | 0.813 | 0.434 | A40 |  |
 | Qwen/Qwen3.5-2B (Tier 1 replace) | Tier 1 replace | 0.599 | 0.083 | 0.475 | 0.621 | 0.567 | 0.378 | 0.828 | 0.416 | A100-80GB | $0.62 |
-| google/gemma-4-E2B-it | Tier 0 | 0.591 | 0.158 | 0.502 | 0.609 | 0.595 | 0.440 | 0.716 | 0.490 | L4 | $0.75 |
+| google/gemma-4-E2B-it | Tier 0 | 0.591 | 0.123 | 0.484 | 0.612 | 0.594 | 0.440 | 0.716 | 0.492 | L4 | $0.75 |
 | Qwen/Qwen3.5-2B | Tier 0 | 0.577 | 0.089 | 0.485 | 0.599 | 0.545 | 0.424 | 0.750 | 0.458 | A100-80GB | $0.66 |
-| HuggingFaceTB/SmolLM3-3B | Tier 0 | 0.552 | 0.111 | 0.519 | 0.570 | 0.504 | 0.401 | 0.744 | 0.458 | A100-80GB | $0.64 |
-| Qwen/Qwen3.5-0.8B | Tier 0 | 0.526 | 0.113 | 0.543 | 0.544 | 0.435 | 0.388 | 0.759 | 0.440 | L4 | $0.55 |
+| HuggingFaceTB/SmolLM3-3B | Tier 0 | 0.552 | 0.111 | 0.519 | 0.570 | 0.504 | 0.401 | 0.744 | 0.460 | A100-80GB | $0.64 |
+| Qwen/Qwen3.5-0.8B | Tier 0 | 0.526 | 0.112 | 0.542 | 0.544 | 0.436 | 0.388 | 0.759 | 0.440 | L4 | $0.55 |
 | Qwen/Qwen3.5-0.8B-Base | Tier 0 | 0.466 | 0.105 | 0.582 | 0.478 | 0.326 | 0.412 | 0.692 | 0.452 | L4 | $0.50 |
 | IFM/K2-Horizon-0.9B | Tier 0 | 0.448 | 0.119 | 0.589 | 0.461 | 0.344 | 0.343 | 0.670 | 0.479 | L4 | $0.35 |
 | google/gemma-4-E2B | Tier 0 | 0.396 | 0.115 | 0.609 | 0.404 | 0.247 | 0.382 | 0.600 | 0.496 | L4 | $0.69 |
@@ -309,7 +328,10 @@ per-config metrics, recipe and figures.
 - [ ] Soft labels at the low learning rate; the low learning rate at 4B
 - [x] Vision Tier 2: LoRA on the readout, tower vs decoder vs both — the decoder is where transfer lives (AI2D +0.055 held out)
 - [x] 8B-class study: Qwen3-VL-8B, Qwen3.5-9B, Gemma-4-12B — vision Tier 0, latency, readout vs generation on one A40
-- [ ] Gemma-4-12B text Tier 0 on the leaderboard (running); more ordinal scales; Tier 1 at 7B+
+- [x] Gemma-4-12B text Tier 0 (0.716, closest to Jev without training); Tier 1 at 9B (seed-stable, beats Jev on trained sources)
+- [x] Recipe fitter fixed (it read the rounded wire format); every Tier 0 run refitted; T(K) measured and left opt-in
+- [x] Tier 2 at the low learning rate on 4B (matches Jev's accuracy, better ECE and human agreement); soft labels fail at both rates
+- [ ] More ordinal scales; Decision 1.0 (vLLM Semantic Router) on jev-bench; synthetic structure data
 - [ ] Label-first synthetic data pipeline; HF Space; model zoo
 
 ## Why tiers, and why no RL

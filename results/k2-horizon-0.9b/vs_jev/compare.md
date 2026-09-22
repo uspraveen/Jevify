@@ -1,8 +1,8 @@
-| source | prim | Jev 1.13.0 acc | Jev 1.13.0 ECE | Jev 1.13.0 Brier | K2-Horizon-0.9B (Tier 0) acc | K2-Horizon-0.9B (Tier 0) ECE | K2-Horizon-0.9B (Tier 0) Brier |
+| source | prim | Jev 1.13.0 acc | Jev 1.13.0 ECE | Jev 1.13.0 Brier | IFM/K2-Horizon-0.9B (Tier 0) acc | IFM/K2-Horizon-0.9B (Tier 0) ECE | IFM/K2-Horizon-0.9B (Tier 0) Brier |
 |---|---|---|---|---|---|---|---|
 | `arc_challenge` | choice | 0.979 | 0.010 | 0.037 | 0.430 | 0.057 | 0.684 |
 | `banking77` | choice | 0.796 | 0.095 | 0.317 | 0.411 | 0.108 | 0.753 |
-| `chaosnli` | choice | 0.615 | 0.222 | 0.583 | 0.409 | 0.105 | 0.653 |
+| `chaosnli` | choice | 0.615 | 0.222 | 0.583 | 0.409 | 0.106 | 0.653 |
 | `clinc150` | choice | 0.893 | 0.033 | 0.159 | 0.488 | 0.190 | 0.725 |
 | `go_emotions` | choice | 0.282 | 0.384 | 1.040 | 0.093 | 0.080 | 0.962 |
 | `ledgar` | choice | 0.751 | 0.117 | 0.374 | 0.340 | 0.106 | 0.803 |

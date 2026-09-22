@@ -1,8 +1,8 @@
-| source | prim | Jev 1.13.0 acc | Jev 1.13.0 ECE | Jev 1.13.0 Brier | Qwen3.5-0.8B-Base (Tier 0) acc | Qwen3.5-0.8B-Base (Tier 0) ECE | Qwen3.5-0.8B-Base (Tier 0) Brier |
+| source | prim | Jev 1.13.0 acc | Jev 1.13.0 ECE | Jev 1.13.0 Brier | Qwen/Qwen3.5-0.8B-Base (Tier 0) acc | Qwen/Qwen3.5-0.8B-Base (Tier 0) ECE | Qwen/Qwen3.5-0.8B-Base (Tier 0) Brier |
 |---|---|---|---|---|---|---|---|
-| `arc_challenge` | choice | 0.979 | 0.010 | 0.037 | 0.597 | 0.037 | 0.521 |
+| `arc_challenge` | choice | 0.979 | 0.010 | 0.037 | 0.597 | 0.036 | 0.521 |
 | `banking77` | choice | 0.796 | 0.095 | 0.317 | 0.191 | 0.131 | 0.952 |
-| `chaosnli` | choice | 0.615 | 0.222 | 0.583 | 0.477 | 0.051 | 0.620 |
+| `chaosnli` | choice | 0.615 | 0.222 | 0.583 | 0.476 | 0.052 | 0.620 |
 | `clinc150` | choice | 0.893 | 0.033 | 0.159 | 0.219 | 0.108 | 0.946 |
 | `go_emotions` | choice | 0.282 | 0.384 | 1.040 | 0.178 | 0.128 | 0.920 |
 | `ledgar` | choice | 0.751 | 0.117 | 0.374 | 0.260 | 0.152 | 0.898 |

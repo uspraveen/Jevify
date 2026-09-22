@@ -7,14 +7,15 @@
    "score": 1,
    "noul": 1
   },
+  "state_last": false,
   "prior_weight": {
    "choice": 1.0,
    "score": 0.0,
    "noul": 0.0
   },
   "temperature": {
-   "choice": 0.6379,
-   "score": 1.105,
+   "choice": 0.6378,
+   "score": 1.1049,
    "noul": 0.7915
   },
   "bias": {
@@ -27,14 +28,14 @@
     "permutations": 1,
     "prior_weight": 0.0,
     "choice": {
-     "T": 20.0,
+     "T": 8.0228,
      "bias": 0.0,
-     "nll": 3.1566,
-     "nll_raw": 5.5843,
+     "nll": 3.1285,
+     "nll_raw": 4.3672,
      "n": 1600
     },
     "score": {
-     "T": 1.105,
+     "T": 1.1049,
      "bias": 0.0,
      "nll": 1.4349,
      "nll_raw": 1.4361,
@@ -77,14 +78,14 @@
     "permutations": 2,
     "prior_weight": 0.0,
     "choice": {
-     "T": 14.557,
+     "T": 4.5877,
      "bias": 0.0,
-     "nll": 3.1372,
-     "nll_raw": 4.2115,
+     "nll": 3.0934,
+     "nll_raw": 3.7378,
      "n": 1600
     },
     "score": {
-     "T": 1.105,
+     "T": 1.1049,
      "bias": 0.0,
      "nll": 1.4349,
      "nll_raw": 1.4361,
@@ -102,7 +103,7 @@
     "permutations": 2,
     "prior_weight": 1.0,
     "choice": {
-     "T": 0.6379,
+     "T": 0.6378,
      "bias": 0.0,
      "nll": 2.7598,
      "nll_raw": 2.8121,
@@ -128,15 +129,17 @@
    "choice": {
     "permutations": 2,
     "prior_weight": 1.0,
-    "T": 0.6379,
+    "T": 0.6378,
     "bias": 0.0,
+    "k_slope": 0.0,
     "val_nll": 2.7598
    },
    "score": {
     "permutations": 1,
     "prior_weight": 0.0,
-    "T": 1.105,
+    "T": 1.1049,
     "bias": 0.0,
+    "k_slope": 0.0,
     "val_nll": 1.4349
    },
    "noul": {
@@ -144,6 +147,7 @@
     "prior_weight": 0.0,
     "T": 0.7915,
     "bias": -0.7,
+    "k_slope": 0.0,
     "val_nll": 0.5482
    }
   }

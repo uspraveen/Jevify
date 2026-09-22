@@ -1,0 +1,179 @@
+{
+ "recipe": {
+  "mode": "index",
+  "chat": true,
+  "permutations": {
+   "choice": 2,
+   "score": 1,
+   "noul": 1
+  },
+  "state_last": false,
+  "prior_weight": {
+   "choice": 0.0,
+   "score": 0.0,
+   "noul": 0.0
+  },
+  "temperature": {
+   "choice": 1.1886,
+   "score": 1.1359,
+   "noul": 0.8863
+  },
+  "bias": {
+   "noul": -1.3
+  }
+ },
+ "search": {
+  "grid": [
+   {
+    "permutations": 1,
+    "prior_weight": 0.0,
+    "choice": {
+     "T": 1.2983,
+     "bias": 0.0,
+     "nll": 1.2055,
+     "nll_raw": 1.2611,
+     "n": 1200,
+     "T_k": 0.8943,
+     "k_slope": 0.0833,
+     "nll_k": 1.2025
+    },
+    "score": {
+     "T": 1.1359,
+     "bias": 0.0,
+     "nll": 1.225,
+     "nll_raw": 1.2295,
+     "n": 800,
+     "T_k": 1.1359,
+     "k_slope": 0.0,
+     "nll_k": 1.225
+    },
+    "noul": {
+     "T": 0.8863,
+     "bias": -1.3,
+     "nll": 0.4335,
+     "nll_raw": 0.5798,
+     "n": 960
+    }
+   },
+   {
+    "permutations": 1,
+    "prior_weight": 1.0,
+    "choice": {
+     "T": 1.6634,
+     "bias": 0.0,
+     "nll": 1.6494,
+     "nll_raw": 1.9097,
+     "n": 1200,
+     "T_k": 2.8974,
+     "k_slope": -0.25,
+     "nll_k": 1.6462
+    },
+    "score": {
+     "T": 2.1963,
+     "bias": 0.0,
+     "nll": 1.4416,
+     "nll_raw": 1.6213,
+     "n": 800,
+     "T_k": 4.9002,
+     "k_slope": -2.0417,
+     "nll_k": 1.4309
+    },
+    "noul": {
+     "T": 1.0703,
+     "bias": -2.1,
+     "nll": 0.4867,
+     "nll_raw": 0.8438,
+     "n": 960
+    }
+   },
+   {
+    "permutations": 2,
+    "prior_weight": 0.0,
+    "choice": {
+     "T": 1.1886,
+     "bias": 0.0,
+     "nll": 1.1646,
+     "nll_raw": 1.1882,
+     "n": 1200,
+     "T_k": 0.7983,
+     "k_slope": 0.0833,
+     "nll_k": 1.1588
+    },
+    "score": {
+     "T": 1.1359,
+     "bias": 0.0,
+     "nll": 1.225,
+     "nll_raw": 1.2295,
+     "n": 800,
+     "T_k": 1.1359,
+     "k_slope": 0.0,
+     "nll_k": 1.225
+    },
+    "noul": {
+     "T": 0.8863,
+     "bias": -1.3,
+     "nll": 0.4335,
+     "nll_raw": 0.5798,
+     "n": 960
+    }
+   },
+   {
+    "permutations": 2,
+    "prior_weight": 1.0,
+    "choice": {
+     "T": 1.2651,
+     "bias": 0.0,
+     "nll": 1.372,
+     "nll_raw": 1.42,
+     "n": 1200,
+     "T_k": 0.8653,
+     "k_slope": 0.0833,
+     "nll_k": 1.3647
+    },
+    "score": {
+     "T": 2.1963,
+     "bias": 0.0,
+     "nll": 1.4416,
+     "nll_raw": 1.6213,
+     "n": 800,
+     "T_k": 4.9002,
+     "k_slope": -2.0417,
+     "nll_k": 1.4309
+    },
+    "noul": {
+     "T": 1.0703,
+     "bias": -2.1,
+     "nll": 0.4867,
+     "nll_raw": 0.8438,
+     "n": 960
+    }
+   }
+  ],
+  "chosen": {
+   "choice": {
+    "permutations": 2,
+    "prior_weight": 0.0,
+    "T": 1.1886,
+    "bias": 0.0,
+    "k_slope": 0.0,
+    "val_nll": 1.1646
+   },
+   "score": {
+    "permutations": 1,
+    "prior_weight": 0.0,
+    "T": 1.1359,
+    "bias": 0.0,
+    "k_slope": 0.0,
+    "val_nll": 1.225
+   },
+   "noul": {
+    "permutations": 1,
+    "prior_weight": 0.0,
+    "T": 0.8863,
+    "bias": -1.3,
+    "k_slope": 0.0,
+    "val_nll": 0.4335
+   }
+  }
+ }
+}
