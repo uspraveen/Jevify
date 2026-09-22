@@ -32,12 +32,35 @@ def macro(reports, sources=None) -> dict[str, float]:
             "brier": float(np.mean([r.brier for r in rs]))}
 
 
+_CTX: tuple | None = None
+
+
+def _one(job) -> dict | None:
+    run, vp, tp = job
+    test_recs, val_recs, bench_sources, big, small = _CTX
+    val_preds, test_preds = list(read_predictions(vp)), list(read_predictions(tp))
+    covered = {p.id.split("/")[0] for p in test_preds} & bench_sources
+    if len(covered) < 10:                       # a vision run, or a slice: not this benchmark
+        print(f"skip {run}: covers {len(covered)} of {len(bench_sources)} sources", file=sys.stderr)
+        return None
+    mode = next((p.extra.get("mode") for p in val_preds if p.extra), "index")
+    base = Recipe(mode="label" if mode == "label" else "index")
+    out: dict[str, dict] = {}
+    for tag, ks in (("scalar", False), ("k_slope", True)):
+        recipe, log = fit_recipe(val_recs, val_preds, base, k_slope=ks)
+        reps = score(test_recs, refinalize(test_recs, test_preds, recipe))
+        out[tag] = {"recipe": recipe.as_dict(), "macro": macro(reps), "big_k": macro(reps, big),
+                    "small_k": macro(reps, small), "chosen": log["chosen"]}
+    return {"run": run, **out, "slope": out["k_slope"]["recipe"].get("temp_k_slope", {})}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split(chr(10))[0])
     ap.add_argument("--records", type=Path, default=ROOT / "data" / "jev-bench")
     ap.add_argument("--runs", type=Path, default=ROOT / "runs", help="where <run>/validation_predictions.jsonl lives")
     ap.add_argument("--models", default="", help="comma-separated run ids; default: every run with validation predictions")
     ap.add_argument("--out", type=Path, default=ROOT / "results" / "recipe-k")
+    ap.add_argument("--jobs", type=int, default=16, help="models refitted in parallel")
     a = ap.parse_args()
 
     def val_path(run: str) -> Path | None:
@@ -61,31 +84,20 @@ def main() -> int:
     big = sorted({s for s, k in k_of.items() if k > 30 and prim_of[s] == "choice"})
     small = sorted({s for s, k in k_of.items() if k <= 5 and prim_of[s] == "choice"})
 
-    rows = []
     bench_sources = {r.source for r in test_recs}
-    for run in runs:
-        vp, tp = val_path(run), a.runs / run / "test_predictions.jsonl"
-        if not (vp and tp.exists()):
-            print(f"skip {run}: no {'validation' if tp.exists() else 'test'} predictions", file=sys.stderr)
-            continue
-        val_preds, test_preds = list(read_predictions(vp)), list(read_predictions(tp))
-        covered = {p.id.split("/")[0] for p in test_preds} & bench_sources
-        if len(covered) < 10:                       # a vision run, or a slice: not this benchmark
-            print(f"skip {run}: covers {len(covered)} of {len(bench_sources)} sources", file=sys.stderr)
-            continue
-        mode = next((p.extra.get("mode") for p in val_preds if p.extra), "index")
-        base = Recipe(mode="label" if mode == "label" else "index")
-        out: dict[str, dict] = {}
-        for tag, ks in (("scalar", False), ("k_slope", True)):
-            recipe, log = fit_recipe(val_recs, val_preds, base, k_slope=ks)
-            reps = score(test_recs, refinalize(test_recs, test_preds, recipe))
-            out[tag] = {"recipe": recipe.as_dict(), "macro": macro(reps), "big_k": macro(reps, big),
-                        "small_k": macro(reps, small), "chosen": log["chosen"]}
-        row = {"run": run, **out}
-        row["slope"] = out["k_slope"]["recipe"].get("temp_k_slope", {})
-        rows.append(row)
-        s, k = out["scalar"], out["k_slope"]
-        print(f"{run:22s} macro ECE {s['macro']['ece']:.3f} -> {k['macro']['ece']:.3f}   "
+    jobs = [(run, val_path(run), a.runs / run / "test_predictions.jsonl") for run in runs]
+    jobs = [j for j in jobs if j[1] and j[2].exists()]
+    global _CTX
+    _CTX = (test_recs, val_recs, bench_sources, big, small)
+    import multiprocessing as mp
+
+    # one model per process: each refit is independent, and a serial sweep over a dozen models
+    # took the better part of an hour on a box with 80 idle cores
+    with mp.get_context("fork").Pool(min(len(jobs), a.jobs)) as pool:
+        rows = [r for r in pool.map(_one, jobs) if r]
+    for row in rows:
+        s, k = row["scalar"], row["k_slope"]
+        print(f"{row['run']:22s} macro ECE {s['macro']['ece']:.3f} -> {k['macro']['ece']:.3f}   "
               f"K>30 {s['big_k']['ece']:.3f} -> {k['big_k']['ece']:.3f}   K<=5 {s['small_k']['ece']:.3f} -> {k['small_k']['ece']:.3f}   "
               f"slope {row['slope'] or '—'}", flush=True)
 
