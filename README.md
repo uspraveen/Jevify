@@ -102,8 +102,8 @@ learning rate as well (TVD 0.364 vs 0.332 for hard labels): the loss, not the sc
 makes them worse at matching human distributions.
 [· detail](docs/FINDINGS.md#7-tier-2-letting-the-backbone-move)
 
-**6 · Instruction tuning does hurt calibration — 1.3–1.8× worse raw ECE — but it is almost
-entirely a temperature problem.** Gemma-4-E2B-it starts at ECE 0.361 and lands at 0.123 after one
+**6 · Instruction tuning does hurt calibration — 1.3–2.1× worse raw ECE — but it is almost
+entirely a temperature problem.** Gemma-4-E2B-it starts at ECE 0.370 and lands at 0.123 after one
 scalar per primitive; its accuracy is +0.195 over its base checkpoint for +0.008 ECE. Take the
 instruct checkpoint and always fit the temperature — on the exact distribution: our own fitter read
 the 4-decimal wire format, which zeroed real high-K probabilities and cost the Gemma models 0.03–0.06

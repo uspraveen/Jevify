@@ -779,7 +779,7 @@ def fig_instruct_vs_base(pairs: list[dict[str, Any]], out: Path) -> Path:
     fig.tight_layout(rect=_layout(fig, 2))
     _headline(fig, "Instruction tuning costs calibration — but it is mostly a temperature problem",
               "Arrow start = raw ECE straight off the logits; arrow end = after one scalar per primitive fitted on validation splits. "
-              "Instruct checkpoints start 1.3–1.8x worse and land close to their base counterparts.")
+              "Instruct checkpoints start 1.3–2.1x worse and land close to their base counterparts.")
     _footer(fig)
     return _save(fig, out / "instruct_vs_base")
 
@@ -787,15 +787,17 @@ def fig_instruct_vs_base(pairs: list[dict[str, Any]], out: Path) -> Path:
 def _family_style(label: str, seen: dict[str, int]) -> tuple[str, str]:
     """Colour by model family, vary the dash within it: nine similar lines are easier to
     read as three families than as nine hues (and nine hues cannot pass the CVD gate)."""
-    fams = [("Qwen", [BLUE_RAMP[7], BLUE_RAMP[5], BLUE_RAMP[3], BLUE_RAMP[2]]),
-            ("gemma", ["#b84a1e", "#eb6834", "#f19468"]),
-            ("SmolLM", ["#1baf7a"]), ("K2", ["#4a3aa7"])]
+    # five shades x five dashes: with five Qwen checkpoints the old 4 x 4 cycle gave the 1st
+    # and 5th the same colour *and* dash (0.8B and 9B were indistinguishable)
+    fams = [("Qwen", [BLUE_RAMP[7], BLUE_RAMP[5], BLUE_RAMP[3], BLUE_RAMP[2], BLUE_RAMP[6]]),
+            ("gemma", ["#8c3413", "#b84a1e", "#eb6834", "#f19468"]),
+            ("SmolLM", ["#1baf7a"]), ("K2", ["#4a3aa7", "#8a7fd0"])]
+    dash_cycle = [(0, ()), (0, (5, 2)), (0, (1.5, 1.5)), (0, (6, 2, 1, 2)), (0, (3, 1, 1, 1, 1, 1))]
     for name, colors in fams:
         if label.lower().startswith(name.lower()):
             i = seen.get(name, 0)
             seen[name] = i + 1
-            dashes = [(0, ()), (0, (5, 2)), (0, (1.5, 1.5)), (0, (6, 2, 1, 2))][i % 4]
-            return colors[i % len(colors)], dashes
+            return colors[i % len(colors)], dash_cycle[i % len(dash_cycle)]
     i = seen.get("other", 0)
     seen["other"] = i + 1
     return ["#eda100", "#e87ba4", "#008300"][i % 3], (0, ())
@@ -819,8 +821,9 @@ def fig_recipe_ladder(models: dict[str, list[dict[str, Any]]], out: Path) -> Pat
     fig.legend(handles, labels, loc="center right", fontsize=7.8, bbox_to_anchor=(1.0, 0.52))
     fig.tight_layout(rect=(0, _layout(fig, 2)[1], 0.84, _layout(fig, 2)[3]))
     _headline(fig, "What each calibration step is worth, per model",
-              "Every step is fitted on validation splits only. The contextual prior is worth ~10 accuracy points to Qwen and K2 "
-              "and nothing to Gemma; Gemma instead needs the temperature. A single fixed recipe would mis-rank these models.")
+              "Every step is fitted on validation splits only. The contextual prior is a small-model fix: +6 to +12 Choice "
+              "accuracy points below 1B, whatever the family, and ~0 from 2B up. Gemma needs the temperature most. "
+              "A single fixed recipe would mis-rank these models.")
     _footer(fig)
     return _save(fig, out / "recipe_ladder")
 

@@ -157,9 +157,14 @@ sweep against Jev's 0.113, and **nine of the twelve checkpoints are better calib
 0.396–0.716 vs Jev's 0.733 — Gemma-4-12B at 0.716 is the closest, with no training at all.
 *(Numbers after the fitter fix of 4.5.)*
 
-**4.2 Every model needs a different recipe.** The contextual prior is worth ~10 Choice-accuracy
-points to Qwen and K2 and **exactly nothing** to Gemma, which instead needs aggressive temperature
-scaling (Choice temperatures of 2.6–3.3, where Qwen's sit between 1.0 and 1.2). A single fixed recipe would mis-rank these models; the per-primitive
+**4.2 Every model needs a different recipe — and the contextual prior is a small-model fix.** The
+content-free prior correction adds **+0.06 to +0.12 Choice accuracy below 1B** (Qwen3.5-0.8B +0.124,
+K2-Horizon-0.9B +0.104, Qwen3.5-0.8B-Base +0.061) and **0 to +0.02 from 2B up**, in every family
+(Qwen3.5-2B +0.013, SmolLM3-3B +0.020, Qwen3.5-4B/9B, K2-7B, all four Gemma checkpoints ~0).
+An earlier version of this section called it a family effect ("worth ~10 points to Qwen and K2,
+nothing to Gemma"); that was a size confound — the first sweep's Qwen and K2 checkpoints were the
+small ones. Gemma instead needs the most temperature scaling (Choice temperatures of 2.6–3.3, where
+Qwen's sit between 1.0 and 1.2). A single fixed recipe would mis-rank these models; the per-primitive
 search finds this automatically. ![recipe ladder](../results/figures/recipe_ladder.png)
 
 **4.3 A Platt bias on Noul is not optional for small models.** A temperature cannot move a binary
@@ -214,13 +219,14 @@ Yes, measurably — and less than you would expect after calibration.
 
 ![instruct vs base](../results/figures/instruct_vs_base.png)
 
-**5.1 Instruct checkpoints start 1.3–1.8× worse calibrated.** Raw macro ECE: Qwen3.5-0.8B 0.191
-vs its base 0.146; Gemma-4-E2B-it **0.361** vs its base 0.201. Gemma-4-E2B-it is the worst-calibrated
+**5.1 Instruct checkpoints start 1.3–2.1× worse calibrated.** Raw macro ECE: Qwen3.5-0.8B 0.179
+vs its base 0.138; Gemma-4-E2B-it **0.370** vs its base 0.180. *(Rescored on jev-bench v0.1.1; the
+first version quoted 0.191/0.146 and 0.361/0.201 from v0.1.0, before the label audit of Section 3.)* Gemma-4-E2B-it is the worst-calibrated
 model in the sweep before calibration. This is the overconfidence/mode-dropping effect TypeSafe's
 own AI primer describes, reproduced.
 
 **5.2 But it is almost entirely a temperature problem, and temperature is free.** After one scalar
-per primitive fitted on validation, Gemma-it goes 0.361 → 0.123 and the pairs nearly converge
+per primitive fitted on validation, Gemma-it goes 0.370 → 0.123 and the pairs nearly converge
 (0.112 vs 0.105; 0.123 vs 0.115 — after the fitter fix of 4.5; 0.158 before it). Instruction tuning distorts the confidence *scale*, not the
 *ranking* — Gemma-it's accuracy barely moves under calibration (0.598 → 0.591).
 
