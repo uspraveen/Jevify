@@ -160,6 +160,20 @@ The original ladder (research path, four sizes, three tiers) is kept as
 [`results/latency/latency_ladder.png`](results/latency/latency_ladder.png); Jev's server-time fit is
 [`results/jev-latency-probe/server_time_vs_tokens.png`](results/jev-latency-probe/server_time_vs_tokens.png).
 
+**12 · At 8–12B the picture holds, and the speed claim gets its honest form.** Qwen3-VL-8B,
+Qwen3.5-9B and Gemma-4-12B on the vision configs, no training: macro accuracy **0.84** (2B: 0.78),
+AI2D 0.75–0.77 (2B: 0.65), macro ECE **0.032** for the 8B after a recipe — and Qwen3.5-9B's *raw*
+readout is already calibrated (ECE 0.045 before any temperature), the only checkpoint tested for
+which that is true. An image question answers in **120 ms** (Qwen3-VL-8B) to **175 ms** (Gemma-4-12B)
+on one A40, still under Jev's 180–220 ms text round trip; through vLLM the 9B text model sits at
+56–70 ms for K ≤ 27. The comparison that matters: on the *same* model and prompt, the readout costs
+the prefill (85–180 ms) while decoding the answer as text costs 52–106 ms per token on top — an
+eight-token answer is 4–7× the readout, a 32-token one 13–27×. Generation pays for tokens a typed
+decision never asked for; that is the saving, at 2B or 12B.
+[· detail](docs/FINDINGS.md#10-the-8b-class-is-a-small-models-speed-the-whole-story)
+
+![Reading the answer against decoding it](results/latency/latency_generate.png)
+
 ## Try it
 
 **Playground:** [https://uspraveenraj--jevify-playground.modal.run](https://uspraveenraj--jevify-playground.modal.run) — ask a Jevified open model typed questions and watch the
@@ -294,7 +308,8 @@ per-config metrics, recipe and figures.
 - [x] Seeds on the Tier 2 arms: the learning-rate result holds (3 seeds each); LoRA held-out accuracy is seed-stable
 - [ ] Soft labels at the low learning rate; the low learning rate at 4B
 - [x] Vision Tier 2: LoRA on the readout, tower vs decoder vs both — the decoder is where transfer lives (AI2D +0.055 held out)
-- [ ] 8B-class vision and text (Qwen3-VL-8B, Gemma 4) — latency and Tier 0 quality on one A40; more ordinal scales; Tier 1 at 7B+
+- [x] 8B-class study: Qwen3-VL-8B, Qwen3.5-9B, Gemma-4-12B — vision Tier 0, latency, readout vs generation on one A40
+- [ ] Gemma-4-12B text Tier 0 on the leaderboard (running); more ordinal scales; Tier 1 at 7B+
 - [ ] Label-first synthetic data pipeline; HF Space; model zoo
 
 ## Why tiers, and why no RL

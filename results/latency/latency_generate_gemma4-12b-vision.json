@@ -1,0 +1,36 @@
+{
+ "device": "NVIDIA A40",
+ "model": "google/gemma-4-12B-it",
+ "vision": true,
+ "new_tokens": [
+  1,
+  8,
+  32
+ ],
+ "rows": {
+  "pope": {
+   "primitive": "noul",
+   "k": 2,
+   "n": 20,
+   "prompt_tokens_median": 338.0,
+   "readout_p50_ms": 174.43985491991043,
+   "prefill_only_p50_ms": 153.61479669809341,
+   "generate_1_p50_ms": 160.871259868145,
+   "generate_8_p50_ms": 719.5290774106979,
+   "generate_32_p50_ms": 2639.0255987644196,
+   "ms_per_generated_token": 79.94046254504111
+  },
+  "aokvqa": {
+   "primitive": "choice",
+   "k": 4,
+   "n": 20,
+   "prompt_tokens_median": 368.0,
+   "readout_p50_ms": 180.61042577028275,
+   "prefill_only_p50_ms": 160.2784302085638,
+   "generate_1_p50_ms": 167.14472509920597,
+   "generate_8_p50_ms": 727.0997911691666,
+   "generate_32_p50_ms": 2644.7328105568886,
+   "ms_per_generated_token": 79.92219630508653
+  }
+ }
+}

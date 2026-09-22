@@ -19,6 +19,10 @@ on the Hub. **Each figure exists in exactly one place: next to the data that pro
 | `jev-latency-probe/` | Controlled probes of the Jev API with the server's own clock: fixed floor + per-token cost; options, questions and caching isolated | `scripts/probe_jev_latency.py` |
 | `qwen3vl-2b-t2-{vision,decoder,both}/` | Vision Tier 2: a rank-16 LoRA on the readout confined to the tower, the decoder, or both (A-OKVQA train; POPE/AI2D held out), each with its own recipe; `lora/` is the adapter | `python -m jevify.train vision --lora …`, `jevify-run recipe` |
 | `figures/vision_lora_scopes.*` | The three scopes against Tier 0, per source, with the table the docs quote | `scripts/vision_lora_figure.py` |
+| `qwen3vl-8b/`, `qwen35-9b-vision/`, `gemma4-12b-vision/` | Vision Tier 0 at 8–12B, recipe-fitted, same layout as `qwen3vl-2b/` | `python -m jevify.train vision`, `jevify-run recipe` |
+| `latency/latency_8b*.md` | Text latency ladder at 9B / 12B, Hugging Face and vLLM, against Jev | `scripts/latency.py` |
+| `latency/latency_vision_<run>.*` | Vision serving latency per model at 8–12B | `scripts/latency_vision.py` |
+| `latency/latency_generate*.md`, `latency_generate.png` | The readout against greedy generation of 1/8/32 tokens on the same prompt, per model | `scripts/latency_generate.py`, `scripts/latency_generate_figure.py` |
 | `latency/latency_vision.*` | Vision serving latency on one A40: per-source p50/p90, input and image tokens, batched throughput; `latency_vision_multi.json` times several questions about one image | `scripts/latency_vision.py` |
 | `vision-budget/` | The encoder budget sweep: `results.json`, table, `vision_budget.png` | `scripts/vision_budget.py` |
 

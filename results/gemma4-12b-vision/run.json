@@ -1,0 +1,39 @@
+{
+ "run_id": "gemma4-12b-vision",
+ "model_id": "google/gemma-4-12B-it",
+ "modality": "vision",
+ "tier": 0,
+ "sources": [
+  "pope",
+  "aokvqa",
+  "ai2d"
+ ],
+ "split": "test",
+ "n": 4244,
+ "max_pixels": null,
+ "budget": {
+  "effective": {
+   "max_pixels": null,
+   "min_pixels": null
+  },
+  "image_tokens": {
+   "median": 1,
+   "min": 1,
+   "max": 1,
+   "n_sampled": 24
+  }
+ },
+ "vision_stage": {
+  "is_vlm": false,
+  "total_params": 11959730176,
+  "vision_tower": null,
+  "projector": null,
+  "decoder_params": 11959730176,
+  "vision_config": {
+   "patch_size": 16
+  }
+ },
+ "load_s": 39.3,
+ "wall_s": 658.7,
+ "device": "NVIDIA A40"
+}

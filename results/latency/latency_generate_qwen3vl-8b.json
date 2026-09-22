@@ -1,0 +1,36 @@
+{
+ "device": "NVIDIA A40",
+ "model": "Qwen/Qwen3-VL-8B-Instruct",
+ "vision": true,
+ "new_tokens": [
+  1,
+  8,
+  32
+ ],
+ "rows": {
+  "pope": {
+   "primitive": "noul",
+   "k": 2,
+   "n": 20,
+   "prompt_tokens_median": 351.5,
+   "readout_p50_ms": 127.71585769951344,
+   "prefill_only_p50_ms": 119.03223767876625,
+   "generate_1_p50_ms": 125.6706602871418,
+   "generate_8_p50_ms": 499.1386737674475,
+   "generate_32_p50_ms": 1783.5840750485659,
+   "ms_per_generated_token": 53.48107789552981
+  },
+  "aokvqa": {
+   "primitive": "choice",
+   "k": 4,
+   "n": 20,
+   "prompt_tokens_median": 351.0,
+   "readout_p50_ms": 126.07059255242348,
+   "prefill_only_p50_ms": 117.17604286968708,
+   "generate_1_p50_ms": 124.22947213053703,
+   "generate_8_p50_ms": 498.18130396306515,
+   "generate_32_p50_ms": 1782.9344868659973,
+   "ms_per_generated_token": 53.50661337856324
+  }
+ }
+}

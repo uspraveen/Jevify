@@ -1,0 +1,58 @@
+{
+ "run_id": "qwen35-9b-vision",
+ "model_id": "Qwen/Qwen3.5-9B",
+ "modality": "vision",
+ "tier": 0,
+ "sources": [
+  "pope",
+  "aokvqa",
+  "ai2d"
+ ],
+ "split": "test",
+ "n": 4244,
+ "max_pixels": null,
+ "budget": {
+  "effective": {
+   "max_pixels": 16777216,
+   "min_pixels": 65536
+  },
+  "size": {
+   "longest_edge": 16777216,
+   "shortest_edge": 65536
+  },
+  "image_tokens": {
+   "median": 300,
+   "min": 192,
+   "max": 400,
+   "n_sampled": 24
+  }
+ },
+ "vision_stage": {
+  "is_vlm": true,
+  "total_params": 9409813744,
+  "vision_tower": {
+   "path": "model.visual",
+   "class": "Qwen3_5VisionModel",
+   "params": 456010480,
+   "share_of_model": 0.0485,
+   "layers": 27,
+   "frozen": false
+  },
+  "projector": {
+   "path": "model.visual.merger",
+   "class": "Qwen3_5VisionPatchMerger",
+   "params": 40119040,
+   "share_of_model": 0.0043
+  },
+  "decoder_params": 8913684224,
+  "vision_config": {
+   "hidden_size": 1152,
+   "patch_size": 16,
+   "num_attention_heads": 16,
+   "spatial_merge_size": 2
+  }
+ },
+ "load_s": 35.2,
+ "wall_s": 1023.2,
+ "device": "NVIDIA A40"
+}

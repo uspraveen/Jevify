@@ -1,0 +1,58 @@
+{
+ "run_id": "qwen3vl-8b",
+ "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+ "modality": "vision",
+ "tier": 0,
+ "sources": [
+  "pope",
+  "aokvqa",
+  "ai2d"
+ ],
+ "split": "test",
+ "n": 4244,
+ "max_pixels": null,
+ "budget": {
+  "effective": {
+   "max_pixels": 16777216,
+   "min_pixels": 65536
+  },
+  "size": {
+   "longest_edge": 16777216,
+   "shortest_edge": 65536
+  },
+  "image_tokens": {
+   "median": 300,
+   "min": 192,
+   "max": 400,
+   "n_sampled": 24
+  }
+ },
+ "vision_stage": {
+  "is_vlm": true,
+  "total_params": 8767123696,
+  "vision_tower": {
+   "path": "model.visual",
+   "class": "Qwen3VLVisionModel",
+   "params": 576388336,
+   "share_of_model": 0.0657,
+   "layers": 27,
+   "frozen": false
+  },
+  "projector": {
+   "path": "model.visual.deepstack_merger_list",
+   "class": "ModuleList",
+   "params": 120377856,
+   "share_of_model": 0.0137
+  },
+  "decoder_params": 8070357504,
+  "vision_config": {
+   "hidden_size": 1152,
+   "patch_size": 16,
+   "num_attention_heads": 16,
+   "spatial_merge_size": 2
+  }
+ },
+ "load_s": 33.9,
+ "wall_s": 762.0,
+ "device": "NVIDIA A40"
+}

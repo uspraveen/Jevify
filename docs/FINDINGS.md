@@ -639,7 +639,88 @@ decoder-vs-tower gap on AI2D (0.038) and on macro accuracy (0.021) are the claim
 
 ---
 
-## 10. Open questions
+## 10. The 8B class: is a small model's speed the whole story?
+
+A fair objection to Section 9: a 2B model answers fast at anything, so "68 ms under Jev's round
+trip" says little. This section repeats the measurements at the size people actually deploy —
+Qwen3-VL-8B, Qwen3.5-9B (whose checkpoints are natively multimodal) and Gemma-4-12B — on the
+same A40, and adds the comparison the objection is really about: the same model, the same
+prompt, *decoding* its answer instead of reading it.
+
+**10.1 Quality: the 8B class is a different tier of VLM, and one of them arrives calibrated.**
+Tier 0, the vision configs, 4,244 test records, recipe fitted on validation splits:
+
+| model | POPE (noul) acc / ECE | A-OKVQA (choice) | AI2D (choice) | macro acc | macro ECE | raw macro ECE | recipe |
+|---|---|---|---|---|---|---|---|
+| Qwen3-VL-2B (§9) | 0.891 / 0.046 | 0.793 / 0.037 | 0.652 / 0.059 | 0.779 | 0.047 | 0.128 | T 1.92 / 2.63, Noul bias +1.8 |
+| **Qwen3-VL-8B** | 0.889 / **0.025** | 0.868 / 0.032 | **0.767** / **0.038** | **0.842** | **0.032** | 0.109 | T 2.26 / 3.58, bias +2.3 |
+| **Qwen3.5-9B** | **0.895** / 0.030 | **0.876** / **0.028** | 0.750 / 0.060 | 0.841 | 0.039 | **0.045** | T 1.11 / 1.38, bias +0.1 |
+| Gemma-4-12B | 0.868 / 0.035 | 0.825 / 0.049 | 0.746 / 0.055 | 0.813 | 0.046 | 0.126 | T 2.80 / 3.34, bias **−2.8** |
+
+Three things. AI2D — the diagram source, 0.652 at 2B — is 0.75–0.77 for all three, so the 2B's
+weakness was capacity, not the readout. Qwen3.5-9B's *raw* readout is already calibrated (macro
+ECE 0.045 before any recipe; temperatures near 1, no Noul bias), where Qwen3-VL-8B and Gemma-4
+need temperatures of 2.3–3.6: whatever Qwen3.5's post-training did to its yes/no and
+option-letter probabilities, it left them honest, and it is the only checkpoint tested — text or
+vision, any size — for which that is true. And the Noul bias has a *sign*: the two Qwen models
+under-assert that an object is present (bias +2.3 toward yes), Gemma-4 over-asserts it (−2.8) —
+the hallucination-prone direction, corrected by the recipe to ECE 0.035, but visible in the raw
+readout as a model that says "yes, there is a dining table" too readily.
+
+**10.2 Latency: still under Jev's round trip, at 8–12B, with an image.** One request at a time
+through the served path, median over 30 real records per source, Hugging Face eager:
+
+| model | image question, K=2–4 | batched | text K=2–27 | text K=60 | text K=151 |
+|---|---|---|---|---|---|
+| Qwen3-VL-2B (§9.8) | 68–79 ms | 12.6 rec/s | — | — | — |
+| Qwen3-VL-8B | **120–123 ms** | 5.3 rec/s | — | — | — |
+| Qwen3.5-9B | 169–172 ms | 3.9 rec/s | 89–100 ms · vLLM **56–70 ms** | 250 · vLLM 179 | 486 · vLLM 321 |
+| Gemma-4-12B | 173–179 ms | 7.0 rec/s (batch 4) | 102–126 ms | 311 | 680 |
+| Jev 1.13.0 API, text | no image input | — | 179–189 ms | 194 | 219 |
+
+An image question on a 12B model answers in 175 ms on one A40; Jev's *text* round trip is
+180–220 ms. Through vLLM the 9B text model sits at 56–70 ms for K ≤ 27 — a third of Jev — and
+crosses Jev's curve only above K ≈ 60, where 1,600-token option lists make it a throughput
+problem again (§1.11). Qwen3.5-9B's image path is slower than Qwen3-VL-8B's (169 vs 121 ms) for
+the reason §9.8 gave: its hybrid layers run on reference kernels here. Gemma-4 uses a fixed 280
+soft tokens per image (from its config; the token-counting helper of §9.5 sees the single
+placeholder the processor emits, so its count does not apply to a fixed-budget encoder).
+
+**10.3 Reading the answer against decoding it.** Same model, same prompt (chat template
+included), same records; the readout is `ask`, "generate N" is greedy decoding of exactly N
+tokens on the Hugging Face path:
+
+| model | prompt | readout | prefill only | generate 1 | generate 8 | generate 32 | per token |
+|---|---|---|---|---|---|---|---|
+| Qwen3.5-9B, text K=4 | 148 | **85 ms** | 81 | 86 | 448 | 1,690 | 52 ms |
+| Qwen3.5-9B, text K=151 | 1,649 | **482 ms** | 480 | 458 | 820 | 2,065 | 52 ms |
+| Gemma-4-12B, text K=4 | 147 | **101 ms** | 88 | 105 | 687 | 2,685 | 83 ms |
+| Qwen3-VL-8B, image K=4 | 351 | **126 ms** | 117 | 124 | 498 | 1,783 | 54 ms |
+| Qwen3.5-9B, image K=4 | 360 | **168 ms** | 161 | 166 | 537 | 1,806 | 53 ms |
+| Gemma-4-12B, image K=4 | 368 | **181 ms** | 160 | 167 | 727 | 2,645 | 80 ms |
+
+![Reading the answer against decoding it](../results/latency/latency_generate.png)
+
+The readout *is* the prefill: the gap between the two columns is the candidate gather and the
+wire format, 4–20 ms. A one-token answer costs the same. Everything after that is linear in the
+tokens decoded: an eight-token answer ("B, because the diagram shows…" gets no further) is 4–7×
+the readout, a 32-token one 13–27×. So the honest version of the speed claim is not "a small
+model is fast" but this: *for a typed decision, generation pays for tokens the caller never
+wanted*, and the readout does not — at 2B or at 12B. The per-token figures (52–106 ms) are the
+Hugging Face eager decoder; a serving engine would decode several times faster, and would
+prefill faster too, which moves both columns and leaves the ratio.
+
+**10.4 What the size buys and what it costs, in one line each.** Accuracy: +0.06 macro on the
+vision configs for 4× the parameters (0.779 → 0.842). Calibration: better at 8B (0.032 vs 0.047)
+without a better recipe. Latency: 1.6× (Qwen3-VL) to 2.3× (Gemma-4) the 2B's, still under Jev's
+text round trip with an image attached. Throughput: 12.6 → 5.3 records/s on one A40.
+*(`results/qwen3vl-8b/`, `results/qwen35-9b-vision/`, `results/gemma4-12b-vision/`,
+`results/latency/latency_8b*.md`, `latency_vision_*.md`, `latency_generate_*.md`;
+`scripts/latency_generate.py`, `scripts/latency_generate_figure.py`.)*
+
+---
+
+## 11. Open questions
 
 - **How far does the residual finding go?** Five seeds on each of two backbones (6.3a, 6.3b): the
   trained-source gain is robust at both sizes; the held-out result is Tier 0 on average and depends
@@ -659,5 +740,11 @@ decoder-vs-tower gap on AI2D (0.038) and on macro accuracy (0.021) are the claim
   backbone and one training source: no — the decoder adapter transfers to diagrams (+0.055 on
   AI2D) and the tower adapter barely does (+0.017). Open: whether that reverses with a training
   source whose difficulty *is* perceptual, and whether it holds at 8B.
+- **Why is Qwen3.5-9B's raw readout calibrated when nothing else is?** Its temperatures come out
+  at 1.1–1.4 with no Noul bias (10.1); every other checkpoint, text or vision, needs 2–3.6. Whether
+  the smaller Qwen3.5 checkpoints share it on the vision configs, and what in the post-training
+  produced it, is untested.
+- **Gemma-4 over-asserts presence on POPE (Noul bias −2.8).** The recipe corrects it; whether the
+  same lean shows up on the text Noul sources is answered by its text Tier 0 run when that finishes.
 - **Does the budget/calibration relationship hold for a model that is badly calibrated to
   begin with?** Qwen3-VL-2B degrades gracefully. A model that starts overconfident may not.

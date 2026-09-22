@@ -1,0 +1,48 @@
+{
+ "device": "NVIDIA A40",
+ "model": "Qwen/Qwen3.5-9B",
+ "vision": false,
+ "new_tokens": [
+  1,
+  8,
+  32
+ ],
+ "rows": {
+  "boolq": {
+   "primitive": "noul",
+   "k": 2,
+   "n": 20,
+   "prompt_tokens_median": 224.0,
+   "readout_p50_ms": 95.14191187918186,
+   "prefill_only_p50_ms": 93.26327964663506,
+   "generate_1_p50_ms": 96.17588110268116,
+   "generate_8_p50_ms": 460.28686314821243,
+   "generate_32_p50_ms": 1709.323039278388,
+   "ms_per_generated_token": 52.03700510244216
+  },
+  "arc_challenge": {
+   "primitive": "choice",
+   "k": 4,
+   "n": 20,
+   "prompt_tokens_median": 147.5,
+   "readout_p50_ms": 85.21530963480473,
+   "prefill_only_p50_ms": 81.30540885031223,
+   "generate_1_p50_ms": 86.02979965507984,
+   "generate_8_p50_ms": 448.3612235635519,
+   "generate_32_p50_ms": 1689.5699370652437,
+   "ms_per_generated_token": 51.72710120677948
+  },
+  "clinc150": {
+   "primitive": "choice",
+   "k": 151,
+   "n": 20,
+   "prompt_tokens_median": 1649.0,
+   "readout_p50_ms": 482.2689052671194,
+   "prefill_only_p50_ms": 480.43039813637733,
+   "generate_1_p50_ms": 458.10238644480705,
+   "generate_8_p50_ms": 820.3078079968691,
+   "generate_32_p50_ms": 2064.859729260206,
+   "ms_per_generated_token": 51.8308820263032
+  }
+ }
+}

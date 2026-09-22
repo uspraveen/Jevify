@@ -1,0 +1,38 @@
+{
+ "device": "NVIDIA A40",
+ "model": "Qwen/Qwen3.5-9B",
+ "max_pixels": null,
+ "rows": {
+  "pope": {
+   "primitive": "noul",
+   "k": 2,
+   "p50_ms": 170.9728091955185,
+   "p90_ms": 176.75517946481705,
+   "input_tokens_median": 359.5,
+   "image_tokens_median": 300.0,
+   "n": 30
+  },
+  "aokvqa": {
+   "primitive": "choice",
+   "k": 4,
+   "p50_ms": 168.52319240570068,
+   "p90_ms": 189.632211253047,
+   "input_tokens_median": 360.0,
+   "image_tokens_median": 260.0,
+   "n": 30
+  },
+  "ai2d": {
+   "primitive": "choice",
+   "k": 4,
+   "p50_ms": 172.215411439538,
+   "p90_ms": 398.35897237062454,
+   "input_tokens_median": 366.5,
+   "image_tokens_median": 296.5,
+   "n": 30
+  }
+ },
+ "batched": {
+  "records_per_s": 3.9353934637725643,
+  "batch": 8
+ }
+}
