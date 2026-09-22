@@ -174,9 +174,12 @@ with TypeSafeClient() as client:
                           questions={"refund": Noul(instructions="Is this a refund request?")})
 ```
 
-**Models:** [jevify-qwen3.5-4b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b) ·
-[jevify-qwen3.5-2b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b) — ~11 MB each; the
-backbone is pulled from its own repo, so nothing is duplicated.
+**Models:** [jevify-qwen3.5-4b-t2](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-t2)
+(Tier 2: heads + a LoRA merged at load, 97 MB — macro accuracy 0.747, above Jev's 0.733) ·
+[jevify-qwen3.5-4b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b) ·
+[jevify-qwen3.5-2b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b) (Tier 1, ~11 MB each) ·
+[jevify-qwen3-vl-2b](https://huggingface.co/Praveenrajus/jevify-qwen3-vl-2b) (vision, Tier 0 recipe).
+The backbone is pulled from its own repo, so nothing is duplicated.
 
 ```python
 from jevify import load_jevified
@@ -277,7 +280,7 @@ per-config metrics, recipe and figures.
 - [x] Latency: Jev's server-time law measured; vLLM serving path with the same numbers, 4-5x throughput
 - [x] Five-seed error bars on Tier 1: held-out generalization is seed-dependent (0.579 ± 0.049); README corrected
 - [x] The LM-weight diagnostic and the epoch-cap intervention (0.621 ± 0.004); 4B replicated over five seeds
-- [x] Tier 2 at 4B: macro 0.747, above Jev's 0.733; Jev still leads on held-out sources
+- [x] Tier 2 at 4B: macro 0.747, above Jev's 0.733; Jev still leads on held-out sources — published as `jevify-qwen3.5-4b-t2`
 - [x] Vision served at Jev speed: recipe-fitted Qwen3-VL-2B published; 68–79 ms per image question on one A40
 - [x] Seeds on the Tier 2 arms: the learning-rate result holds (3 seeds each); LoRA held-out accuracy is seed-stable
 - [ ] Soft labels at the low learning rate; the low learning rate at 4B
