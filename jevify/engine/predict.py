@@ -38,6 +38,20 @@ class Recipe:
     prior_weight: float | dict[str, float] = 0.0  # 0 = off; 1 = full PMI / contextual calibration
     temperature: dict[str, float] = field(default_factory=lambda: {p: 1.0 for p in PRIMS})
     bias: dict[str, float] = field(default_factory=lambda: {"noul": 0.0})
+    # a model's overconfidence need not be constant in the number of options: Gemma-4-12B is
+    # ECE 0.10 at K<=5 and 0.34 at K>30, Qwen3.5-9B the other way round, so one scalar per
+    # primitive is fitted across two regimes and can be worse than none (FINDINGS 2.7). This
+    # slope makes the temperature affine in log2(K/2) -- zero (the default) is the old behaviour.
+    temp_k_slope: dict[str, float] = field(default_factory=dict)
+
+    def temp_for(self, prim: str, k: int | None = None) -> float:
+        T = self.temperature.get(prim, 1.0)
+        slope = self.temp_k_slope.get(prim, 0.0) if self.temp_k_slope else 0.0
+        if slope and k and k > 2:
+            import math
+
+            T = T + slope * math.log2(k / 2)
+        return max(T, 0.05)
 
     def perm_for(self, prim: str) -> int:
         return self.permutations.get(prim, 1) if isinstance(self.permutations, dict) else int(self.permutations)
@@ -49,8 +63,11 @@ class Recipe:
         return max(self.permutations.values()) if isinstance(self.permutations, dict) else int(self.permutations)
 
     def as_dict(self) -> dict[str, Any]:
-        return {"mode": self.mode, "chat": self.chat, "permutations": self.permutations, "state_last": self.state_last,
-                "prior_weight": self.prior_weight, "temperature": dict(self.temperature), "bias": dict(self.bias)}
+        d = {"mode": self.mode, "chat": self.chat, "permutations": self.permutations, "state_last": self.state_last,
+             "prior_weight": self.prior_weight, "temperature": dict(self.temperature), "bias": dict(self.bias)}
+        if self.temp_k_slope:          # omitted when unused, so old recipe.json files stay byte-identical
+            d["temp_k_slope"] = dict(self.temp_k_slope)
+        return d
 
 
 class Tier0Engine:
@@ -127,7 +144,7 @@ class Tier0Engine:
 
 def finalize(primitive: str, question: dict[str, Any], extra: dict[str, Any], recipe: Recipe) -> Prediction:
     """Apply a recipe to stored raw log-scores. Pure; used offline for every recipe variant."""
-    T = recipe.temperature.get(primitive, 1.0)
+    T = recipe.temp_for(primitive, len(extra["runs"][0]["keys"]) if extra.get("runs") else None)
     prior = extra.get("prior")
     pw = recipe.prior_for(primitive)
     prob_maps: list[dict[str, float]] = []
