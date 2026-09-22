@@ -81,10 +81,10 @@ def test_vision_scoped_lora_touches_only_the_tower_and_restores_the_best_epoch()
     after = readout_loss(readout.batch(val))[0].item()
     best = min(h["loss"] for h in info["history"])
     assert abs(after - best) < 1e-3, (after, best, info["history"])      # the best epoch is what remains
-    live = dict(sc.model.named_parameters())
+    # peft renames an adapted layer's own weight to <path>.base_layer.weight under base_model.model
+    live = {m.replace(".base_layer", "").removeprefix("base_model.model."): p for m, p in sc.model.named_parameters()}
     for n, v in base_before.items():                                     # the base weights never moved
-        wrapped = next((m for m in live if m.endswith(n)), None)
-        assert wrapped is not None and torch.equal(live[wrapped], v), n
+        assert n in live and torch.equal(live[n], v), n
 
 
 def test_decoder_scoped_lora_leaves_the_tower_alone():
