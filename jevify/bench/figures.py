@@ -716,7 +716,8 @@ def fig_tier1_story(variants: list[dict[str, Any]], jev: dict[str, float], out: 
         ax.axhline(ref, color=INK2, lw=1.0, ls=(0, (4, 3)), zorder=1, alpha=0.55)
         ax.set_xticks(x); ax.set_xticklabels([v["label"] for v in variants], fontsize=8)
         ax.set_ylabel(f"{name} ({better})"); ax.tick_params(length=0)
-        ax.set_ylim(0, max(max(tr), max(ho), ref) * 1.3)
+        top = max(max(tr), max(ho), ref) * 1.3
+        ax.set_ylim(0, min(top, 1.0) if metric == "acc" else top)      # accuracy never past 1.0
     from matplotlib.lines import Line2D
     from matplotlib.patches import Patch
     axes[0].legend(handles=[Patch(color=BLUE_RAMP[5], label="sources seen in training"),
@@ -726,8 +727,9 @@ def fig_tier1_story(variants: list[dict[str, Any]], jev: dict[str, float], out: 
     fig.tight_layout(rect=_layout(fig, 2))
     _headline(fig, f"{model}: what trained decision heads buy, and where they cost",
               "A head that replaces the model's own scorer wins on sources it trained on and loses on sources it never saw — "
-              "a result invisible to anyone holding out records instead of whole sources. A zero-initialized residual on that "
-              "scorer keeps the gain and erases the regression.")
+              "a result invisible to anyone holding out records instead of whole sources. A zero-initialized residual keeps the "
+              "gain; on this seed it also holds held-out accuracy at Tier 0, but across five seeds it only halves the regression "
+              "unless training stops early (FINDINGS 6.3a).")
     _footer(fig)
     return _save(fig, out / "tier1_story")
 
@@ -750,7 +752,8 @@ def fig_tier1_per_source(deltas: list[tuple[str, bool, float, float]], out: Path
     fig.tight_layout(rect=_layout(fig, 2))
     _headline(fig, f"{model}: per-source effect of trained heads (★ = held out of training)",
               "Replacement collapses on knowledge (arc_challenge, mmlu) and on ordinal scales it never saw "
-              "(measuring_hate_speech); it does not collapse on large option sets. The residual keeps the wins and recovers the losses.")
+              "(measuring_hate_speech); it does not collapse on large option sets. The residual keeps the wins and recovers most of "
+              "the losses — one seed; FINDINGS 6.3a has the spread.")
     _footer(fig)
     return _save(fig, out / "tier1_per_source")
 
