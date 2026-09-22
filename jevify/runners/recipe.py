@@ -47,7 +47,7 @@ def _logscore_sets_k(records: Sequence[BenchRecord], preds: Sequence[Prediction]
             continue
         # finalize at T=1 to apply prior/permutation, then take log of the averaged probabilities
         probe = finalize(r.primitive, r.question, p.extra, replace(recipe, temperature={k: 1.0 for k in PRIMS},
-                                                                   temp_k_slope={}, bias={"noul": 0.0}))
+                                                                   temp_k_slope={}, bias={"noul": 0.0}), round_to=None)
         keys = r.option_keys()
         if r.primitive == "noul":
             probs = [1 - probe.p_yes, probe.p_yes]

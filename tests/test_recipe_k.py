@@ -71,3 +71,20 @@ def test_slope_changes_answers_and_serializes_only_when_set():
     assert "temp_k_slope" not in flat.as_dict() and flat.as_dict() == Recipe(mode="index").as_dict()
     assert steep.as_dict()["temp_k_slope"] == {"choice": 1.0}
     assert steep.temp_for("choice", 2) == 1.0 and steep.temp_for("noul", 2) == 1.0    # K=2 and other prims untouched
+
+
+def test_fitting_sees_unrounded_probabilities():
+    """At K=151 a real probability of 1e-5 quantizes to 0 in the wire format; the fitter must not
+    take the log of that. The answer path keeps the wire precision."""
+    k = 151
+    keys = [f"o{i}" for i in range(k)]
+    q = {"type": "choice", "instructions": "pick", "criteria": dict.fromkeys(keys)}
+    ls = [12.0] + [0.0] * (k - 1)                     # one option takes essentially all the mass
+    extra = {"mode": "index", "runs": [{"keys": keys, "logscores": ls}], "prior": None}
+    wire = finalize("choice", q, extra, Recipe(mode="index"))
+    exact = finalize("choice", q, extra, Recipe(mode="index"), round_to=None)
+    assert min(wire.probabilities.values()) == 0.0                     # quantized away
+    assert min(exact.probabilities.values()) > 0.0                     # still a number
+    assert abs(sum(wire.probabilities.values()) - 1.0) < 1e-9          # the wire form still sums to 1
+    assert abs(sum(exact.probabilities.values()) - 1.0) < 1e-9
+    assert wire.answer == exact.answer == "o0"

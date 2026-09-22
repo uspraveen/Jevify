@@ -142,8 +142,14 @@ class Tier0Engine:
 
 # ---------------------------------------------------------------------- recipe → answer
 
-def finalize(primitive: str, question: dict[str, Any], extra: dict[str, Any], recipe: Recipe) -> Prediction:
-    """Apply a recipe to stored raw log-scores. Pure; used offline for every recipe variant."""
+def finalize(primitive: str, question: dict[str, Any], extra: dict[str, Any], recipe: Recipe,
+             *, round_to: int | None = 4) -> Prediction:
+    """Apply a recipe to stored raw log-scores. Pure; used offline for every recipe variant.
+
+    ``round_to`` is the wire format's precision (4 decimals, as the API reports). Pass ``None``
+    when the distribution is an *input to fitting* rather than an answer: at K=151 a genuine
+    probability of 1e-5 quantizes to exactly 0, and a fitter that takes its log then sees -27.6
+    and inflates the temperature to explain it (this is why the high-K temperatures were wrong)."""
     T = recipe.temp_for(primitive, len(extra["runs"][0]["keys"]) if extra.get("runs") else None)
     prior = extra.get("prior")
     pw = recipe.prior_for(primitive)
@@ -169,14 +175,18 @@ def finalize(primitive: str, question: dict[str, Any], extra: dict[str, Any], re
         return Prediction(id="", primitive="noul", p_yes=p_yes, answer=p_yes)
     if primitive == "choice":
         keys = list(question["criteria"].keys())
-        vals = round_probabilities([probs[k] for k in keys], 4)
+        vals = _round([probs[k] for k in keys], round_to)
         pm = dict(zip(keys, vals))
         best = max(pm, key=pm.get)
         return Prediction(id="", primitive="choice", probabilities=pm, answer=best, confidence=choice_confidence(vals))
     keys = [str(i) for i in range(len(question["criteria"]))]
-    vals = round_probabilities([probs[k] for k in keys], 4)
+    vals = _round([probs[k] for k in keys], round_to)
     return Prediction(id="", primitive="score", probabilities=dict(zip(keys, vals)),
                       answer=score_expectation(vals), confidence=score_confidence(vals))
+
+
+def _round(vals: list[float], places: int | None) -> list[float]:
+    return round_probabilities(vals, places) if places is not None else list(vals)
 
 
 def refinalize(records: Sequence[BenchRecord], preds: Sequence[Prediction], recipe: Recipe) -> list[Prediction]:
