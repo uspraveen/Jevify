@@ -700,7 +700,7 @@ def fig_tier1_story(variants: list[dict[str, Any]], jev: dict[str, float], out: 
     ``variants`` is an ordered list of {label, trained_acc, trained_ece, heldout_acc, heldout_ece}.
     """
     plt = _mpl()
-    fig, axes = plt.subplots(1, 2, figsize=(10.2, 4.2))
+    fig, axes = plt.subplots(1, 2, figsize=(10.2, 4.8))
     x = np.arange(len(variants))
     w = 0.38
     for ax, (metric, name, better) in zip(axes, (("acc", "accuracy", "higher is better"),
@@ -720,16 +720,20 @@ def fig_tier1_story(variants: list[dict[str, Any]], jev: dict[str, float], out: 
         ax.set_ylim(0, min(top, 1.0) if metric == "acc" else top)      # accuracy never past 1.0
     from matplotlib.lines import Line2D
     from matplotlib.patches import Patch
-    axes[0].legend(handles=[Patch(color=BLUE_RAMP[5], label="sources seen in training"),
-                            Patch(color="#eb6834", label="held-out sources"),
-                            Line2D([0], [0], color=INK2, lw=1.0, ls=(0, (4, 3)), alpha=0.55, label="Jev 1.13.0, held-out sources")],
-                   loc="upper left", fontsize=7.5)
-    fig.tight_layout(rect=_layout(fig, 2))
-    _headline(fig, f"{model}: what trained decision heads buy, and where they cost",
-              "A head that replaces the model's own scorer wins on sources it trained on and loses on sources it never saw — "
-              "a result invisible to anyone holding out records instead of whole sources. A zero-initialized residual keeps the "
-              "gain; on this seed it also holds held-out accuracy at Tier 0, but across five seeds it only halves the regression "
-              "unless training stops early (FINDINGS 6.3a).")
+    # one legend for both panels, under them: with accuracy capped at 1.0 Jev's reference line
+    # (0.835) runs through any legend placed inside the left panel
+    fig.legend(handles=[Patch(color=BLUE_RAMP[5], label="sources seen in training"),
+                        Patch(color="#eb6834", label="held-out sources"),
+                        Line2D([0], [0], color=INK2, lw=1.0, ls=(0, (4, 3)), alpha=0.55, label="Jev 1.13.0, held-out sources")],
+               loc="lower center", ncol=3, fontsize=7.8, frameon=False, bbox_to_anchor=(0.5, 0.30 / fig.get_figheight()))
+    title = f"{model}: what trained decision heads buy, and where they cost"
+    sub = ("A head that replaces the model's own scorer wins on sources it trained on and loses on sources it never saw — "
+           "a result invisible to anyone holding out records instead of whole sources. A zero-initialized residual keeps the "
+           "gain; on this seed it also holds held-out accuracy at Tier 0, but across five seeds it only halves the regression "
+           "unless training stops early (FINDINGS 6.3a).")
+    left, bottom, right, top = _layout(fig, _wrapped_lines(fig, title, sub))
+    fig.tight_layout(rect=(left, bottom + 0.34 / fig.get_figheight(), right, top))
+    _headline(fig, title, sub)
     _footer(fig)
     return _save(fig, out / "tier1_story")
 
