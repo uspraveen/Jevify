@@ -27,6 +27,7 @@ def main() -> int:
     ap.add_argument("--results", type=Path, required=True, help="results/<run> with recipe.json, run.json, test_metrics.json")
     ap.add_argument("--repo", required=True)
     ap.add_argument("--title", default=None)
+    ap.add_argument("--lora", type=Path, default=None, help="adapter directory to ship (default: <results>/lora if present)")
     ap.add_argument("--push", action="store_true")
     a = ap.parse_args()
 
@@ -39,7 +40,18 @@ def main() -> int:
 
     out = ROOT / "artifacts" / a.repo.split("/")[-1]
     out.mkdir(parents=True, exist_ok=True)
-    cfg = {"jevify_version": 1, "tier": 0, "backbone": backbone, "modality": modality,
+    # a vision Tier 2 is a recipe plus an adapter: the LoRA trained on the readout ships beside
+    # the config and merges into the backbone at load
+    lora_src = a.lora or ((a.results / "lora") if (a.results / "lora" / "adapter_config.json").exists() else None)
+    tier = 2 if lora_src else 0
+    if lora_src:
+        import shutil
+
+        (out / "lora").mkdir(exist_ok=True)
+        for f in Path(lora_src).iterdir():
+            if f.is_file() and f.name != "README.md":
+                shutil.copy(f, out / "lora" / f.name)
+    cfg = {"jevify_version": 1, "tier": tier, "backbone": backbone, "modality": modality,
            "chat": meta.get("chat_applied", True), "max_pixels": meta.get("max_pixels"),
            "recipe": {"mode": rec.get("mode", "index"), "permutations": rec.get("permutations", 1),
                       "prior_weight": rec.get("prior_weight", 0.0), "temperature": rec.get("temperature"),
@@ -48,6 +60,11 @@ def main() -> int:
            "evaluated_on": "Praveenrajus/jev-bench", "sources": sorted(metrics)}
     if modality == "vision":
         cfg["vision_stage"] = meta.get("vision_stage")
+    if lora_src:
+        cfg["lora"] = {"where": meta.get("lora_where"), "pattern": meta.get("lora_pattern"), "r": meta.get("lora_r"),
+                       "lr": meta.get("lr"), "trainable": meta.get("lora_trainable"), "train_sources": meta.get("train_sources"),
+                       "heldout_sources": meta.get("heldout_sources"), "best_epoch": meta.get("best_epoch"),
+                       "merged_at_load": True}
     (out / "jevify_config.json").write_text(json.dumps(cfg, indent=1), encoding="utf-8")
 
     accs = [v["accuracy"] for v in metrics.values()]; eces = [v["ece"] for v in metrics.values()]
@@ -55,11 +72,23 @@ def main() -> int:
     prim = {"pope": "noul", "aokvqa": "choice", "ai2d": "choice"}
     for src, v in sorted(metrics.items()):
         rows.append(f"| `{src}` | {prim.get(src, '')} | {v['n']} | {v['accuracy']:.3f} | {v['ece']:.3f} | {v['brier']:.3f} |")
-    title = a.title or f"{backbone.split('/')[-1]}, Jevified (Tier 0)"
+    title = a.title or f"{backbone.split('/')[-1]}, Jevified (Tier {tier})"
     what = ("a vision-language model: `state` may carry images (PIL, path, URL, data URI or bytes) and the same three "
             "typed questions are asked about them" if modality == "vision" else "a language model")
     example_state = ('{"image": "https://example.com/photo.jpg", "question": "Is there a cat?"}' if modality == "vision"
                      else '{"text": "The battery lasted two days on a single charge."}')
+    if lora_src:
+        tier_para = (f"A [Jevify](https://github.com/uspraveen/Jevify) **Tier 2** model: {backbone} used as {what}, with a "
+                     f"rank-{cfg['lora']['r']} LoRA confined to the **{cfg['lora']['where']}** half of the model, trained on the "
+                     f"readout itself — the restricted log-softmax over the allowed answers at the answer position — with the "
+                     f"primitive's proper scoring rule, on the `{', '.join(cfg['lora']['train_sources'] or [])}` train split only. "
+                     f"The adapter ({cfg['lora']['trainable']:,} parameters) is merged into the backbone at load, so it serves at "
+                     f"the plain checkpoint's speed. The calibration recipe was fitted on validation splits of the adapted model. "
+                     f"`{', '.join(cfg['lora']['heldout_sources'] or [])}` never appeared in training.")
+    else:
+        tier_para = (f"A [Jevify](https://github.com/uspraveen/Jevify) **Tier 0** model: {backbone} used as {what}, with **no training** — "
+                     f"one forward pass, the probability of every allowed answer read from a single position, and a calibration recipe "
+                     f"fitted on validation splits only. This repo carries the recipe and a pointer to the backbone; nothing else is needed.")
     readme = f'''---
 license: apache-2.0
 base_model: {backbone}
@@ -68,9 +97,7 @@ tags: [jevify, system-one, calibrated-decisions{", vision-language" if modality 
 
 # {title}
 
-A [Jevify](https://github.com/uspraveen/Jevify) **Tier 0** model: {backbone} used as {what}, with **no training** —
-one forward pass, the probability of every allowed answer read from a single position, and a calibration recipe
-fitted on validation splits only. This repo carries the recipe and a pointer to the backbone; nothing else is needed.
+{tier_para}
 
 ```python
 from jevify import load_jevified
@@ -102,7 +129,7 @@ Predictions, metrics and figures: `results/{a.results.name}/` on
         api = HfApi(token=os.environ.get("HF_TOKEN"))
         api.create_repo(a.repo, repo_type="model", exist_ok=True)
         api.upload_folder(folder_path=str(out), repo_id=a.repo, repo_type="model",
-                          commit_message=f"{title}: Tier 0 recipe")
+                          commit_message=f"{title}: recipe" + (" + LoRA adapter" if lora_src else ""))
         print(f"pushed https://huggingface.co/{a.repo}")
     return 0
 
