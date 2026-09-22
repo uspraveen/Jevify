@@ -13,7 +13,10 @@ from jevify.runners.recipe import K_SLOPE_MARGIN, fit_recipe, fit_temperature_k
 
 
 def _synth(ks_and_sharpness, n_per=600, seed=0):
-    """Records + predictions whose logits are `sharp` times too confident at each K."""
+    """Records + predictions whose logits are `sharp` times too confident at each K.
+
+    `sharp` is the temperature that would correct them, so a generator built from
+    ``1 + slope*log2(K/2)`` plants exactly the affine dependence the fitter looks for."""
     rng = random.Random(seed)
     recs, preds = [], []
     for src, (k, sharp) in ks_and_sharpness.items():
@@ -30,19 +33,23 @@ def _synth(ks_and_sharpness, n_per=600, seed=0):
     return recs, preds
 
 
+SLOPE = 0.75                                    # the dependence planted below: T(K) = 1 + 0.75*log2(K/2)
+
+
 def test_recovers_a_planted_k_dependence():
-    # 2 options are reported honestly, 64 options 4x too sharply: one scalar cannot fix both
-    recs, preds = _synth({"small": (2, 1.0), "big": (64, 4.0)})
+    recs, preds = _synth({f"k{k}": (k, 1 + SLOPE * math.log2(k / 2)) for k in (2, 16, 128)})
     val = [r for r in recs if r.split == "validation"]
     vp = [p for p in preds if "/validation/" in p.id]
     scalar, log_s = fit_recipe(val, vp, Recipe(mode="index"), k_slope=False)
     withk, log_k = fit_recipe(val, vp, Recipe(mode="index"), k_slope=True)
     assert not scalar.temp_k_slope
-    assert withk.temp_k_slope.get("choice", 0) > 0.2, withk.temp_k_slope
+    # one scalar has to compromise between the regimes; it lands between the extremes and fits none
+    assert 1.0 < scalar.temperature["choice"] < 1 + SLOPE * math.log2(64)
+    assert abs(withk.temp_k_slope.get("choice", 0) - SLOPE) < 0.3, withk.temp_k_slope
     assert log_k["chosen"]["choice"]["val_nll"] < log_s["chosen"]["choice"]["val_nll"] * (1 - K_SLOPE_MARGIN)
-    # the fitted T(K) is near 1 at K=2 and near 4 at K=64
-    assert 0.6 < withk.temp_for("choice", 2) < 1.6, withk.temp_for("choice", 2)
-    assert 2.5 < withk.temp_for("choice", 64) < 5.5, withk.temp_for("choice", 64)
+    for k in (2, 16, 128):
+        planted = 1 + SLOPE * math.log2(k / 2)
+        assert abs(withk.temp_for("choice", k) - planted) < 0.35 + 0.2 * planted, (k, withk.temp_for("choice", k), planted)
 
 
 def test_stays_off_when_sharpness_is_constant():

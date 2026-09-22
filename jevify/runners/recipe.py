@@ -10,6 +10,7 @@ number is never separated from the recipe that produced it.
 from __future__ import annotations
 
 import json
+import math
 from collections import defaultdict
 from dataclasses import replace
 from pathlib import Path
@@ -60,51 +61,56 @@ def _logscore_sets_k(records: Sequence[BenchRecord], preds: Sequence[Prediction]
     return out
 
 
-def _nll(ls: Sequence[Sequence[float]], y: Sequence[int], ks: Sequence[int], T: float, slope: float) -> float:
-    import math
+def _pack(ls: Sequence[Sequence[float]], y: Sequence[int], ks: Sequence[int]) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Ragged log-score rows -> a padded array, the label column, and log2(K/2) per row."""
+    n, kmax = len(y), max(len(r) for r in ls)
+    Z = np.full((n, kmax), -np.inf)
+    for i, r in enumerate(ls):
+        Z[i, : len(r)] = r
+    kf = np.array([math.log2(k / 2) if k > 2 else 0.0 for k in ks])
+    return Z, np.asarray(y, dtype=int), kf
 
-    tot = 0.0
-    for s, yy, k in zip(ls, y, ks):
-        t = max(T + (slope * math.log2(k / 2) if slope and k > 2 else 0.0), 0.05)
-        tot += -math.log(max(softmax(list(s), t)[yy], 1e-12))
-    return tot / max(len(y), 1)
+
+def _nll_packed(Z: np.ndarray, y: np.ndarray, kf: np.ndarray, T: float, slope: float) -> float:
+    t = np.maximum(T + slope * kf, 0.05)[:, None]
+    z = Z / t                                            # padding stays -inf and drops out of the sum
+    m = z.max(axis=1, keepdims=True)
+    lse = m[:, 0] + np.log(np.exp(z - m).sum(axis=1))
+    return float(np.mean(lse - z[np.arange(len(y)), y]))
+
+
+def _nll(ls: Sequence[Sequence[float]], y: Sequence[int], ks: Sequence[int], T: float, slope: float) -> float:
+    """Mean NLL under T(K) = T + slope*log2(K/2). Kept as the readable reference."""
+    Z, yy, kf = _pack(ls, y, ks)
+    return _nll_packed(Z, yy, kf, T, slope)
 
 
 def fit_temperature_k(ls: list[list[float]], y: list[int], ks: list[int], T0: float) -> tuple[float, float, float, float]:
-    """Fit T(K) = T + slope * log2(K/2) by coordinate search around the scalar fit.
+    """Fit T(K) = T + slope * log2(K/2) by a coarse-to-fine search over both parameters.
 
-    Returns (T, slope, nll, nll_scalar). The slope is only worth using when the option counts
-    actually vary, so a set with one K returns slope 0 and the scalar fit unchanged."""
-    base = _nll(ls, y, ks, T0, 0.0)
+    The objective is ridge-shaped: correcting a steep high-K regime means *lowering* T and
+    *raising* the slope together, so moving one parameter at a time stalls at the scalar fit
+    (measured: coordinate descent stopped at slope 0.15 where the optimum was 0.75). Hence a
+    2-D grid, refined three times. Returns (T, slope, nll, nll_scalar); a set with one option
+    count has no slope to fit and returns the scalar fit unchanged."""
+    Z, yy, kf = _pack(ls, y, ks)
+    base = _nll_packed(Z, yy, kf, T0, 0.0)
     if len({min(k, 256) for k in ks}) < 2:
         return T0, 0.0, base, base
     best = (base, T0, 0.0)
-    T = T0
-    for _ in range(3):
-        for slope in [x / 20 for x in range(-30, 31)]:            # -1.5 .. 1.5 per doubling
-            v = _nll(ls, y, ks, T, slope)
-            if v < best[0]:
-                best = (v, T, slope)
-        slope = best[2]
-        for t in [x / 20 for x in range(1, 241)]:                  # 0.05 .. 12.0
-            v = _nll(ls, y, ks, t, slope)
-            if v < best[0]:
-                best = (v, t, slope)
-        T = best[1]
+    t_lo, t_hi, s_lo, s_hi, steps = 0.1, 12.0, -1.5, 1.5, (13, 9, 9)
+    for n_ref, n in enumerate(steps):
+        ts = np.linspace(t_lo, t_hi, 24 if n_ref == 0 else n)
+        ss = np.linspace(s_lo, s_hi, n)
+        for slope in ss:
+            for T in ts:
+                v = _nll_packed(Z, yy, kf, float(T), float(slope))
+                if v < best[0]:
+                    best = (v, float(T), float(slope))
+        dt, ds = (t_hi - t_lo) / 6, (s_hi - s_lo) / 6
+        t_lo, t_hi = max(0.05, best[1] - dt), best[1] + dt
+        s_lo, s_hi = best[2] - ds, best[2] + ds
     return best[1], best[2], best[0], base
-
-
-def fit_temperature_and_bias(ls: list[list[float]], y: list[int]) -> tuple[float, float]:
-    """Platt scaling for a fixed binary answer set: search a scalar bias on the 'yes' log-score
-    (index 1) and fit the temperature for each; return the pair with the lowest NLL."""
-    best = (float("inf"), 1.0, 0.0)
-    for b in [x / 10 for x in range(-40, 41)]:
-        shifted = [[s0, s1 + b] for s0, s1 in ls]
-        T = fit_temperature(shifted, y)
-        val = float(np.mean([-np.log(max(softmax(s, T)[yy], 1e-12)) for s, yy in zip(shifted, y)]))
-        if val < best[0]:
-            best = (val, T, b)
-    return best[1], best[2]
 
 
 def fit_recipe(records: Sequence[BenchRecord], preds: Sequence[Prediction], base: Recipe,
