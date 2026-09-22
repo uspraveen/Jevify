@@ -93,7 +93,7 @@ def main() -> int:
         if not run_json.exists():
             continue
         meta = json.loads(run_json.read_text())
-        if meta.get("tier"):
+        if meta.get("tier") or meta.get("modality") == "vision":     # a text-benchmark figure: Tier 0 text runs only
             continue
         rows = ablation_rows(d.name)
         if len(rows) == 4:
