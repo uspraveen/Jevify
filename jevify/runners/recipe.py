@@ -130,13 +130,14 @@ def fit_temperature_and_bias(ls: list[list[float]], y: list[int]) -> tuple[float
 
 
 def fit_recipe(records: Sequence[BenchRecord], preds: Sequence[Prediction], base: Recipe,
-               *, k_slope: bool = True) -> tuple[Recipe, dict[str, Any]]:
+               *, k_slope: bool = False) -> tuple[Recipe, dict[str, Any]]:
     """Per primitive, grid over {permutations: 1 | all stored} x {prior_weight: 0 | 1}, fit the
     temperature (and, for noul, a bias) for each variant on validation, keep the lowest NLL.
 
     ``k_slope`` also tries a temperature affine in log2(K/2) for the option primitives and keeps
-    it only when it lowers validation NLL by more than ``K_SLOPE_MARGIN``; pass False for the
-    single-scalar recipe every result before 2026-09-22 was fitted with."""
+    it only when it lowers validation NLL by more than ``K_SLOPE_MARGIN``. Off by default: across
+    twelve models it helped five and hurt one on test (Olmo-3-7B, 0.091 -> 0.108) although
+    validation approved it, so it is a per-model option, not the recipe (results/recipe-k)."""
     n_perm = max((len(p.extra["runs"]) for p in preds if p.extra), default=1)
     grid = [(perm, pw) for perm in sorted({1, n_perm}) for pw in (0.0, 1.0)]
     log: dict[str, Any] = {"grid": [], "chosen": {}}

@@ -1,0 +1,1819 @@
+{
+ "big_k_sources": [
+  "banking77",
+  "clinc150",
+  "ledgar",
+  "massive"
+ ],
+ "small_k_sources": [
+  "arc_challenge",
+  "chaosnli",
+  "mmlu",
+  "mnli"
+ ],
+ "rows": [
+  {
+   "run": "gemma4-12b",
+   "scalar": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 0.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 2.9393,
+      "score": 5.87,
+      "noul": 4.7256
+     },
+     "bias": {
+      "noul": -1.1
+     }
+    },
+    "macro": {
+     "acc": 0.7164679378251244,
+     "ece": 0.08571121042504871,
+     "brier": 0.35939524960936037
+    },
+    "big_k": {
+     "acc": 0.79125,
+     "ece": 0.052378999999999974,
+     "brier": 0.31491837681499996
+    },
+    "small_k": {
+     "acc": 0.8184507504690431,
+     "ece": 0.0778765743746091,
+     "brier": 0.28796996685540344
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 0.0,
+      "T": 2.9393,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.0105
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 5.87,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.2148
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 4.7256,
+      "bias": -1.1,
+      "k_slope": 0.0,
+      "val_nll": 0.361
+     }
+    }
+   },
+   "k_slope": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 0.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 4.4044,
+      "score": 5.87,
+      "noul": 4.7256
+     },
+     "bias": {
+      "noul": -1.1
+     },
+     "temp_k_slope": {
+      "choice": -0.2917
+     }
+    },
+    "macro": {
+     "acc": 0.7166383568370068,
+     "ece": 0.08257731465496514,
+     "brier": 0.3561062316556057
+    },
+    "big_k": {
+     "acc": 0.79225,
+     "ece": 0.047607824999999986,
+     "brier": 0.31505713504
+    },
+    "small_k": {
+     "acc": 0.8186380550343965,
+     "ece": 0.08250517263914946,
+     "brier": 0.281684065899753
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 0.0,
+      "T": 4.4044,
+      "bias": 0.0,
+      "k_slope": -0.2917,
+      "val_nll": 0.9937
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 5.87,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.2148
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 4.7256,
+      "bias": -1.1,
+      "k_slope": 0.0,
+      "val_nll": 0.361
+     }
+    }
+   },
+   "slope": {
+    "choice": -0.2917
+   }
+  },
+  {
+   "run": "gemma4-e2b",
+   "scalar": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 1.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 0.6963,
+      "score": 0.8003,
+      "noul": 1.4093
+     },
+     "bias": {
+      "noul": -1.4
+     }
+    },
+    "macro": {
+     "acc": 0.39601831769607904,
+     "ece": 0.11531153209117001,
+     "brier": 0.6092023353884842
+    },
+    "big_k": {
+     "acc": 0.09874999999999999,
+     "ece": 0.058852699999999994,
+     "brier": 0.95907699562
+    },
+    "small_k": {
+     "acc": 0.4178536585365854,
+     "ece": 0.08890514191682301,
+     "brier": 0.674143316005716
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 1.0,
+      "T": 0.6963,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 2.9699
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 0.8003,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.4158
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 1.4093,
+      "bias": -1.4,
+      "k_slope": 0.0,
+      "val_nll": 0.6463
+     }
+    }
+   },
+   "k_slope": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 1.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 0.6963,
+      "score": 0.8003,
+      "noul": 1.4093
+     },
+     "bias": {
+      "noul": -1.4
+     }
+    },
+    "macro": {
+     "acc": 0.39601831769607904,
+     "ece": 0.11531153209117001,
+     "brier": 0.6092023353884842
+    },
+    "big_k": {
+     "acc": 0.09874999999999999,
+     "ece": 0.058852699999999994,
+     "brier": 0.95907699562
+    },
+    "small_k": {
+     "acc": 0.4178536585365854,
+     "ece": 0.08890514191682301,
+     "brier": 0.674143316005716
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 1.0,
+      "T": 0.6963,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 2.9699
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 0.8003,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.4158
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 1.4093,
+      "bias": -1.4,
+      "k_slope": 0.0,
+      "val_nll": 0.6463
+     }
+    }
+   },
+   "slope": {}
+  },
+  {
+   "run": "gemma4-e2b-it",
+   "scalar": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 0.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 3.295,
+      "score": 6.5186,
+      "noul": 13.9553
+     },
+     "bias": {
+      "noul": -1.9
+     }
+    },
+    "macro": {
+     "acc": 0.5908663284118871,
+     "ece": 0.12339036660497818,
+     "brier": 0.4837771587332273
+    },
+    "big_k": {
+     "acc": 0.651,
+     "ece": 0.09859577500000002,
+     "brier": 0.509412456575
+    },
+    "small_k": {
+     "acc": 0.625610694183865,
+     "ece": 0.18048779620075045,
+     "brier": 0.5670334292081051
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 0.0,
+      "T": 3.295,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.5563
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 6.5186,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.2883
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 13.9553,
+      "bias": -1.9,
+      "k_slope": 0.0,
+      "val_nll": 0.5273
+     }
+    }
+   },
+   "k_slope": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 0.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 6.1219,
+      "score": 6.5186,
+      "noul": 13.9553
+     },
+     "bias": {
+      "noul": -1.9
+     },
+     "temp_k_slope": {
+      "choice": -0.5833
+     }
+    },
+    "macro": {
+     "acc": 0.5908663284118871,
+     "ece": 0.10258179475325267,
+     "brier": 0.4709803021451347
+    },
+    "big_k": {
+     "acc": 0.6505,
+     "ece": 0.06277522499999998,
+     "brier": 0.50060472436
+    },
+    "small_k": {
+     "acc": 0.6258606941838649,
+     "ece": 0.12418647601626016,
+     "brier": 0.516655741673596
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 0.0,
+      "T": 6.1219,
+      "bias": 0.0,
+      "k_slope": -0.5833,
+      "val_nll": 1.4987
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 6.5186,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.2883
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 13.9553,
+      "bias": -1.9,
+      "k_slope": 0.0,
+      "val_nll": 0.5273
+     }
+    }
+   },
+   "slope": {
+    "choice": -0.5833
+   }
+  },
+  {
+   "run": "gemma4-e4b-it",
+   "scalar": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 0.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 2.6399,
+      "score": 5.7503,
+      "noul": 5.8255
+     },
+     "bias": {
+      "noul": 0.0
+     }
+    },
+    "macro": {
+     "acc": 0.6580427531560639,
+     "ece": 0.09234477875516595,
+     "brier": 0.3983425689745422
+    },
+    "big_k": {
+     "acc": 0.7465,
+     "ece": 0.06532442500000003,
+     "brier": 0.368035406585
+    },
+    "small_k": {
+     "acc": 0.7646968417761102,
+     "ece": 0.06063360439337086,
+     "brier": 0.3310474773461538
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 0.0,
+      "T": 2.6399,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.103
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 5.7503,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.2411
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 5.8255,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 0.4447
+     }
+    }
+   },
+   "k_slope": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 0.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 4.7134,
+      "score": 5.7503,
+      "noul": 5.8255
+     },
+     "bias": {
+      "noul": 0.0
+     },
+     "temp_k_slope": {
+      "choice": -0.4167
+     }
+    },
+    "macro": {
+     "acc": 0.658133662246973,
+     "ece": 0.08972192950563497,
+     "brier": 0.3961788115631703
+    },
+    "big_k": {
+     "acc": 0.7474999999999999,
+     "ece": 0.03987419999999996,
+     "brier": 0.361851638455
+    },
+    "small_k": {
+     "acc": 0.7639468417761102,
+     "ece": 0.08982568352095059,
+     "brier": 0.33777616916860853
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 0.0,
+      "T": 4.7134,
+      "bias": 0.0,
+      "k_slope": -0.4167,
+      "val_nll": 1.0784
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 5.7503,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.2411
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 5.8255,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 0.4447
+     }
+    }
+   },
+   "slope": {
+    "choice": -0.4167
+   }
+  },
+  {
+   "run": "k2-horizon-0.9b",
+   "scalar": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 1.0,
+      "score": 0.0,
+      "noul": 1.0
+     },
+     "temperature": {
+      "choice": 0.8691,
+      "score": 2.8249,
+      "noul": 1.0286
+     },
+     "bias": {
+      "noul": -1.2
+     }
+    },
+    "macro": {
+     "acc": 0.44762163337248545,
+     "ece": 0.11902032325746742,
+     "brier": 0.5892975717118563
+    },
+    "big_k": {
+     "acc": 0.37650000000000006,
+     "ece": 0.12939235000000002,
+     "brier": 0.78503895957
+    },
+    "small_k": {
+     "acc": 0.3745014071294559,
+     "ece": 0.10984813972795496,
+     "brier": 0.7066763460082739
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 1.0,
+      "T": 0.8691,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 2.5092
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 2.8249,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.4908
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 1.0,
+      "T": 1.0286,
+      "bias": -1.2,
+      "k_slope": 0.0,
+      "val_nll": 0.5859
+     }
+    }
+   },
+   "k_slope": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 1.0,
+      "score": 0.0,
+      "noul": 1.0
+     },
+     "temperature": {
+      "choice": 2.0043,
+      "score": 2.8249,
+      "noul": 1.0286
+     },
+     "bias": {
+      "noul": -1.2
+     },
+     "temp_k_slope": {
+      "choice": -0.2083
+     }
+    },
+    "macro": {
+     "acc": 0.4475250957637527,
+     "ece": 0.10546427171104637,
+     "brier": 0.5847218002181284
+    },
+    "big_k": {
+     "acc": 0.37725000000000003,
+     "ece": 0.1136035,
+     "brier": 0.781757268055
+    },
+    "small_k": {
+     "acc": 0.3734704502814259,
+     "ece": 0.06187005622263918,
+     "brier": 0.6874201224727705
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 1.0,
+      "T": 2.0043,
+      "bias": 0.0,
+      "k_slope": -0.2083,
+      "val_nll": 2.4818
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 2.8249,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.4908
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 1.0,
+      "T": 1.0286,
+      "bias": -1.2,
+      "k_slope": 0.0,
+      "val_nll": 0.5859
+     }
+    }
+   },
+   "slope": {
+    "choice": -0.2083
+   }
+  },
+  {
+   "run": "k2-horizon-7b",
+   "scalar": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 1.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 1.3119,
+      "score": 2.451,
+      "noul": 1.5618
+     },
+     "bias": {
+      "noul": -1.9
+     }
+    },
+    "macro": {
+     "acc": 0.622756133777289,
+     "ece": 0.09328228329748757,
+     "brier": 0.4361749331531565
+    },
+    "big_k": {
+     "acc": 0.6815,
+     "ece": 0.07244400000000004,
+     "brier": 0.45510783582
+    },
+    "small_k": {
+     "acc": 0.6600456535334585,
+     "ece": 0.12018342485928707,
+     "brier": 0.44148568557202317
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 1.0,
+      "T": 1.3119,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.2644
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 2.451,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.3067
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 1.5618,
+      "bias": -1.9,
+      "k_slope": 0.0,
+      "val_nll": 0.3964
+     }
+    }
+   },
+   "k_slope": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 1.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 1.3119,
+      "score": 2.451,
+      "noul": 1.5618
+     },
+     "bias": {
+      "noul": -1.9
+     }
+    },
+    "macro": {
+     "acc": 0.622756133777289,
+     "ece": 0.09328228329748757,
+     "brier": 0.4361749331531565
+    },
+    "big_k": {
+     "acc": 0.6815,
+     "ece": 0.07244400000000004,
+     "brier": 0.45510783582
+    },
+    "small_k": {
+     "acc": 0.6600456535334585,
+     "ece": 0.12018342485928707,
+     "brier": 0.44148568557202317
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 1.0,
+      "T": 1.3119,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.2644
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 2.451,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.3067
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 1.5618,
+      "bias": -1.9,
+      "k_slope": 0.0,
+      "val_nll": 0.3964
+     }
+    }
+   },
+   "slope": {}
+  },
+  {
+   "run": "olmo3-7b-it",
+   "scalar": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 0.0,
+      "score": 1.0,
+      "noul": 1.0
+     },
+     "temperature": {
+      "choice": 2.5666,
+      "score": 7.0564,
+      "noul": 2.378
+     },
+     "bias": {
+      "noul": -3.1
+     }
+    },
+    "macro": {
+     "acc": 0.5532416188251341,
+     "ece": 0.09120372471354563,
+     "brier": 0.516770450495055
+    },
+    "big_k": {
+     "acc": 0.35050000000000003,
+     "ece": 0.09893435,
+     "brier": 0.80846769374
+    },
+    "small_k": {
+     "acc": 0.6361153846153846,
+     "ece": 0.06791881818323953,
+     "brier": 0.4703251981341057
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 0.0,
+      "T": 2.5666,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 2.2415
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 1.0,
+      "T": 7.0564,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.3818
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 1.0,
+      "T": 2.378,
+      "bias": -3.1,
+      "k_slope": 0.0,
+      "val_nll": 0.4345
+     }
+    }
+   },
+   "k_slope": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 1.0,
+      "score": 1.0,
+      "noul": 1.0
+     },
+     "temperature": {
+      "choice": 5.2524,
+      "score": 7.0564,
+      "noul": 2.378
+     },
+     "bias": {
+      "noul": -3.1
+     },
+     "temp_k_slope": {
+      "choice": -0.5833
+     }
+    },
+    "macro": {
+     "acc": 0.553471307835311,
+     "ece": 0.10793249215058011,
+     "brier": 0.5203099344203629
+    },
+    "big_k": {
+     "acc": 0.349,
+     "ece": 0.10579507499999996,
+     "brier": 0.7934560939550002
+    },
+    "small_k": {
+     "acc": 0.654878674171357,
+     "ece": 0.14490051408692933,
+     "brier": 0.49489841309329896
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 1.0,
+      "T": 5.2524,
+      "bias": 0.0,
+      "k_slope": -0.5833,
+      "val_nll": 2.2255
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 1.0,
+      "T": 7.0564,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.3818
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 1.0,
+      "T": 2.378,
+      "bias": -3.1,
+      "k_slope": 0.0,
+      "val_nll": 0.4345
+     }
+    }
+   },
+   "slope": {
+    "choice": -0.5833
+   }
+  },
+  {
+   "run": "qwen35-0.8b",
+   "scalar": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 1.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 1.0727,
+      "score": 2.2404,
+      "noul": 0.489
+     },
+     "bias": {
+      "noul": -0.5
+     }
+    },
+    "macro": {
+     "acc": 0.5257052102892315,
+     "ece": 0.1115607814367717,
+     "brier": 0.5424229367463888
+    },
+    "big_k": {
+     "acc": 0.42725,
+     "ece": 0.13114012500000002,
+     "brier": 0.7460482556950001
+    },
+    "small_k": {
+     "acc": 0.5098560037523452,
+     "ece": 0.05878526780800501,
+     "brier": 0.596456269361823
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 1.0,
+      "T": 1.0727,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 2.2872
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 2.2404,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.4358
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 0.489,
+      "bias": -0.5,
+      "k_slope": 0.0,
+      "val_nll": 0.4924
+     }
+    }
+   },
+   "k_slope": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 1.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 2.1793,
+      "score": 2.2404,
+      "noul": 0.489
+     },
+     "bias": {
+      "noul": -0.5
+     },
+     "temp_k_slope": {
+      "choice": -0.2083
+     }
+    },
+    "macro": {
+     "acc": 0.5261088148147871,
+     "ece": 0.11206317899490462,
+     "brier": 0.5427150828048418
+    },
+    "big_k": {
+     "acc": 0.427,
+     "ece": 0.11415910000000001,
+     "brier": 0.74005374794
+    },
+    "small_k": {
+     "acc": 0.5120758286429019,
+     "ece": 0.10044720437773606,
+     "brier": 0.6155314999083146
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 1.0,
+      "T": 2.1793,
+      "bias": 0.0,
+      "k_slope": -0.2083,
+      "val_nll": 2.2596
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 2.2404,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.4358
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 0.489,
+      "bias": -0.5,
+      "k_slope": 0.0,
+      "val_nll": 0.4924
+     }
+    }
+   },
+   "slope": {
+    "choice": -0.2083
+   }
+  },
+  {
+   "run": "qwen35-0.8b-base",
+   "scalar": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 1.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 0.6378,
+      "score": 1.1049,
+      "noul": 0.7915
+     },
+     "bias": {
+      "noul": -0.7
+     }
+    },
+    "macro": {
+     "acc": 0.46577629841224205,
+     "ece": 0.10538340931999782,
+     "brier": 0.5819026073627501
+    },
+    "big_k": {
+     "acc": 0.20350000000000001,
+     "ece": 0.1131723,
+     "brier": 0.9356967407350001
+    },
+    "small_k": {
+     "acc": 0.4849806128830519,
+     "ece": 0.06841512814258913,
+     "brier": 0.6138664012982707
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 1.0,
+      "T": 0.6378,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 2.7598
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 1.1049,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.4349
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 0.7915,
+      "bias": -0.7,
+      "k_slope": 0.0,
+      "val_nll": 0.5482
+     }
+    }
+   },
+   "k_slope": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 1.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 0.6378,
+      "score": 1.1049,
+      "noul": 0.7915
+     },
+     "bias": {
+      "noul": -0.7
+     }
+    },
+    "macro": {
+     "acc": 0.46577629841224205,
+     "ece": 0.10538340931999782,
+     "brier": 0.5819026073627501
+    },
+    "big_k": {
+     "acc": 0.20350000000000001,
+     "ece": 0.1131723,
+     "brier": 0.9356967407350001
+    },
+    "small_k": {
+     "acc": 0.4849806128830519,
+     "ece": 0.06841512814258913,
+     "brier": 0.6138664012982707
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 1.0,
+      "T": 0.6378,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 2.7598
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 1.1049,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.4349
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 0.7915,
+      "bias": -0.7,
+      "k_slope": 0.0,
+      "val_nll": 0.5482
+     }
+    }
+   },
+   "slope": {}
+  },
+  {
+   "run": "qwen35-2b",
+   "scalar": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 1.0,
+      "score": 0.0,
+      "noul": 1.0
+     },
+     "temperature": {
+      "choice": 0.9733,
+      "score": 1.574,
+      "noul": 0.7951
+     },
+     "bias": {
+      "noul": -1.3
+     }
+    },
+    "macro": {
+     "acc": 0.577184440124969,
+     "ece": 0.08855404413027493,
+     "brier": 0.48544302357336055
+    },
+    "big_k": {
+     "acc": 0.51275,
+     "ece": 0.075600525,
+     "brier": 0.63401491905
+    },
+    "small_k": {
+     "acc": 0.6532113821138211,
+     "ece": 0.07246778911819887,
+     "brier": 0.4582181674027486
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 1.0,
+      "T": 0.9733,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.6553
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 1.574,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.3306
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 1.0,
+      "T": 0.7951,
+      "bias": -1.3,
+      "k_slope": 0.0,
+      "val_nll": 0.4977
+     }
+    }
+   },
+   "k_slope": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 1.0,
+      "score": 0.0,
+      "noul": 1.0
+     },
+     "temperature": {
+      "choice": 0.9733,
+      "score": 1.574,
+      "noul": 0.7951
+     },
+     "bias": {
+      "noul": -1.3
+     }
+    },
+    "macro": {
+     "acc": 0.577184440124969,
+     "ece": 0.08855404413027493,
+     "brier": 0.48544302357336055
+    },
+    "big_k": {
+     "acc": 0.51275,
+     "ece": 0.075600525,
+     "brier": 0.63401491905
+    },
+    "small_k": {
+     "acc": 0.6532113821138211,
+     "ece": 0.07246778911819887,
+     "brier": 0.4582181674027486
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 1.0,
+      "T": 0.9733,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.6553
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 1.574,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.3306
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 1.0,
+      "T": 0.7951,
+      "bias": -1.3,
+      "k_slope": 0.0,
+      "val_nll": 0.4977
+     }
+    }
+   },
+   "slope": {}
+  },
+  {
+   "run": "qwen35-4b",
+   "scalar": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 0.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 1.2372,
+      "score": 2.1605,
+      "noul": 1.1405
+     },
+     "bias": {
+      "noul": -0.7
+     }
+    },
+    "macro": {
+     "acc": 0.6620060802752117,
+     "ece": 0.09018732588283479,
+     "brier": 0.4011265115705651
+    },
+    "big_k": {
+     "acc": 0.73075,
+     "ece": 0.07404712499999998,
+     "brier": 0.38454861012499997
+    },
+    "small_k": {
+     "acc": 0.752781894934334,
+     "ece": 0.08848431436835522,
+     "brier": 0.34311479842763287
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 0.0,
+      "T": 1.2372,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.1725
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 2.1605,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.282
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 1.1405,
+      "bias": -0.7,
+      "k_slope": 0.0,
+      "val_nll": 0.4137
+     }
+    }
+   },
+   "k_slope": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 0.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 1.2372,
+      "score": 2.1605,
+      "noul": 1.1405
+     },
+     "bias": {
+      "noul": -0.7
+     }
+    },
+    "macro": {
+     "acc": 0.6620060802752117,
+     "ece": 0.09018732588283479,
+     "brier": 0.4011265115705651
+    },
+    "big_k": {
+     "acc": 0.73075,
+     "ece": 0.07404712499999998,
+     "brier": 0.38454861012499997
+    },
+    "small_k": {
+     "acc": 0.752781894934334,
+     "ece": 0.08848431436835522,
+     "brier": 0.34311479842763287
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 0.0,
+      "T": 1.2372,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.1725
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 2.1605,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.282
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 1.1405,
+      "bias": -0.7,
+      "k_slope": 0.0,
+      "val_nll": 0.4137
+     }
+    }
+   },
+   "slope": {}
+  },
+  {
+   "run": "qwen35-9b",
+   "scalar": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 0.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 1.0999,
+      "score": 1.362,
+      "noul": 0.8366
+     },
+     "bias": {
+      "noul": -1.0
+     }
+    },
+    "macro": {
+     "acc": 0.6894973304511728,
+     "ece": 0.09192777118232338,
+     "brier": 0.3789137731151404
+    },
+    "big_k": {
+     "acc": 0.7555,
+     "ece": 0.05356309999999998,
+     "brier": 0.34829746296499997
+    },
+    "small_k": {
+     "acc": 0.797569105691057,
+     "ece": 0.14180531083489684,
+     "brier": 0.3096539566179487
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 0.0,
+      "T": 1.0999,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.0173
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 1.362,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.222
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 0.8366,
+      "bias": -1.0,
+      "k_slope": 0.0,
+      "val_nll": 0.401
+     }
+    }
+   },
+   "k_slope": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 0.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 0.7207,
+      "score": 1.362,
+      "noul": 0.8366
+     },
+     "bias": {
+      "noul": -1.0
+     },
+     "temp_k_slope": {
+      "choice": 0.0833
+     }
+    },
+    "macro": {
+     "acc": 0.6895427849966272,
+     "ece": 0.08514515304883084,
+     "brier": 0.3754868732379199
+    },
+    "big_k": {
+     "acc": 0.7555000000000001,
+     "ece": 0.06447245,
+     "brier": 0.35108277415
+    },
+    "small_k": {
+     "acc": 0.797819105691057,
+     "ece": 0.08844761110068793,
+     "brier": 0.2847972762232364
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 0.0,
+      "T": 0.7207,
+      "bias": 0.0,
+      "k_slope": 0.0833,
+      "val_nll": 1.0062
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 1.362,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.222
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 0.8366,
+      "bias": -1.0,
+      "k_slope": 0.0,
+      "val_nll": 0.401
+     }
+    }
+   },
+   "slope": {
+    "choice": 0.0833
+   }
+  },
+  {
+   "run": "smollm3-3b",
+   "scalar": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 1.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 1.2046,
+      "score": 4.6554,
+      "noul": 2.5564
+     },
+     "bias": {
+      "noul": 0.1
+     }
+    },
+    "macro": {
+     "acc": 0.5523242767723276,
+     "ece": 0.11121552564060733,
+     "brier": 0.5186190196026871
+    },
+    "big_k": {
+     "acc": 0.44925,
+     "ece": 0.11836102499999998,
+     "brier": 0.722439418845
+    },
+    "small_k": {
+     "acc": 0.6374652908067542,
+     "ece": 0.05862681724515323,
+     "brier": 0.4903431329280331
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 1.0,
+      "T": 1.2046,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 2.0491
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 4.6554,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.3714
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 2.5564,
+      "bias": 0.1,
+      "k_slope": 0.0,
+      "val_nll": 0.51
+     }
+    }
+   },
+   "k_slope": {
+    "recipe": {
+     "mode": "index",
+     "chat": true,
+     "permutations": {
+      "choice": 2,
+      "score": 1,
+      "noul": 1
+     },
+     "state_last": false,
+     "prior_weight": {
+      "choice": 1.0,
+      "score": 0.0,
+      "noul": 0.0
+     },
+     "temperature": {
+      "choice": 1.2046,
+      "score": 4.6554,
+      "noul": 2.5564
+     },
+     "bias": {
+      "noul": 0.1
+     }
+    },
+    "macro": {
+     "acc": 0.5523242767723276,
+     "ece": 0.11121552564060733,
+     "brier": 0.5186190196026871
+    },
+    "big_k": {
+     "acc": 0.44925,
+     "ece": 0.11836102499999998,
+     "brier": 0.722439418845
+    },
+    "small_k": {
+     "acc": 0.6374652908067542,
+     "ece": 0.05862681724515323,
+     "brier": 0.4903431329280331
+    },
+    "chosen": {
+     "choice": {
+      "permutations": 2,
+      "prior_weight": 1.0,
+      "T": 1.2046,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 2.0491
+     },
+     "score": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 4.6554,
+      "bias": 0.0,
+      "k_slope": 0.0,
+      "val_nll": 1.3714
+     },
+     "noul": {
+      "permutations": 1,
+      "prior_weight": 0.0,
+      "T": 2.5564,
+      "bias": 0.1,
+      "k_slope": 0.0,
+      "val_nll": 0.51
+     }
+    }
+   },
+   "slope": {}
+  }
+ ]
+}
