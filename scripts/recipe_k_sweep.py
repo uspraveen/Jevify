@@ -40,8 +40,17 @@ def main() -> int:
     ap.add_argument("--out", type=Path, default=ROOT / "results" / "recipe-k")
     a = ap.parse_args()
 
+    def val_path(run: str) -> Path | None:
+        """A Tier 0 run keeps its validation predictions in a sibling `<run>-validation` directory;
+        a run that was scored on both splits in one go keeps them inside its own."""
+        for c in (a.runs / run / "validation_predictions.jsonl", a.runs / f"{run}-validation" / "validation_predictions.jsonl"):
+            if c.exists():
+                return c
+        return None
+
     runs = [m for m in a.models.split(",") if m] or sorted(
-        p.parent.name for p in a.runs.glob("*/validation_predictions.jsonl"))
+        {p.parent.name.removesuffix("-validation") for p in a.runs.glob("*/validation_predictions.jsonl")}
+        | {p.parent.name for p in a.runs.glob("*/test_predictions.jsonl")})
     if not runs:
         print("no runs with validation predictions", file=sys.stderr)
         return 1
@@ -53,13 +62,17 @@ def main() -> int:
     small = sorted({s for s, k in k_of.items() if k <= 5 and prim_of[s] == "choice"})
 
     rows = []
+    bench_sources = {r.source for r in test_recs}
     for run in runs:
-        vp = a.runs / run / "validation_predictions.jsonl"
-        tp = a.runs / run / "test_predictions.jsonl"
-        if not (vp.exists() and tp.exists()):
-            print(f"skip {run}: missing predictions", file=sys.stderr)
+        vp, tp = val_path(run), a.runs / run / "test_predictions.jsonl"
+        if not (vp and tp.exists()):
+            print(f"skip {run}: no {'validation' if tp.exists() else 'test'} predictions", file=sys.stderr)
             continue
         val_preds, test_preds = list(read_predictions(vp)), list(read_predictions(tp))
+        covered = {p.id.split("/")[0] for p in test_preds} & bench_sources
+        if len(covered) < 10:                       # a vision run, or a slice: not this benchmark
+            print(f"skip {run}: covers {len(covered)} of {len(bench_sources)} sources", file=sys.stderr)
+            continue
         mode = next((p.extra.get("mode") for p in val_preds if p.extra), "index")
         base = Recipe(mode="label" if mode == "label" else "index")
         out: dict[str, dict] = {}
