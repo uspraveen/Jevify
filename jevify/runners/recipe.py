@@ -28,6 +28,7 @@ from .cli import score as score_reports
 
 PRIMS = ("choice", "score", "noul")
 K_SLOPE_MARGIN = 0.01      # the K-dependent temperature must cut validation NLL by >=1% to be used
+K_SLOPE_MIN_RANGE = 4.0    # ...and the option counts must span at least two doublings
 
 
 def _logscore_sets(records: Sequence[BenchRecord], preds: Sequence[Prediction], recipe: Recipe) -> dict[str, tuple[list[list[float]], list[int]]]:
@@ -95,7 +96,9 @@ def fit_temperature_k(ls: list[list[float]], y: list[int], ks: list[int], T0: fl
     count has no slope to fit and returns the scalar fit unchanged."""
     Z, yy, kf = _pack(ls, y, ks)
     base = _nll_packed(Z, yy, kf, T0, 0.0)
-    if len({min(k, 256) for k in ks}) < 2:
+    # a log-linear trend is only identifiable across a wide range of K: the four Score sources
+    # span K=5..7, and a slope fitted there (-1.4 to -2.2) overfit and made test ECE worse
+    if len({min(k, 256) for k in ks}) < 3 or max(ks) / max(min(ks), 1) < K_SLOPE_MIN_RANGE:
         return T0, 0.0, base, base
     best = (base, T0, 0.0)
     t_lo, t_hi, s_lo, s_hi, steps = 0.1, 12.0, -1.5, 1.5, (13, 9, 9)

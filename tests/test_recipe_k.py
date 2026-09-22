@@ -95,3 +95,12 @@ def test_fitting_sees_unrounded_probabilities():
     assert abs(sum(wire.probabilities.values()) - 1.0) < 1e-9          # the wire form still sums to 1
     assert abs(sum(exact.probabilities.values()) - 1.0) < 1e-9
     assert wire.answer == exact.answer == "o0"
+
+
+def test_no_slope_over_a_narrow_range_of_k():
+    # three option counts within one doubling (5..7, like the Score sources): not identifiable
+    recs, preds = _synth({f"k{k}": (k, 1 + 2.0 * math.log2(k / 2)) for k in (5, 6, 7)}, seed=2)
+    val = [r for r in recs if r.split == "validation"]
+    vp = [p for p in preds if "/validation/" in p.id]
+    fitted, _ = fit_recipe(val, vp, Recipe(mode="index"), k_slope=True)
+    assert not fitted.temp_k_slope, fitted.temp_k_slope
