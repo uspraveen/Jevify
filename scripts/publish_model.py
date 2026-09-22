@@ -140,7 +140,8 @@ def main() -> int:
         import shutil
 
         if (a.src / "lora" / "adapter_config.json").exists():
-            wanted += ["lora/" + f.name for f in (a.src / "lora").iterdir() if f.is_file()]
+            # peft writes a placeholder model card beside the adapter; the repo has its own
+            wanted += ["lora/" + f.name for f in (a.src / "lora").iterdir() if f.is_file() and f.name != "README.md"]
         for name in wanted:
             (out / name).parent.mkdir(parents=True, exist_ok=True)
             if not (a.src / name).exists():
