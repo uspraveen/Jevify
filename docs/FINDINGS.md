@@ -84,6 +84,19 @@ model would need ~8-way tensor parallelism and, at $0.042/M input tokens, would 
 saturated. A bound from the outside, not an observation — but it makes the "30B-class" guess
 the expensive hypothesis. *(probes: `results/jev-latency-probe/`)*
 
+**1.12 An independent probe agrees.** Archer Hume's "Jev's Architecture Unmasked" (17 September 2026,
+jev-1.13.0, the same server clock) reaches the same conclusions from the outside — the answer is read
+out, not decoded; latency is linear in input tokens; Choice confidence is the rescaled p_max — and
+measures MMLU ECE 0.031 on 1,200 items against our 0.027. It adds four things we had not measured:
+questions in one request are isolated branches over a shared state (a secret placed in a sibling
+question scores 0.00, moved into the state 0.90); beyond ~100 questions, question text costs about
+twice what state text costs per token (our "option token = state token" was measured with one
+question per request, so both can hold); adding an irrelevant option shifts the odds between the
+others (options are scored jointly, as our readout already does); and the tokenizer is closest to
+Qwen's (348 of 415 probes). Where it differs: it reads the throughput as a ~10B-active mixture of
+experts; our bound in 1.11 pointed to ~2B-class per-request compute. Both are inferences, not
+measurements. <https://archerhume.com/posts/jevs-architecture-unmasked/>
+
 ---
 
 ## 2. Controlled probes
@@ -194,7 +207,11 @@ exact distribution (no re-inference):
 Accuracy moves by at most 0.001 (a temperature cannot reorder options; only the permutation choice can shift). The earlier story that
 Gemma "needs the most calibration and gets the least from it" was substantially the fitter's fault.
 Every Tier 0 number in this document and on the leaderboard is now from the corrected fitter; a test
-pins that the fitter sees the exact distribution while the answer keeps the wire precision.
+pins that the fitter sees the exact distribution while the answer keeps the wire precision. One
+exception, stated rather than hidden: the "Tier 0, recipe refit without held-out sources" reference
+rows inside the Tier 1 and Tier 2 comparisons of Sections 6–7 were computed before the fix. For the
+Qwen backbones they compare against, the fix moves those rows by at most 0.004 (Qwen3.5-4B held-out
+ECE 0.139 → 0.135); no comparison drawn from them changes.
 *(`results/recipe-k/`)*
 
 **4.6 A temperature that varies with the option count: sometimes, so it is an option.** Gemma-4-12B
@@ -825,6 +842,11 @@ text round trip with an image attached. Throughput: 12.6 → 5.3 records/s on on
 - **How far does the residual finding go?** Three backbones now (2B, 4B, 9B; 6.3a–c): the
   trained-source gain is robust at every size, and with the six-epoch cap the held-out result is
   seed-stable (±0.004 at 2B, ±0.002 at 9B). Untested: other families, and the cap at 4B.
+- **How do other open decision models calibrate?** vLLM Semantic Router's Decision 1.0 (22 September
+  2026; Apache-2.0, 0.6B–9B, Qwen3.5 backbones with a shared candidate head, System One format)
+  reports accuracy only — Lux-9B 77.4% vs Jev 81.05% on its own 54-task suite, which its evaluation
+  notes call "observed regression tests, not a fresh blind test". No ECE, no held-out sources. It
+  speaks the same wire format, so it can be scored on jev-bench beside Jev and these models.
 - **Can ordinal generalization be fixed with data?** More diverse ordinal scales in training is the
   obvious lever, and jev-bench has only four.
 - **Is the held-out set difficulty-matched?** It is not — it contains several of Jev's strongest
