@@ -47,16 +47,21 @@ Meanwhile it is excellent and well calibrated on crisp, grounded questions (ARC 
 ![Jev: confidence vs human agreement on ChaosNLI](results/figures/confidence_vs_agreement.png)
 
 **2 · Evaluating on held-out *records* instead of held-out *sources* would have shipped the
-wrong architecture — and evaluating on one seed nearly shipped an overclaim.** A trained head that
-replaces the model's own scorer gains +0.077 accuracy on sources it trained on and loses **−0.098**
-on sources it never saw. Making it a zero-initialized residual on that scorer — so training provably
-starts at Tier 0 — keeps the gain (+0.080). The first version of this README said it also "erased
-the regression (−0.000)". **Five seeds say otherwise:** held-out accuracy is **0.579 ± 0.049** —
-two seeds match Tier 0 (0.628), three regress by ~0.09 and turn overconfident on unseen sources —
-while trained-source accuracy is stable at 0.635 ± 0.007. The residual head halves the damage of
-replacement on average; it does not remove it, and the published run was the top of its own
-distribution. The learned LM weights (**0.95 / 0.98 / 1.01** at 2B, **0.96 / 0.97 / 1.01** at 4B)
-still say the model's prior is worth keeping at full strength.
+wrong architecture — and the head tells you itself when it has stopped generalizing.** A trained
+head that replaces the model's own scorer gains +0.077 accuracy on sources it trained on and loses
+**−0.098** on sources it never saw. Making it a zero-initialized residual on that scorer — so
+training provably starts at Tier 0 — keeps the gain (+0.080). The first version of this README said
+it also "erased the regression (−0.000)". **Five seeds say otherwise:** held-out accuracy is
+**0.579 ± 0.049**, bimodal — two seeds match Tier 0 (0.628), three regress by ~0.09 — while
+trained-source accuracy is stable at 0.635 ± 0.007. What separates the basins is the weight the
+head learns on the model's own log-score: 0.95 for the seeds that held up, 0.92–0.93 for the ones
+that collapsed, and the same ordering at 4B (ρ = 0.90 and 0.97 within each backbone). Every extra
+epoch on the trained sources erodes that trust, early stopping on trained-source loss cannot see
+it — and **capping the schedule at six epochs collapses the spread to 0.621 ± 0.004** with the
+weight at 0.965 for every seed and the trained gain intact. So Tier 1 is "+0.08 where it trained,
+Tier 0 where it did not, if it stops early", and the LM weight is the diagnostic. At 4B, five
+seeds: trained +0.047 every time, held-out 0.715 ± 0.025 against Tier 0's 0.714 — the +0.035 first
+reported was one seed at the top of the spread.
 
 ![Tier 1: trained vs held-out sources](results/figures/tier1_story.png)
 
@@ -271,6 +276,7 @@ per-config metrics, recipe and figures.
 - [x] Tier 2 ablation: learning rate vs hard-label loss — the learning rate was the cause of the overconfidence; soft-label training is a negative result on human agreement
 - [x] Latency: Jev's server-time law measured; vLLM serving path with the same numbers, 4-5x throughput
 - [x] Five-seed error bars on Tier 1: held-out generalization is seed-dependent (0.579 ± 0.049); README corrected
+- [x] The LM-weight diagnostic and the epoch-cap intervention (0.621 ± 0.004); 4B replicated over five seeds
 - [x] Tier 2 at 4B: macro 0.747, above Jev's 0.733; Jev still leads on held-out sources
 - [x] Vision served at Jev speed: recipe-fitted Qwen3-VL-2B published; 68–79 ms per image question on one A40
 - [x] Seeds on the Tier 2 arms: the learning-rate result holds (3 seeds each); LoRA held-out accuracy is seed-stable

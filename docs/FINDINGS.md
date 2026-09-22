@@ -250,9 +250,45 @@ halves the replacement head's held-out damage on average (−0.049 vs −0.098) 
 gain; it does not remove the regression. The "−0.000" that headlined the first version of this
 document was one seed. This is what the seed study was for.
 
-**6.3b It replicates, and strengthens, on Qwen3.5-4B — one seed, so read it with 6.3a.** Held-out
-**+0.035** (0.714 → 0.749) and trained **+0.039** (0.641 → 0.680), better calibrated in both. Seeds
-for the 4B head are running.
+**What separates the basins is visible in the head itself.** The residual head learns a weight on
+the model's own log-score (6.4). Across the five seeds that weight, on Choice, is 0.946 and 0.955
+for the two seeds that held up and 0.924, 0.925 and 0.934 for the three that collapsed; the
+collapsed seeds are also the ones whose best epoch came later (8–10 vs 5–6). Within a backbone the
+LM weight *orders* held-out accuracy — Spearman 0.90 over these five, 0.97 over the five 4B seeds
+below — though not across backbones pooled (0.61), since a 4B head at 0.93 is still a better model
+than a 2B head at 0.95. The reading: every extra epoch of head training on the sixteen trained
+sources erodes trust in the prior a little, the erosion is what costs the unseen sources, and
+early stopping on trained-source loss cannot see it.
+
+**The intervention.** If that reading is right, capping the schedule should hold the weight up and
+collapse the spread. Same five seeds, everything identical except a cap of six epochs:
+
+| Qwen3.5-2B residual, seed | held-out acc | held-out ECE | trained acc | trained ECE | LM weight (choice) | best epoch |
+|---|---|---|---|---|---|---|
+| 0 | 0.616 | 0.107 | 0.637 | 0.067 | 0.964 | 5 |
+| 1 | 0.621 | 0.104 | 0.635 | 0.068 | 0.966 | 5 |
+| 2 | 0.620 | 0.107 | 0.635 | 0.068 | 0.966 | 5 |
+| 3 | 0.622 | 0.115 | 0.633 | 0.069 | 0.963 | 5 |
+| 4 | 0.628 | 0.096 | 0.635 | 0.068 | 0.966 | 4 |
+| **mean ± sd, cap 6** | **0.621 ± 0.004** | 0.106 ± 0.007 | 0.635 ± 0.002 | 0.068 ± 0.001 | 0.963–0.966 | |
+| mean ± sd, 20 epochs | 0.579 ± 0.049 | 0.145 ± 0.050 | 0.635 ± 0.007 | 0.072 ± 0.011 | 0.924–0.955 | |
+| Tier 0, for reference | 0.628 | 0.097 | 0.552 | 0.100 | | |
+
+The spread goes from ±0.049 to ±0.004, the bimodality is gone, the LM weight sits at 0.965 for
+every seed, and the trained-source gain is untouched. That is the causal version of the
+correlation above. What the cap does *not* do is beat Tier 0 on unseen sources: 0.621 against
+0.628. The honest summary of Tier 1 is therefore "+0.08 on the sources it trained on, Tier 0 on
+the ones it did not, *provided the head stops early*" — and the LM weight is the diagnostic that
+says whether it did. A head reporting 0.93 has already spent part of its prior.
+
+**6.3b At 4B, five seeds: the trained-source gain is real; the held-out gain was one seed.** The
+first version of this section reported held-out **+0.035** from a single run. Over five seeds
+(the published run plus four), held-out accuracy is **0.715 ± 0.025** against Tier 0's 0.714 —
+no gain on average, the published seed at the top of the spread again — while trained-source
+accuracy is 0.688 ± 0.005 against 0.641 (**+0.047**, every seed). The LM-weight rule holds here
+too: the two seeds above 0.73 held-out carry weights of 0.952 and 0.964, the three near 0.70
+carry 0.928–0.933, ρ = 0.97. These ran the 20-epoch schedule; the six-epoch cap has not been run
+at 4B. *(`results/qwen35-2b-t1r-e6-s0` … `-s4`, `results/qwen35-4b-t1r-s1` … `-s4`)*
 
 **6.4 Both heads chose to keep the prior at full strength.** Learned LM weights came out
 **0.95 / 0.98 / 1.01** on 2B and **0.96 / 0.97 / 1.01** on 4B for choice / score / noul — two
@@ -559,8 +595,10 @@ this for any recipe-fitted run.
 
 ## 10. Open questions
 
-- **How far does the residual finding go?** It replicates on two backbones (2B, 4B) with one seed
-  each, and strengthens with scale. Whether it holds at 7B+ and across families is untested.
+- **How far does the residual finding go?** Five seeds on each of two backbones (6.3a, 6.3b): the
+  trained-source gain is robust at both sizes; the held-out result is Tier 0 on average and depends
+  on stopping early. Whether it holds at 7B+ and across families is untested, and the epoch cap has
+  not been tried at 4B.
 - **Can ordinal generalization be fixed with data?** More diverse ordinal scales in training is the
   obvious lever, and jev-bench has only four.
 - **Is the held-out set difficulty-matched?** It is not — it contains several of Jev's strongest

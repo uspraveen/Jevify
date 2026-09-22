@@ -1,0 +1,36 @@
+{
+ "run_id": "qwen35-4b-t1r-s4",
+ "model_id": "Qwen/Qwen3.5-4B",
+ "tier": 1,
+ "layer": -1,
+ "chat_applied": true,
+ "heldout_sources": [
+  "clinc150",
+  "arc_challenge",
+  "yelp5",
+  "measuring_hate_speech",
+  "fever_evidence",
+  "strategyqa_grounded"
+ ],
+ "n_train": 8685,
+ "n_val": 2250,
+ "n_test": 22773,
+ "max_slots": 16,
+ "dim": 512,
+ "epochs": 20,
+ "lr": 0.0003,
+ "residual": true,
+ "soft_labels": false,
+ "seed": 4,
+ "lm_weight": [
+  0.933,
+  0.937,
+  1.014
+ ],
+ "best_epoch": 7,
+ "best_val_loss": 0.4182,
+ "feat_s": 19.8,
+ "train_s": 69.7,
+ "wall_s": 106.6,
+ "device": "NVIDIA A40"
+}

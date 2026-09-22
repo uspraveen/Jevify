@@ -1,0 +1,90 @@
+{
+ "rows": [
+  {
+   "model": "Qwen/Qwen3.5-4B (Tier 1)",
+   "variant": "Tier 1 heads",
+   "heldout_n_sources": 6,
+   "heldout_acc": 0.6937418728772441,
+   "heldout_ece": 0.1417329294809582,
+   "heldout_brier": 0.4142983462484154,
+   "heldout_sel90": 0.7155861201006832,
+   "trained_n_sources": 16,
+   "trained_acc": 0.6900467241995544,
+   "trained_ece": 0.0771177543395544,
+   "trained_brier": 0.3860268479138598,
+   "trained_sel90": 0.7202946823042117
+  },
+  {
+   "model": "Jev 1.13.0",
+   "variant": "API (zero-shot)",
+   "heldout_n_sources": 6,
+   "heldout_acc": 0.8353886462882096,
+   "heldout_ece": 0.09009604803493447,
+   "heldout_brier": 0.2351535246967492,
+   "heldout_sel90": 0.8580438691118304,
+   "trained_n_sources": 16,
+   "trained_acc": 0.694114363832062,
+   "trained_ece": 0.12201773757854939,
+   "trained_brier": 0.39103513879224117,
+   "trained_sel90": 0.7226123321295803
+  },
+  {
+   "model": "Qwen/Qwen3.5-4B",
+   "variant": "Tier 0 (recipe refit w/o held-out)",
+   "heldout_n_sources": 6,
+   "heldout_acc": 0.7141523532265891,
+   "heldout_ece": 0.13930851647160078,
+   "heldout_brier": 0.3549534777768287,
+   "heldout_sel90": 0.7359996404171162,
+   "trained_n_sources": 16,
+   "trained_acc": 0.6412973205312547,
+   "trained_ece": 0.08668287498093089,
+   "trained_brier": 0.4239866627276015,
+   "trained_sel90": 0.6702502451829262
+  }
+ ],
+ "heldout": [
+  "clinc150",
+  "arc_challenge",
+  "yelp5",
+  "measuring_hate_speech",
+  "fever_evidence",
+  "strategyqa_grounded"
+ ],
+ "meta": {
+  "run_id": "qwen35-4b-t1r-s3",
+  "model_id": "Qwen/Qwen3.5-4B",
+  "tier": 1,
+  "layer": -1,
+  "chat_applied": true,
+  "heldout_sources": [
+   "clinc150",
+   "arc_challenge",
+   "yelp5",
+   "measuring_hate_speech",
+   "fever_evidence",
+   "strategyqa_grounded"
+  ],
+  "n_train": 8685,
+  "n_val": 2250,
+  "n_test": 22773,
+  "max_slots": 16,
+  "dim": 512,
+  "epochs": 20,
+  "lr": 0.0003,
+  "residual": true,
+  "soft_labels": false,
+  "seed": 3,
+  "lm_weight": [
+   0.928,
+   0.929,
+   1.012
+  ],
+  "best_epoch": 8,
+  "best_val_loss": 0.4218,
+  "feat_s": 19.7,
+  "train_s": 48.6,
+  "wall_s": 83.6,
+  "device": "NVIDIA A40"
+ }
+}

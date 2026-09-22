@@ -21,7 +21,7 @@ on the Hub. **Each figure exists in exactly one place: next to the data that pro
 | `vision-budget/` | The encoder budget sweep: `results.json`, table, `vision_budget.png` | `scripts/vision_budget.py` |
 
 Run ids: `<model>` is Tier 0; `<model>-t1` Tier 1 with heads replacing the LM score; `<model>-t1r`
-Tier 1 residual; `<model>-t2` Tier 2 (LoRA + residual heads); `qwen3-vl-2b-px<N>` a vision run
+Tier 1 residual (`-sN` a seed replicate, `-e6-sN` the six-epoch-cap replicates); `<model>-t2` Tier 2 (LoRA + residual heads; `-lowlr` LoRA lr 3e-5, `-soft` human-distribution targets); `qwen3-vl-2b-px<N>` a vision run
 at a pixel budget of N 28×28 patches.
 
 Every figure carries its model, the bench version and its generation date in the footer, so a

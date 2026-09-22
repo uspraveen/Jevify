@@ -1,0 +1,40 @@
+# Qwen/Qwen3.5-2B (Tier 1): Tier 1 vs Tier 0 vs Jev
+
+Heads trained on 8,685 records from 16 sources (max 16 options per record), early-stopped on 2,250 validation records; epoch 4.
+
+**Held-out sources** (never seen in training): `clinc150`, `arc_challenge`, `yelp5`, `measuring_hate_speech`, `fever_evidence`, `strategyqa_grounded`. `chaosnli` has no train split, so it is held out by construction.
+
+| model | variant | held-out acc | held-out ECE | held-out Brier | trained acc | trained ECE | trained Brier |
+|---|---|---|---|---|---|---|---|
+| Qwen/Qwen3.5-2B (Tier 1) | Tier 1 heads | 0.628 | 0.096 | 0.467 | 0.635 | 0.068 | 0.439 |
+| Jev 1.13.0 | API (zero-shot) | 0.835 | 0.090 | 0.235 | 0.694 | 0.122 | 0.391 |
+| Qwen/Qwen3.5-2B | Tier 0 (recipe refit w/o held-out) | 0.628 | 0.097 | 0.436 | 0.552 | 0.100 | 0.506 |
+
+## Per-config (Tier 1)
+
+**model:** `Qwen/Qwen3.5-2B (Tier 1)`
+
+| source | prim | n | acc | ECE | Brier | NLL | sel@90 | sel@50 | AURC | RPS | MAE | AUROC | TVD→human |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `arc_challenge` | choice | 1000 | 0.757 | 0.033 | 0.337 | 0.64 | 0.797 | 0.920 | 0.088 |  |  |  |  |
+| `banking77` | choice | 1000 | 0.609 | 0.146 | 0.560 | 1.59 | 0.648 | 0.822 | 0.196 |  |  |  |  |
+| `boolq` | noul | 1000 | 0.854 | 0.016 | 0.109 | 0.35 | 0.880 | 0.958 | 0.055 |  |  | 0.917 |  |
+| `chaosnli` | choice | 1599 | 0.558 | 0.102 | 0.564 | 0.93 | 0.578 | 0.630 | 0.353 |  |  |  | 0.285 |
+| `civil_comments` | noul | 2000 | 0.920 | 0.015 | 0.066 | 0.24 | 0.944 | 0.972 | 0.032 |  |  | 0.758 | 0.108 |
+| `clinc150` | choice | 1000 | 0.488 | 0.163 | 0.736 | 3.60 | 0.520 | 0.664 | 0.322 |  |  |  |  |
+| `fever_evidence` | noul | 1000 | 0.887 | 0.013 | 0.088 | 0.30 | 0.918 | 0.962 | 0.040 |  |  | 0.962 |  |
+| `go_emotions` | choice | 1000 | 0.468 | 0.082 | 0.723 | 1.95 | 0.491 | 0.576 | 0.404 |  |  |  | 0.594 |
+| `helpsteer2_helpfulness` | score | 1000 | 0.336 | 0.076 | 0.719 | 1.40 | 0.346 | 0.420 | 0.583 | 0.162 | 0.99 |  |  |
+| `helpsteer2_verbosity` | score | 1000 | 0.630 | 0.040 | 0.537 | 1.04 | 0.648 | 0.678 | 0.307 | 0.087 | 0.50 |  |  |
+| `ledgar` | choice | 1000 | 0.685 | 0.082 | 0.447 | 1.20 | 0.728 | 0.894 | 0.135 |  |  |  |  |
+| `massive` | choice | 1000 | 0.601 | 0.116 | 0.553 | 1.58 | 0.646 | 0.828 | 0.187 |  |  |  |  |
+| `measuring_hate_speech` | score | 1000 | 0.484 | 0.094 | 0.706 | 1.32 | 0.476 | 0.496 | 0.486 | 0.296 | 0.91 |  | 0.496 |
+| `mmlu` | choice | 1000 | 0.563 | 0.113 | 0.579 | 1.12 | 0.592 | 0.730 | 0.244 |  |  |  |  |
+| `mnli` | choice | 1000 | 0.747 | 0.037 | 0.351 | 0.60 | 0.784 | 0.888 | 0.113 |  |  |  |  |
+| `paws` | noul | 1000 | 0.835 | 0.030 | 0.120 | 0.38 | 0.871 | 0.946 | 0.063 |  |  | 0.908 |  |
+| `sms_spam` | noul | 800 | 0.955 | 0.018 | 0.036 | 0.13 | 0.985 | 0.995 | 0.012 |  |  | 0.966 |  |
+| `sst5` | score | 1000 | 0.437 | 0.099 | 0.698 | 1.33 | 0.447 | 0.482 | 0.524 | 0.121 | 0.73 |  |  |
+| `strategyqa_closed` | noul | 687 | 0.578 | 0.048 | 0.237 | 0.67 | 0.586 | 0.654 | 0.332 |  |  | 0.641 |  |
+| `strategyqa_grounded` | noul | 687 | 0.760 | 0.044 | 0.158 | 0.48 | 0.775 | 0.907 | 0.107 |  |  | 0.880 |  |
+| `stsb` | score | 1000 | 0.384 | 0.059 | 0.717 | 1.44 | 0.402 | 0.510 | 0.523 | 0.113 | 0.84 |  |  |
+| `yelp5` | score | 1000 | 0.392 | 0.228 | 0.778 | 1.66 | 0.376 | 0.450 | 0.499 | 0.163 | 0.94 |  |  |
