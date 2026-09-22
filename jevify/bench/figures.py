@@ -647,10 +647,22 @@ def fig_cardinality_probe(probe_json: Path, out: Path, model: str) -> Path | Non
     return _save(fig, out / "probe_cardinality")
 
 
+def _short_label(label: str) -> str:
+    """'Qwen/Qwen3.5-2B (Tier 2 residual, lr 3e-05, soft labels)' -> 'Qwen3.5-2B T2 lr 3e-5 soft'."""
+    s = label.split("/")[-1] if "/" in label.split(" (")[0] else label
+    for a, b in ((" (TypeSafe API)", ""), (" (Tier 0)", ""), ("Tier 2 residual", "T2"), ("Tier 1 residual", "T1"),
+                 ("Tier 1 replace", "T1 replace"), ("lr 3e-05", "lr 3e-5"), ("soft labels", "soft"),
+                 ("6-epoch cap, mean of 3 seeds", "3 seeds"), (", ", " "), (" (", " "), (")", "")):
+        s = s.replace(a, b)
+    return s
+
+
 def fig_models_map(rows: list[dict[str, Any]], out: Path, title: str = "Jevified models vs Jev on jev-bench") -> Path:
     """Model-level calibration map: macro accuracy vs macro ECE, one point per model."""
     plt = _mpl()
-    fig, ax = plt.subplots(figsize=(7.4, 5.2))
+    # wide, and zoomed to the data: twenty models sit between ECE 0.07 and 0.13, and a fixed 0-0.20
+    # axis on a 7-inch canvas stacked their labels on top of each other
+    fig, ax = plt.subplots(figsize=(11.0, 6.4))
     pts = []
     # marker shape is the primary encoding for tier (it survives print and colour blindness);
     # colour is the redundant one
@@ -662,12 +674,13 @@ def fig_models_map(rows: list[dict[str, Any]], out: Path, title: str = "Jevified
         kind = "API" if t == "API" else ("Tier 2" if t.startswith("Tier 2") else "Tier 1" if t.startswith("Tier 1") else "Tier 0")
         color, marker, size = style[kind]
         ax.scatter(s["acc"], s["ece"], s=size, color=color, marker=marker, zorder=3, linewidths=0.8, edgecolors=SURFACE)
-        label = e["label"].split("/")[-1] if "/" in e["label"] else e["label"]
-        pts.append((label, s["acc"], s["ece"]))
+        pts.append((_short_label(e["label"]), s["acc"], s["ece"]))
     ax.set_xlabel("macro accuracy over 22 configs"); ax.set_ylabel("macro expected calibration error (lower is better)")
     # y stops a little above the worst model rather than at a fixed 0.30: the interesting
     # differences are a few hundredths of ECE and were squeezed into the bottom third
-    ax.set_xlim(0.25, 1.0); ax.set_ylim(0, max(0.2, max(p[2] for p in pts) + 0.04))
+    xs, ys = [p[1] for p in pts], [p[2] for p in pts]
+    ax.set_xlim(max(0.0, min(xs) - 0.04), min(1.0, max(xs) + 0.06))
+    ax.set_ylim(max(0.0, min(ys) - 0.015), max(ys) + 0.02)
     from matplotlib.lines import Line2D
     ax.legend(handles=[Line2D([0], [0], marker="D", color="#eb6834", lw=0, markersize=7, label="Jev 1.13.0 (API)"),
                        Line2D([0], [0], marker="o", color=PRIM_COLOR["choice"], lw=0, markersize=6, label="Jevified, Tier 0 (no training)"),
