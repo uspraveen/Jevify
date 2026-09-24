@@ -17,7 +17,7 @@ from ..runners.base import Prediction
 from ..wire import choice_confidence, round_probabilities, score_confidence, score_expectation
 from .calibrate import average_permutations, prior_correct
 from .readout import HFScorer, softmax
-from .template import Rendered, render, to_chat
+from .template import Rendered, render, to_chat, to_chat_tev1
 
 
 PRIMS = ("choice", "score", "noul")
@@ -43,6 +43,9 @@ class Recipe:
     # primitive is fitted across two regimes and can be worse than none (FINDINGS 2.7). This
     # slope makes the temperature affine in log2(K/2) -- zero (the default) is the old behaviour.
     temp_k_slope: dict[str, float] = field(default_factory=dict)
+    # the prompt format ("jevify" or "tev1", template.py). A fine-tuned model is scored in the format
+    # it was trained on; everything after the log-scores is format-independent.
+    prompt: str = "jevify"
 
     def temp_for(self, prim: str, k: int | None = None) -> float:
         T = self.temperature.get(prim, 1.0)
@@ -67,6 +70,8 @@ class Recipe:
              "prior_weight": self.prior_weight, "temperature": dict(self.temperature), "bias": dict(self.bias)}
         if self.temp_k_slope:          # omitted when unused, so old recipe.json files stay byte-identical
             d["temp_k_slope"] = dict(self.temp_k_slope)
+        if self.prompt != "jevify":    # likewise
+            d["prompt"] = self.prompt
         return d
 
 
@@ -79,15 +84,22 @@ class Tier0Engine:
 
     # ------------------------------------------------------------------ rendering
     def _prefix(self, rendered: Rendered) -> str:
+        if rendered.fmt == "tev1":     # a format learned in one chat template is only meaningful inside it
+            return to_chat_tev1(rendered.prefix, self.scorer.tokenizer)
         return to_chat(rendered.prefix, self.scorer.tokenizer) if self.chat else rendered.prefix
 
-    def _renderings(self, state: Any, question: dict[str, Any]) -> list[Rendered]:
+    def _render(self, state: Any, question: dict[str, Any], **kw: Any) -> Rendered:
         ids = self.scorer.identifiers() if self.recipe.mode == "index" else None
-        sl = self.recipe.state_last
-        rs = [render(state, question, mode=self.recipe.mode, identifiers=ids, state_last=sl)]
-        if rs[0].primitive == "choice":
+        return render(state, question, mode=self.recipe.mode, identifiers=ids, state_last=self.recipe.state_last,
+                      fmt=self.recipe.prompt, **kw)
+
+    def _renderings(self, state: Any, question: dict[str, Any]) -> list[Rendered]:
+        rs = [self._render(state, question)]
+        # in the Tev1 format yes/no are lettered options, so their order carries a position bias too
+        permutable = ("choice", "noul") if self.recipe.prompt == "tev1" else ("choice",)
+        if rs[0].primitive in permutable:
             for i in range(1, self.recipe.max_permutations()):
-                rs.append(render(state, question, mode=self.recipe.mode, permutation_seed=1000 + i, identifiers=ids, state_last=sl))
+                rs.append(self._render(state, question, permutation_seed=1000 + i))
         return rs
 
     # ------------------------------------------------------------------ raw scoring
@@ -107,8 +119,7 @@ class Tier0Engine:
             for i, r in enumerate(chunk):
                 if not want_prior:
                     break
-                rd = render(r.state, r.question, mode=self.recipe.mode, content_free=True, state_last=self.recipe.state_last,
-                            identifiers=self.scorer.identifiers() if self.recipe.mode == "index" else None)
+                rd = self._render(r.state, r.question, content_free=True)
                 key = f"{rd.question_hash}:{rd.mode}"
                 if key not in self._prior_cache and all(k != key for k, _ in prior_keys):
                     prior_keys.append((key, rd))
@@ -128,10 +139,11 @@ class Tier0Engine:
                 extra = {
                     "mode": rd0.mode,
                     "runs": [{"keys": rd.keys, "logscores": sc} for rd, sc in runs],
-                    "prior": {"keys": render(r.state, r.question, mode=self.recipe.mode, content_free=True, state_last=self.recipe.state_last,
-                                             identifiers=self.scorer.identifiers() if self.recipe.mode == "index" else None).keys,
+                    "prior": {"keys": self._render(r.state, r.question, content_free=True).keys,
                               "logscores": prior} if prior else None,
                 }
+                if self.recipe.prompt != "jevify":   # absent for the default, so existing prediction files are unchanged
+                    extra["prompt"] = self.recipe.prompt
                 pred = finalize(r.primitive, r.question, extra, self.recipe)
                 pred.id = r.id
                 pred.model = self.scorer.model_id

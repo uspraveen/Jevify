@@ -36,6 +36,7 @@ class JevifiedModel:
             temperature=recipe_cfg.get("temperature") or {"choice": 1.0, "score": 1.0, "noul": 1.0},
             bias=recipe_cfg.get("bias") or {"noul": 0.0},
             state_last=bool(recipe_cfg.get("state_last", False)),
+            prompt=recipe_cfg.get("prompt", "jevify"),
         ))
         self._extractor = None
         # a vision-language scorer renders its own prompts (images go through the processor,
@@ -219,5 +220,5 @@ def _config_for(path: Path) -> dict[str, Any]:
             "modality": meta.get("modality", "text"), "max_pixels": meta.get("max_pixels"),
             "recipe": {"mode": recipe.get("mode", "index"), "permutations": recipe.get("permutations", 1),
                        "prior_weight": recipe.get("prior_weight", 0.0), "temperature": recipe.get("temperature"),
-                       "bias": recipe.get("bias")},
+                       "bias": recipe.get("bias"), "prompt": recipe.get("prompt", "jevify")},
             "trust_remote_code": meta.get("trust_remote_code", False)}

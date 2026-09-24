@@ -37,15 +37,16 @@ class HFScorer:
     def __init__(self, model_id: str, *, device: str | None = None, dtype: torch.dtype | None = None,
                  batch_size: int = 16, cand_chunk: int = 64, max_prefix_tokens: int = 4096,
                  trust_remote_code: bool = False, hf_token: str | None = None, tree_attention: bool | None = None,
-                 tree_max_tokens: int = 6144) -> None:
+                 tree_max_tokens: int = 6144, revision: str | None = None) -> None:
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
         self.model_id = model_id
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.dtype = dtype or (torch.bfloat16 if self.device == "cuda" else torch.float32)
-        self.tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=trust_remote_code, token=hf_token)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=trust_remote_code, token=hf_token,
+                                                       revision=revision)
         self.model = AutoModelForCausalLM.from_pretrained(model_id, dtype=self.dtype, trust_remote_code=trust_remote_code,
-                                                          token=hf_token).to(self.device).eval()
+                                                          token=hf_token, revision=revision).to(self.device).eval()
         self.batch_size = batch_size
         self.cand_chunk = cand_chunk
         self.max_prefix_tokens = max_prefix_tokens
