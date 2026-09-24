@@ -13,7 +13,7 @@ Contents: [Jev's behaviour](#1-what-jev-actually-does) · [Controlled probes](#2
 · [The 8B class](#10-the-8b-class-is-a-small-models-speed-the-whole-story) · [Tev1](#11-tev1-the-same-base-model-fine-tuned-by-someone-else)
 · [Benchmarks we did not write](#12-three-benchmarks-we-did-not-write) · [CLM](#13-clm-a-contrastive-system-one-model-measured)
 · [Three untested behaviours](#14-three-behaviours-jev-bench-did-not-test) · [Retraining the Tev1 way](#15-retraining-the-4b-the-tev1-way-a-negative-result)
-· [Open questions](#16-open-questions)
+· [The phishing threshold](#16-the-phishing-collapse-is-a-threshold-and-sixteen-labelled-emails-repair-it) · [Open questions](#17-open-questions)
 
 ---
 
@@ -1141,14 +1141,38 @@ rank these arms on the guardrail or on the new tests.
 
 ---
 
-## 16. Open questions
+## 16. The phishing collapse is a threshold, and sixteen labelled emails repair it
 
-- **Why does every fine-tune stop flagging phishing?** Tev1 (which never saw jev-bench), the
-  published Tier 2 and all four retraining runs of Section 15 call almost every PhishNChips email
-  legitimate (recall 1–12% against the untrained base's 44%), yet their ranking of the same emails
-  stays close to the base's (AUROC 0.75–0.86 against 0.78). Fine-tuning moves the decision
-  threshold, not the knowledge. A bias fitted on a few labelled examples per deployment is the obvious
-  repair to test; what in training moves the threshold is not known.
+Tev1 (which never saw jev-bench), the published Tier 2 and all four retraining runs of Section 15 call
+almost every PhishNChips email legitimate (recall 1–12% against the untrained base's 44%), yet their
+ranking of the same emails stays close to the base's (AUROC 0.75–0.86 against 0.78). That is a moved
+threshold, and a deployment would repair it by labelling a few of its own emails and shifting the
+model's phishing log-odds by one fitted number. `scripts/phishing_recalibration.py` measures exactly
+that, scoring only emails the shift never saw, over 200 random draws of the labelled set:
+
+| verdict question | AUROC | as served | 16 labelled | 64 labelled |
+|---|---|---|---|---|
+| Jev 1.13.0 | 0.688 | 0.628 | 0.613 | 0.613 |
+| Gemma-4-12B, Tier 0 | 0.906 | **0.825** | **0.825** | **0.832** |
+| Tev1-4B + recipe | 0.848 | 0.511 | 0.761 | 0.765 |
+| Jevify 4B Tier 2 (published) | 0.782 | 0.557 | 0.701 | 0.704 |
+
+**16.1 Sixteen labels take the fine-tunes from coin-flip to useful** — Tev1 0.511 → 0.761, the Tier 2
+model 0.557 → 0.701, recall from 2% and 12% to about 70% and 62% — the same on the other three
+phishing wordings. **16.2 Which sixteen matters**: recall with 16 labels spans about 0.5–0.8 across
+draws; 64 narrow it by more than half, and more buy little. **16.3 A shift cannot fix a ranking**:
+AUROC caps every model, the untrained Gemma-4-12B stays best, and Jev — the weakest ranker, with
+probabilities rounded to 0.01 — gains nothing. What in fine-tuning moves the threshold is still not
+known. *(`results/phishing-recalibration/`.)*
+
+---
+
+## 17. Open questions
+
+- **What moves the threshold?** Every fine-tune loses phishing recall while keeping its ranking
+  (Section 16). Candidates: the label balance of the training sources, the prompt family, or proper
+  scoring rules rewarding a confident majority class. A threshold fitted per deployment repairs it;
+  a training-time fix would be better.
 - **How far does the residual finding go?** Three backbones now (2B, 4B, 9B; 6.3a–c): the
   trained-source gain is robust at every size, and with the six-epoch cap the held-out result is
   seed-stable (±0.004 at 2B, ±0.002 at 9B). Untested: other families, and the cap at 4B.

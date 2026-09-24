@@ -208,8 +208,10 @@ Jev applies a stated rule at **0.924**; every open model — untrained, Tev1, ou
 answer (0.48 → 0.66–0.70) and resist planted instructions (hijack rate 0.40 → 0.14–0.16). Retraining
 our 4B Tier 2 with Together's generated data and shuffled options moved held-out accuracy by −0.003 to
 −0.015, left the phishing collapse in place, and showed that a fine-tune's behaviour outside jev-bench
-varies between identical runs far more than its jev-bench score does.
-[· new tests](results/b/README.md) [· retraining](results/c/README.md)
+varies between identical runs far more than its jev-bench score does. That collapse is a moved threshold:
+one shift fitted on **sixteen labelled emails** takes Tev1 from 0.51 to 0.76 and our Tier 2 from 0.56 to
+0.70 on the emails it never saw.
+[· new tests](results/b/README.md) [· retraining](results/c/README.md) [· the phishing threshold](results/phishing-recalibration/README.md)
 
 ## Try it
 

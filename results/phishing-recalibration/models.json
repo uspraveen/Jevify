@@ -1,0 +1,29 @@
+[
+ {
+  "label": "Jev 1.13.0",
+  "test": "results/community/predictions/jev-1.13.0/test_predictions.jsonl"
+ },
+ {
+  "label": "Qwen3.5-4B Tier 0",
+  "test": "results/community/predictions/qwen35-4b/test_predictions.jsonl",
+  "recipe": "results/qwen35-4b/recipe.json"
+ },
+ {
+  "label": "Gemma-4-12B Tier 0",
+  "test": "results/community/predictions/gemma4-12b/test_predictions.jsonl",
+  "recipe": "results/gemma4-12b/recipe.json"
+ },
+ {
+  "label": "Tev1-4B + recipe",
+  "test": "results/community/predictions/tev1-4b/test_predictions.jsonl",
+  "recipe": "results/tev1-4b/recipe.json"
+ },
+ {
+  "label": "4B Tier 2, published",
+  "test": "results/community/predictions/qwen35-4b-t2-lowlr/test_predictions.jsonl"
+ },
+ {
+  "label": "4B Tier 2, re-run",
+  "test": "results/c/predictions/community/qwen35-4b-t2-lowlr-rerun/test_predictions.jsonl"
+ }
+]
