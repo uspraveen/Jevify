@@ -17,7 +17,7 @@ from ..runners.base import Prediction
 from ..wire import choice_confidence, round_probabilities, score_confidence, score_expectation
 from .calibrate import average_permutations, prior_correct
 from .readout import HFScorer, softmax
-from .template import Rendered, render, to_chat, to_chat_tev1
+from .template import TEV1_ASSISTANT_PREFIX, Rendered, render, to_chat, to_chat_tev1
 
 
 PRIMS = ("choice", "score", "noul")
@@ -89,7 +89,12 @@ class Tier0Engine:
         return to_chat(rendered.prefix, self.scorer.tokenizer) if self.chat else rendered.prefix
 
     def _render(self, state: Any, question: dict[str, Any], **kw: Any) -> Rendered:
-        ids = self.scorer.identifiers() if self.recipe.mode == "index" else None
+        ids = None
+        if self.recipe.mode == "index":
+            # identifiers must be single tokens where the answer actually goes: after our cue, or
+            # after the empty assistant turn the Tev1 format ends with
+            ids = (self.scorer.identifiers(context=TEV1_ASSISTANT_PREFIX) if self.recipe.prompt == "tev1"
+                   else self.scorer.identifiers())
         return render(state, question, mode=self.recipe.mode, identifiers=ids, state_last=self.recipe.state_last,
                       fmt=self.recipe.prompt, **kw)
 

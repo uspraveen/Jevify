@@ -77,12 +77,12 @@ def main() -> int:
     # 3. the prompt and the answer tokens, through the real scorer
     from jevify.engine.predict import Recipe, Tier0Engine
     from jevify.engine.readout import HFScorer
-    from jevify.engine.template import TEV1_ASSISTANT_PREFIX, render
+    from jevify.engine.template import TEV1_ASSISTANT_PREFIX
 
     sc = HFScorer(a.model, revision=a.revision, dtype=torch.bfloat16, batch_size=8)
     eng = Tier0Engine(sc, Recipe(prompt="tev1", permutations=1))
     state, q = EXAMPLES["charge-dispute"]
-    rd = render(state, q, fmt="tev1", identifiers=sc.identifiers())
+    rd = eng._render(state, q)
     prefix = eng._prefix(rd)
     print("[prompt] tail:", repr(prefix[-120:]))
     if not prefix.endswith(TEV1_ASSISTANT_PREFIX):
@@ -95,10 +95,13 @@ def main() -> int:
     if not single:
         print("[prompt] FAIL: answer letters are not the trained tokens"); ok = False
     big = {"type": "choice", "instructions": "Pick one.", "criteria": {f"k{i}": f"option {i}" for i in range(151)}}
-    rbig = render("x", big, fmt="tev1", identifiers=sc.identifiers())
+    rbig = eng._render("x", big)
     tb = sc.tokenize(eng._prefix(rbig), rbig.candidates)
-    print(f"[prompt] K=151: {sum(len(c) == 1 for c in tb.cand_ids)}/151 identifiers single-token "
+    n_single = sum(len(c) == 1 for c in tb.cand_ids)
+    print(f"[prompt] K=151: {n_single}/151 identifiers single-token in this context "
           f"(beyond X Tev1 never saw a label; reported separately)")
+    if n_single != 151:
+        print("[prompt] FAIL: identifiers must be single tokens where the answer goes"); ok = False
 
     # 4. Together's examples
     import glob

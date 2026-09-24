@@ -55,17 +55,38 @@ class HFScorer:
         self.stats = {"tokenize_s": 0.0, "single_s": 0.0, "multi_s": 0.0, "items": 0}
         self.tree_attention = tree_attention      # None = auto (verify once against naive), True/False = force
         self._tree_verified: bool | None = None
+        self._recurrent: bool | None = None
         self._identifiers: list[str] | None = None
+        self._identifiers_by_context: dict[str, list[str]] = {}
         import inspect
         params = inspect.signature(self.model.forward).parameters
         self._supports_keep = "logits_to_keep" in params or any(p.kind == p.VAR_KEYWORD for p in params.values())
         self.pad_id = self.tokenizer.pad_token_id if self.tokenizer.pad_token_id is not None else (self.tokenizer.eos_token_id or 0)
 
     # ------------------------------------------------------------------ identifiers
-    def identifiers(self, k: int = 255) -> list[str]:
+    def identifiers(self, k: int = 255, *, context: str | None = None) -> list[str]:
         """Up to k option identifiers that are single tokens for THIS tokenizer after the
         answer cue: A–Z first, then two-letter combinations, so Choice with any K stays on
-        the batched single-token path. Falls back to numbers if the vocabulary is too small."""
+        the batched single-token path. Falls back to numbers if the vocabulary is too small.
+
+        ``context`` is the text the answer follows when that is not our cue -- the Tev1 format's
+        empty assistant turn, where a merge after the newline makes three of the first 151
+        two-letter ids two tokens."""
+        if context is not None:
+            if context not in self._identifiers_by_context:
+                import itertools
+                import string
+
+                base = self._encode_raw(context)
+                ok: list[str] = []
+                for cand in itertools.chain(string.ascii_uppercase, ("".join(p) for p in itertools.product(string.ascii_uppercase, repeat=2))):
+                    ids = self._encode_raw(context + cand)
+                    if len(ids) - _common_prefix_len(base, ids) == 1 and ids[: len(base)] == base:
+                        ok.append(cand)
+                    if len(ok) >= 255:
+                        break
+                self._identifiers_by_context[context] = ok
+            return self._identifiers_by_context[context][:k]
         if self._identifiers is None:
             import itertools
             import string
@@ -215,6 +236,13 @@ class HFScorer:
     def _tree_usable(self, t: Tokenized) -> bool:
         if self.tree_attention is False:
             return False
+        if self._recurrent is None:
+            self._recurrent = has_recurrent_layers(self.model)
+        if self._recurrent:
+            # a recurrence reads its inputs in sequence order, not through the attention mask, so a
+            # block-diagonal mask cannot isolate the candidates -- and a confident model can pass the
+            # self-check below anyway. Never use the tree on these layers (FINDINGS 8.11).
+            return False
         total = len(t.prefix_ids) + sum(len(c) for c in t.cand_ids)
         if total > self.tree_max_tokens:
             return False
@@ -288,6 +316,13 @@ class HFScorer:
         return scores
 
 
+def has_recurrent_layers(model: Any) -> bool:
+    """True when some layer carries state across positions instead of attending (Gated DeltaNet,
+    Mamba, RWKV, linear attention): a custom attention mask does not reach those layers."""
+    names = {type(m).__name__.lower() for m in model.modules()}
+    return any(key in n for n in names for key in ("linearattention", "gateddelta", "mamba", "rwkv", "recurrent"))
+
+
 def _common_prefix_len(a: Sequence[int], b: Sequence[int]) -> int:
     n = 0
     for x, y in zip(a, b):
@@ -308,6 +343,10 @@ def _expand_cache(cache: Any, n: int) -> Any:
             return x.expand(n, *x.shape[1:]).contiguous() if x.shape[0] == 1 else x.repeat_interleave(n, dim=0)
         if isinstance(x, (list, tuple)):
             return type(x)(grow(y) for y in x)
+        if isinstance(x, dict):
+            # Qwen3.5's LinearAttentionLayer keeps its conv and recurrent states in dicts; left at
+            # batch 1 they made every multi-token candidate on that family fail (FINDINGS 8.11)
+            return {k: grow(v) for k, v in x.items()}
         return x
 
     if hasattr(cache, "layers"):
