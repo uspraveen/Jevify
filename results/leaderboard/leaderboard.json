@@ -168,6 +168,66 @@
   }
  },
  {
+  "run": "tev1-4b",
+  "label": "togethercomputer/Tev1-4B-experimental (Tev1 prompt)",
+  "tier": "External",
+  "params": "",
+  "cost": null,
+  "gpu": "A40",
+  "chat": true,
+  "recipe": {
+   "mode": "index",
+   "chat": true,
+   "permutations": {
+    "choice": 2,
+    "score": 1,
+    "noul": 1
+   },
+   "state_last": false,
+   "prior_weight": {
+    "choice": 0.0,
+    "score": 0.0,
+    "noul": 0.0
+   },
+   "temperature": {
+    "choice": 1.5347,
+    "score": 1.8992,
+    "noul": 0.9145
+   },
+   "bias": {
+    "noul": -0.4
+   },
+   "prompt": "tev1"
+  },
+  "summary": {
+   "choice": {
+    "acc": 0.7166663887151691,
+    "ece": 0.08365656984921131,
+    "brier": 0.38564173578013894,
+    "sel90": 0.7554483137295276
+   },
+   "score": {
+    "acc": 0.5116666666666667,
+    "ece": 0.11945023333333331,
+    "brier": 0.6265778591766665,
+    "sel90": 0.5248148148148148
+   },
+   "noul": {
+    "acc": 0.8504481181118735,
+    "ece": 0.06065165825894132,
+    "brier": 0.10020223990773504,
+    "sel90": 0.8803224687933425
+   },
+   "macro": {
+    "acc": 0.7033242875099837,
+    "ece": 0.08609873347524959,
+    "brier": 0.36052992983797255,
+    "sel90": 0.7322809542730926
+   },
+   "tvd_human": 0.39410195086930466
+  }
+ },
+ {
   "run": "qwen35-4b-t1r",
   "label": "Qwen/Qwen3.5-4B (Tier 1 residual)",
   "tier": "Tier 1 residual",
@@ -409,6 +469,66 @@
     "sel90": 0.703243634793457
    },
    "tvd_human": 0.43268590686528985
+  }
+ },
+ {
+  "run": "qwen35-4b-tev1fmt",
+  "label": "Qwen/Qwen3.5-4B (Tev1 prompt)",
+  "tier": "Tier 0",
+  "params": "",
+  "cost": null,
+  "gpu": "A40",
+  "chat": true,
+  "recipe": {
+   "mode": "index",
+   "chat": true,
+   "permutations": {
+    "choice": 2,
+    "score": 1,
+    "noul": 2
+   },
+   "state_last": false,
+   "prior_weight": {
+    "choice": 1.0,
+    "score": 0.0,
+    "noul": 1.0
+   },
+   "temperature": {
+    "choice": 1.2892,
+    "score": 1.8547,
+    "noul": 1.027
+   },
+   "bias": {
+    "noul": -0.4
+   },
+   "prompt": "tev1"
+  },
+  "summary": {
+   "choice": {
+    "acc": 0.6869284969772775,
+    "ece": 0.11773946938364253,
+    "brier": 0.4437004133460523,
+    "sel90": 0.7262183100404087
+   },
+   "score": {
+    "acc": 0.4991666666666667,
+    "ece": 0.11977879999999996,
+    "brier": 0.65958617564,
+    "sel90": 0.5109259259259259
+   },
+   "noul": {
+    "acc": 0.8048977438136827,
+    "ece": 0.07307915024623443,
+    "brier": 0.12731951550550408,
+    "sel90": 0.8331919402065032
+   },
+   "macro": {
+    "acc": 0.6732563945223308,
+    "ece": 0.10408554891711018,
+    "brier": 0.40191169920422715,
+    "sel90": 0.7015392694256708
+   },
+   "tvd_human": 0.4208214317326959
   }
  },
  {
@@ -1073,6 +1193,41 @@
     "sel90": 0.4043000047262126
    },
    "tvd_human": 0.4960547778796251
+  }
+ },
+ {
+  "run": "clm-8b",
+  "label": "CLM-v0.1-8B (Contrastive-LM, self-hosted)",
+  "tier": "External",
+  "params": "Qwen3-8B frozen + 20M head",
+  "cost": null,
+  "gpu": null,
+  "summary": {
+   "choice": {
+    "acc": 0.21319949968730453,
+    "ece": 0.3038160044603936,
+    "brier": 1.0206276768803564,
+    "sel90": 0.22158160245026123
+   },
+   "score": {
+    "acc": 0.23350000000000004,
+    "ece": 0.4529328648855038,
+    "brier": 1.0997366227487964,
+    "sel90": 0.23888888888888885
+   },
+   "noul": {
+    "acc": 0.5934301829902268,
+    "ece": 0.28319318193458937,
+    "brier": 0.30449189317327363,
+    "sel90": 0.6070191863153028
+   },
+   "macro": {
+    "acc": 0.33971848991442394,
+    "ece": 0.33792243195448596,
+    "brier": 0.8143414582104047,
+    "sel90": 0.3489410027087638
+   },
+   "tvd_human": 0.668612574381123
   }
  }
 ]

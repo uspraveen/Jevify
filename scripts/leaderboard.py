@@ -22,6 +22,8 @@ sys.path.insert(0, str(ROOT))
 from jevify.bench import figures as F  # noqa: E402
 
 PRIMS = ("choice", "score", "noul")
+# checkpoints trained by other teams, scored here with the Tier 0 readout and a recipe fitted on validation
+EXTERNAL = {"togethercomputer/Tev1-4B-experimental": "Together AI, LoRA SFT of Qwen3.5-4B"}
 
 
 def summarize(metrics: dict, prim_of: dict[str, str]) -> dict:
@@ -49,6 +51,13 @@ def main() -> int:
     entries.append({"run": "jev-1.13.0", "label": "Jev 1.13.0 (TypeSafe API)", "tier": "API", "params": "undisclosed",
                     "metrics": json.loads((jev_dir / "test_metrics.json").read_text(encoding="utf-8")),
                     "preds": jev_dir / "test_predictions.jsonl", "cost": None, "gpu": None})
+    clm_dir = ROOT / "results" / "clm-8b"
+    if (clm_dir / "test_metrics.json").exists():
+        # another team's open System One model, served by its own code: a row beside Jev, not a Jevified one
+        entries.append({"run": "clm-8b", "label": "CLM-v0.1-8B (Contrastive-LM, self-hosted)", "tier": "External",
+                        "params": "Qwen3-8B frozen + 20M head",
+                        "metrics": json.loads((clm_dir / "test_metrics.json").read_text(encoding="utf-8")),
+                        "preds": clm_dir / "test_predictions.jsonl", "cost": None, "gpu": None})
     for d in sorted((ROOT / "results").glob("*/")):
         # a Jevified run always carries run.json; results/jev-1.13.0 (the baseline, added
         # explicitly above) and results/leaderboard do not, and neither is a model row
@@ -66,6 +75,9 @@ def main() -> int:
         recipe = json.loads((d / "recipe.json").read_text(encoding="utf-8")) if (d / "recipe.json").exists() else {}
         suffix = "" if not run.get("tier") else (" residual" if run.get("residual") else " replace")
         tier = f"Tier {run.get('tier', 0)}{suffix}"
+        if run.get("model_id") in EXTERNAL:
+            # someone else's fine-tuned checkpoint read through our Tier 0 readout: not "no training"
+            tier = "External"
         # two runs of the same tier on the same backbone must not share a label: name the
         # hyperparameters that differ from the defaults (a low-LR or soft-label Tier 2 arm)
         variant = []
@@ -109,7 +121,9 @@ def main() -> int:
     (out / "leaderboard.json").write_text(json.dumps([{k: v for k, v in e.items() if k not in ("metrics", "preds")} for e in rows], indent=1, default=str), encoding="utf-8")
     import datetime as _dt
     F.PROVENANCE = f"jev-bench v{manifest.get('version', '?')} · {_dt.date.today().isoformat()}"
-    F.fig_models_map(rows, out)
+    # CLM sits at 0.34 / 0.34, far from every other model; drawn, it squeezes the rest into one corner
+    F.fig_models_map([e for e in rows if e["run"] != "clm-8b"], out,
+                     off_chart=[e for e in rows if e["run"] == "clm-8b"])
     # per-config detail for every model at once: a heatmap built from each run's
     # test_metrics.json. Nothing here reads a predictions file -- the previous grouped bar
     # chart loaded all of them and then only drew when there were six models or fewer,

@@ -11,7 +11,9 @@
 [Behavioral probes](results/jev-1.13.0/probes/README.md) ·
 [Tier 1 write-up](reports/tier1/README.md) ·
 [Jev API contract](docs/JEV_CONTRACT.md) ·
-[Dataset rationale](docs/DATASETS.md)
+[Dataset rationale](docs/DATASETS.md) ·
+[Training-data plan](docs/DATA_PLAN.md) ·
+[Benchmarks we did not write](results/community/README.md)
 
 </div>
 
@@ -181,6 +183,23 @@ decision never asked for; that is the saving, at 2B or 12B.
 
 ![Reading the answer against decoding it](results/latency/latency_generate.png)
 
+**13 · On benchmarks we did not write, an untrained 12B beats Jev by twenty points — and fine-tuning
+broke both fine-tuned 4Bs, ours included.** Three public Jev benchmarks written by other people, scored
+unchanged (identical, all 2,087 records, to the inputs Together AI used): on 2,000 phishing emails,
+Gemma-4-12B with **zero training** is **0.825** against Jev's 0.628 (McNemar p = 10⁻⁸⁷), and the
+untrained Qwen3.5-4B readout is 0.700 at ECE 0.023. Together's **Tev1** and our own Jevify Tier 2 —
+two independent fine-tunes of that same Qwen3.5-4B — flag **0.6%** and **6.1%** of the emails where
+their base flags 23.6%, and land near chance. On jev-bench, Tev1 (read in its own prompt, answers
+identical to Together's hosted model on 2,086 of 2,087 items) is 0.703 macro, ECE 0.086 with a recipe;
+its fine-tune adds +0.030 at equal prompt, all on tasks it trained on, while its **prompt format**
+alone lifts the untrained base +0.044 on the held-out sources — +0.129 on the held-out hate-speech
+scale. CLM-v0.1-8B, served by its own code, is 0.340.
+[· Tev1](docs/FINDINGS.md#11-tev1-the-same-base-model-fine-tuned-by-someone-else)
+[· community benchmarks](results/community/README.md)
+[· CLM](docs/FINDINGS.md#13-clm-a-contrastive-system-one-model-measured)
+
+![Three Jev benchmarks written by other people](results/community/community.png)
+
 ## Try it
 
 **Playground:** [https://uspraveenraj--jevify-playground.modal.run](https://uspraveenraj--jevify-playground.modal.run) — ask a Jevified open model typed questions and watch the
@@ -269,6 +288,9 @@ Every model on the same 22,773 test records. Tier 0 = no training (prompt + logi
 recipe fitted on validation splits only, with the corrected fitter of FINDINGS 4.5). Tier 1 = trained decision heads, six sources held out
 of training. **TVD→human** is the mean distance to human label distributions on the four
 calibration-gold configs — lower is better, and it is the number Jev's own claim rests on.
+**External** = another team's model: Together AI's Tev1 fine-tune, read through our Tier 0 readout in
+its own prompt format (FINDINGS §11), and CLM-v0.1-8B, served by its authors' code with nothing fitted
+(§13). "(Tev1 prompt)" marks a checkpoint read in Together's prompt instead of ours.
 
 | model | tier | macro acc | macro ECE | macro Brier | sel@90 | choice acc | score acc | noul acc | TVD→human | GPU | test cost |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -277,12 +299,14 @@ calibration-gold configs — lower is better, and it is the number Jev's own cla
 | Qwen/Qwen3.5-4B (Tier 2 residual, lr 3e-05) | Tier 2 residual | 0.734 | 0.096 | 0.342 | 0.762 | 0.761 | 0.518 | 0.884 | 0.337 | A40 |  |
 | google/gemma-4-12B-it | Tier 0 | 0.716 | 0.086 | 0.359 | 0.740 | 0.749 | 0.507 | 0.855 | 0.405 | A40 |  |
 | Qwen/Qwen3.5-9B (Tier 1 residual, 6-epoch cap, mean of 3 seeds) | Tier 1 residual | 0.714 | 0.071 | 0.362 | 0.740 | 0.725 | 0.507 | 0.878 | 0.376 | A40 |  |
+| togethercomputer/Tev1-4B-experimental (Tev1 prompt) | External | 0.703 | 0.086 | 0.361 | 0.732 | 0.717 | 0.512 | 0.850 | 0.394 | A40 |  |
 | Qwen/Qwen3.5-4B (Tier 1 residual) | Tier 1 residual | 0.698 | 0.089 | 0.378 | 0.729 | 0.699 | 0.507 | 0.862 | 0.360 | A100-80GB | $1.28 |
 | Qwen/Qwen3.5-2B (Tier 2 residual, lr 3e-05, soft labels) | Tier 2 residual | 0.694 | 0.105 | 0.390 | 0.724 | 0.697 | 0.497 | 0.859 | 0.364 | A40 |  |
 | Qwen/Qwen3.5-2B (Tier 2 residual, lr 3e-05) | Tier 2 residual | 0.690 | 0.103 | 0.389 | 0.720 | 0.693 | 0.510 | 0.840 | 0.332 | A40 |  |
 | Qwen/Qwen3.5-9B | Tier 0 | 0.689 | 0.092 | 0.379 | 0.717 | 0.716 | 0.503 | 0.815 | 0.423 | A40 |  |
 | Qwen/Qwen3.5-2B (Tier 2 residual) | Tier 2 residual | 0.685 | 0.116 | 0.410 | 0.713 | 0.671 | 0.508 | 0.854 | 0.370 | A40 |  |
 | Qwen/Qwen3.5-2B (Tier 2 residual, soft labels) | Tier 2 residual | 0.674 | 0.116 | 0.412 | 0.703 | 0.682 | 0.471 | 0.837 | 0.433 | A40 |  |
+| Qwen/Qwen3.5-4B (Tev1 prompt) | Tier 0 | 0.673 | 0.104 | 0.402 | 0.702 | 0.687 | 0.499 | 0.805 | 0.421 | A40 |  |
 | Qwen/Qwen3.5-4B | Tier 0 | 0.662 | 0.090 | 0.401 | 0.689 | 0.687 | 0.468 | 0.796 | 0.438 | A100-80GB | $0.96 |
 | google/gemma-4-E4B-it | Tier 0 | 0.658 | 0.092 | 0.398 | 0.682 | 0.700 | 0.432 | 0.798 | 0.434 | A100-80GB | $1.00 |
 | Qwen/Qwen3.5-2B (Tier 1 residual) | Tier 1 residual | 0.632 | 0.069 | 0.445 | 0.657 | 0.596 | 0.449 | 0.835 | 0.374 | A100-80GB | $0.67 |
@@ -295,10 +319,11 @@ calibration-gold configs — lower is better, and it is the number Jev's own cla
 | Qwen/Qwen3.5-0.8B-Base | Tier 0 | 0.466 | 0.105 | 0.582 | 0.478 | 0.326 | 0.412 | 0.692 | 0.452 | L4 | $0.50 |
 | IFM/K2-Horizon-0.9B | Tier 0 | 0.448 | 0.119 | 0.589 | 0.461 | 0.344 | 0.343 | 0.670 | 0.479 | L4 | $0.35 |
 | google/gemma-4-E2B | Tier 0 | 0.396 | 0.115 | 0.609 | 0.404 | 0.247 | 0.382 | 0.600 | 0.496 | L4 | $0.69 |
+| CLM-v0.1-8B (Contrastive-LM, self-hosted) | External | 0.340 | 0.338 | 0.814 | 0.349 | 0.213 | 0.234 | 0.593 | 0.669 |  |  |
 
 ![models](results/leaderboard/models_map.png)
 
-Per config, for every model at once — Jev's Score row is the dark one:
+Per config, for every model at once — the dark cells are Jev on Score and CLM almost everywhere:
 
 ![ECE per config, every model](results/leaderboard/heatmap_ece.png)
 

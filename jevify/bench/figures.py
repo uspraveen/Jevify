@@ -657,8 +657,13 @@ def _short_label(label: str) -> str:
     return s
 
 
-def fig_models_map(rows: list[dict[str, Any]], out: Path, title: str = "Jevified models vs Jev on jev-bench") -> Path:
-    """Model-level calibration map: macro accuracy vs macro ECE, one point per model."""
+def fig_models_map(rows: list[dict[str, Any]], out: Path, title: str = "Jevified models vs Jev on jev-bench",
+                   off_chart: list[dict[str, Any]] = ()) -> Path:
+    """Model-level calibration map: macro accuracy vs macro ECE, one point per model.
+
+    ``off_chart`` rows are named in the subtitle instead of drawn: one outlier (CLM-v0.1-8B at 0.34 /
+    0.34) stretched both axes until the twenty models near Jev collapsed into one corner.
+    """
     plt = _mpl()
     # wide, and zoomed to the data: twenty models sit between ECE 0.07 and 0.13, and a fixed 0-0.20
     # axis on a 7-inch canvas stacked their labels on top of each other
@@ -666,12 +671,15 @@ def fig_models_map(rows: list[dict[str, Any]], out: Path, title: str = "Jevified
     pts = []
     # marker shape is the primary encoding for tier (it survives print and colour blindness);
     # colour is the redundant one
+    # validated over all pairs with the dataviz palette checker; Tier 2 was purple, which sat 12.9 ΔE
+    # from Tier 0's blue for full colour vision (a hard fail), so it is magenta now
     style = {"API": ("#eb6834", "D", 74), "Tier 0": (PRIM_COLOR["choice"], "o", 42),
-             "Tier 1": ("#1baf7a", "^", 62), "Tier 2": ("#7b4fbf", "s", 54)}
+             "Tier 1": ("#1baf7a", "^", 62), "Tier 2": ("#c83c8c", "s", 54), "External": ("#6b6b00", "P", 66)}
     for e in rows:
         s = e["summary"]["macro"]
         t = str(e.get("tier", ""))
-        kind = "API" if t == "API" else ("Tier 2" if t.startswith("Tier 2") else "Tier 1" if t.startswith("Tier 1") else "Tier 0")
+        kind = ("API" if t == "API" else "External" if t == "External" else
+                "Tier 2" if t.startswith("Tier 2") else "Tier 1" if t.startswith("Tier 1") else "Tier 0")
         color, marker, size = style[kind]
         ax.scatter(s["acc"], s["ece"], s=size, color=color, marker=marker, zorder=3, linewidths=0.8, edgecolors=SURFACE)
         pts.append((_short_label(e["label"]), s["acc"], s["ece"]))
@@ -685,10 +693,19 @@ def fig_models_map(rows: list[dict[str, Any]], out: Path, title: str = "Jevified
     ax.legend(handles=[Line2D([0], [0], marker="D", color="#eb6834", lw=0, markersize=7, label="Jev 1.13.0 (API)"),
                        Line2D([0], [0], marker="o", color=PRIM_COLOR["choice"], lw=0, markersize=6, label="Jevified, Tier 0 (no training)"),
                        Line2D([0], [0], marker="^", color="#1baf7a", lw=0, markersize=7, label="Jevified, Tier 1 (trained heads)"),
-                       Line2D([0], [0], marker="s", color="#7b4fbf", lw=0, markersize=6.5, label="Jevified, Tier 2 (LoRA + heads)")],
+                       Line2D([0], [0], marker="s", color="#c83c8c", lw=0, markersize=6.5, label="Jevified, Tier 2 (LoRA + heads)")]
+                      + ([Line2D([0], [0], marker="P", color="#6b6b00", lw=0, markersize=7,
+                                 label="other teams' models")]
+                         if any(str(e.get("tier")) == "External" for e in rows) else []),
               loc="upper right", fontsize=8)
-    fig.tight_layout(rect=_layout(fig, 2))
-    _headline(fig, title, "Every model scored on the same 22,773 test records. Tier 0 = zero training: prompt + logit readout + a recipe fitted on validation only. Down and to the right is better.")
+    sub = ("Every model scored on the same 22,773 test records. Tier 0 = zero training: prompt + logit readout + "
+           "a recipe fitted on validation only. Down and to the right is better.")
+    if off_chart:
+        sub += " Off the chart: " + "; ".join(
+            f"{e['label'].split(' (')[0]} (accuracy {e['summary']['macro']['acc']:.3f}, ECE {e['summary']['macro']['ece']:.3f})"
+            for e in off_chart) + "."
+    fig.tight_layout(rect=_layout(fig, _wrapped_lines(fig, title, sub) - 1))
+    _headline(fig, title, sub)
     _footer(fig)
     _annotate_without_overlap(fig, ax, pts)
     return _save(fig, out / "models_map")
