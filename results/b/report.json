@@ -1,0 +1,707 @@
+{
+ "Jev 1.13.0": {
+  "legal_rules": {
+   "all": {
+    "n": 885,
+    "acc": 0.9242937853107345,
+    "ece": 0.12116384180790962,
+    "brier": 0.08265186440677966,
+    "yes_rate": 0.47796610169491527
+   },
+   "by_task": {
+    "diversity (6 variants)": {
+     "n": 600,
+     "acc": 0.9466666666666667,
+     "ece": 0.1477,
+     "brier": 0.07637166666666667,
+     "yes_rate": 0.5033333333333333
+    },
+    "hearsay": {
+     "n": 94,
+     "acc": 0.8404255319148937,
+     "ece": 0.10234042553191493,
+     "brier": 0.130268085106383,
+     "yes_rate": 0.3617021276595745
+    },
+    "personal_jurisdiction": {
+     "n": 50,
+     "acc": 0.84,
+     "ece": 0.09759999999999996,
+     "brier": 0.127692,
+     "yes_rate": 0.38
+    },
+    "telemarketing_sales_rule": {
+     "n": 47,
+     "acc": 0.8297872340425532,
+     "ece": 0.12872340425531914,
+     "brier": 0.12170425531914894,
+     "yes_rate": 0.6808510638297872
+    },
+    "ucc_v_common_law": {
+     "n": 94,
+     "acc": 0.9574468085106383,
+     "ece": 0.0761702127659575,
+     "brier": 0.031638297872340425,
+     "yes_rate": 0.3829787234042553
+    }
+   },
+   "coverage": 1.0,
+   "macro_task_acc": 0.8828652482269502
+  },
+  "nota": {
+   "n": 1000,
+   "acc": 0.843,
+   "ece": 0.05171000000000005,
+   "coverage": 1.0,
+   "removed": {
+    "n": 500,
+    "chose_none": 0.744,
+    "mean_p_none": 0.6753399999999999,
+    "acc": 0.744,
+    "chose_none_arc_challenge": 0.844,
+    "chose_none_mmlu": 0.644
+   },
+   "intact": {
+    "n": 500,
+    "chose_none": 0.016,
+    "mean_p_none": 0.02514,
+    "acc": 0.942,
+    "chose_none_arc_challenge": 0.012,
+    "chose_none_mmlu": 0.02
+   }
+  },
+  "injection": {
+   "all": {
+    "pairs": 800,
+    "acc_clean": 0.89625,
+    "acc_injected": 0.69125,
+    "hijack_rate": 0.20500000000000002,
+    "p_target_shift": 0.18507499999999996,
+    "flipped_to_target": 0.205
+   },
+   "by_source": {
+    "boolq": {
+     "pairs": 200,
+     "acc_clean": 0.93,
+     "acc_injected": 0.875,
+     "hijack_rate": 0.05499999999999999,
+     "p_target_shift": 0.08350000000000002,
+     "flipped_to_target": 0.055
+    },
+    "civil_comments": {
+     "pairs": 200,
+     "acc_clean": 0.74,
+     "acc_injected": 0.555,
+     "hijack_rate": 0.185,
+     "p_target_shift": 0.1682999999999999,
+     "flipped_to_target": 0.185
+    },
+    "fever_evidence": {
+     "pairs": 200,
+     "acc_clean": 0.975,
+     "acc_injected": 0.965,
+     "hijack_rate": 0.010000000000000002,
+     "p_target_shift": 0.046200000000000005,
+     "flipped_to_target": 0.01
+    },
+    "sms_spam": {
+     "pairs": 200,
+     "acc_clean": 0.94,
+     "acc_injected": 0.37,
+     "hijack_rate": 0.5700000000000001,
+     "p_target_shift": 0.4423,
+     "flipped_to_target": 0.57
+    }
+   },
+   "coverage": 1.0,
+   "toward_no": {
+    "pairs": 263,
+    "acc_clean": 0.935361216730038,
+    "acc_injected": 0.9049429657794676,
+    "hijack_rate": 0.03041825095057034,
+    "p_target_shift": 0.07292775665399236,
+    "flipped_to_target": 0.030418250950570342
+   },
+   "toward_yes": {
+    "pairs": 537,
+    "acc_clean": 0.8770949720670391,
+    "acc_injected": 0.5865921787709497,
+    "hijack_rate": 0.2905027932960894,
+    "p_target_shift": 0.24000000000000002,
+    "flipped_to_target": 0.2905027932960894
+   },
+   "spam_passed_as_not_spam": {
+    "pairs": 30,
+    "acc_clean": 0.9333333333333333,
+    "acc_injected": 0.9333333333333333,
+    "hijack_rate": 0.0,
+    "p_target_shift": 0.02466666666666667,
+    "flipped_to_target": 0.0
+   }
+  }
+ },
+ "Qwen3.5-4B Tier 0": {
+  "legal_rules": {
+   "all": {
+    "n": 885,
+    "acc": 0.6180790960451977,
+    "ece": 0.1553112802021323,
+    "brier": 0.22791155558813828,
+    "yes_rate": 0.18531073446327684
+   },
+   "by_task": {
+    "diversity (6 variants)": {
+     "n": 600,
+     "acc": 0.5583333333333333,
+     "ece": 0.22528359341863824,
+     "brier": 0.2594798966799237,
+     "yes_rate": 0.09166666666666666
+    },
+    "hearsay": {
+     "n": 94,
+     "acc": 0.6914893617021277,
+     "ece": 0.0626986106961822,
+     "brier": 0.19024043342467498,
+     "yes_rate": 0.2553191489361702
+    },
+    "personal_jurisdiction": {
+     "n": 50,
+     "acc": 0.56,
+     "ece": 0.0987670837150746,
+     "brier": 0.23152647576968127,
+     "yes_rate": 0.54
+    },
+    "telemarketing_sales_rule": {
+     "n": 47,
+     "acc": 0.7872340425531915,
+     "ece": 0.08098079951368219,
+     "brier": 0.1752095788871971,
+     "yes_rate": 0.5531914893617021
+    },
+    "ucc_v_common_law": {
+     "n": 94,
+     "acc": 0.8723404255319149,
+     "ece": 0.09681616902472168,
+     "brier": 0.0885107866962381,
+     "yes_rate": 0.3404255319148936
+    }
+   },
+   "coverage": 1.0,
+   "macro_task_acc": 0.6938794326241136
+  },
+  "nota": {
+   "n": 1000,
+   "acc": 0.639,
+   "ece": 0.0659443,
+   "coverage": 1.0,
+   "removed": {
+    "n": 500,
+    "chose_none": 0.482,
+    "mean_p_none": 0.3640882,
+    "acc": 0.482,
+    "chose_none_arc_challenge": 0.652,
+    "chose_none_mmlu": 0.312
+   },
+   "intact": {
+    "n": 500,
+    "chose_none": 0.032,
+    "mean_p_none": 0.1047142,
+    "acc": 0.796,
+    "chose_none_arc_challenge": 0.028,
+    "chose_none_mmlu": 0.036
+   }
+  },
+  "injection": {
+   "all": {
+    "pairs": 800,
+    "acc_clean": 0.85875,
+    "acc_injected": 0.4625,
+    "hijack_rate": 0.39625,
+    "p_target_shift": 0.2934842988224853,
+    "flipped_to_target": 0.40125
+   },
+   "by_source": {
+    "boolq": {
+     "pairs": 200,
+     "acc_clean": 0.84,
+     "acc_injected": 0.55,
+     "hijack_rate": 0.29000000000000004,
+     "p_target_shift": 0.23561790082832146,
+     "flipped_to_target": 0.29
+    },
+    "civil_comments": {
+     "pairs": 200,
+     "acc_clean": 0.74,
+     "acc_injected": 0.515,
+     "hijack_rate": 0.22499999999999998,
+     "p_target_shift": 0.20335187490209927,
+     "flipped_to_target": 0.245
+    },
+    "fever_evidence": {
+     "pairs": 200,
+     "acc_clean": 0.93,
+     "acc_injected": 0.63,
+     "hijack_rate": 0.3,
+     "p_target_shift": 0.233473322177786,
+     "flipped_to_target": 0.3
+    },
+    "sms_spam": {
+     "pairs": 200,
+     "acc_clean": 0.925,
+     "acc_injected": 0.155,
+     "hijack_rate": 0.77,
+     "p_target_shift": 0.5014940973817346,
+     "flipped_to_target": 0.77
+    }
+   },
+   "coverage": 1.0,
+   "toward_no": {
+    "pairs": 263,
+    "acc_clean": 0.8403041825095057,
+    "acc_injected": 0.39543726235741444,
+    "hijack_rate": 0.44486692015209117,
+    "p_target_shift": 0.3229034684967126,
+    "flipped_to_target": 0.4448669201520912
+   },
+   "toward_yes": {
+    "pairs": 537,
+    "acc_clean": 0.8677839851024208,
+    "acc_injected": 0.49534450651769085,
+    "hijack_rate": 0.3724394785847299,
+    "p_target_shift": 0.27907602764125305,
+    "flipped_to_target": 0.37988826815642457
+   },
+   "spam_passed_as_not_spam": {
+    "pairs": 30,
+    "acc_clean": 0.9,
+    "acc_injected": 0.5666666666666667,
+    "hijack_rate": 0.33333333333333337,
+    "p_target_shift": 0.2648662131143306,
+    "flipped_to_target": 0.3333333333333333
+   }
+  }
+ },
+ "Qwen3.5-9B Tier 0": {
+  "legal_rules": {
+   "all": {
+    "n": 885,
+    "acc": 0.6994350282485876,
+    "ece": 0.07333567256877466,
+    "brier": 0.18590387518932236,
+    "yes_rate": 0.39096045197740115
+   },
+   "by_task": {
+    "diversity (6 variants)": {
+     "n": 600,
+     "acc": 0.665,
+     "ece": 0.08044163015625892,
+     "brier": 0.20017728413652291,
+     "yes_rate": 0.33166666666666667
+    },
+    "hearsay": {
+     "n": 94,
+     "acc": 0.7021276595744681,
+     "ece": 0.08441741021332201,
+     "brier": 0.18040254375295,
+     "yes_rate": 0.5212765957446809
+    },
+    "personal_jurisdiction": {
+     "n": 50,
+     "acc": 0.62,
+     "ece": 0.13807891628884678,
+     "brier": 0.22797270437607206,
+     "yes_rate": 0.8
+    },
+    "telemarketing_sales_rule": {
+     "n": 47,
+     "acc": 0.7872340425531915,
+     "ece": 0.2096759293264369,
+     "brier": 0.16670004364758334,
+     "yes_rate": 0.5106382978723404
+    },
+    "ucc_v_common_law": {
+     "n": 94,
+     "acc": 0.9148936170212766,
+     "ece": 0.1237486387053693,
+     "brier": 0.08752321997467241,
+     "yes_rate": 0.3617021276595745
+    }
+   },
+   "coverage": 1.0,
+   "macro_task_acc": 0.7378510638297872
+  },
+  "nota": {
+   "n": 1000,
+   "acc": 0.746,
+   "ece": 0.20036370000000003,
+   "coverage": 1.0,
+   "removed": {
+    "n": 500,
+    "chose_none": 0.676,
+    "mean_p_none": 0.44660340000000004,
+    "acc": 0.676,
+    "chose_none_arc_challenge": 0.828,
+    "chose_none_mmlu": 0.524
+   },
+   "intact": {
+    "n": 500,
+    "chose_none": 0.078,
+    "mean_p_none": 0.15874220000000003,
+    "acc": 0.816,
+    "chose_none_arc_challenge": 0.044,
+    "chose_none_mmlu": 0.112
+   }
+  },
+  "injection": {
+   "all": {
+    "pairs": 800,
+    "acc_clean": 0.865,
+    "acc_injected": 0.56625,
+    "hijack_rate": 0.29875,
+    "p_target_shift": 0.22690902897728715,
+    "flipped_to_target": 0.30125
+   },
+   "by_source": {
+    "boolq": {
+     "pairs": 200,
+     "acc_clean": 0.855,
+     "acc_injected": 0.74,
+     "hijack_rate": 0.11500000000000002,
+     "p_target_shift": 0.12994345051887185,
+     "flipped_to_target": 0.115
+    },
+    "civil_comments": {
+     "pairs": 200,
+     "acc_clean": 0.77,
+     "acc_injected": 0.535,
+     "hijack_rate": 0.23500000000000001,
+     "p_target_shift": 0.18901414055288707,
+     "flipped_to_target": 0.245
+    },
+    "fever_evidence": {
+     "pairs": 200,
+     "acc_clean": 0.95,
+     "acc_injected": 0.755,
+     "hijack_rate": 0.195,
+     "p_target_shift": 0.1559461622950905,
+     "flipped_to_target": 0.195
+    },
+    "sms_spam": {
+     "pairs": 200,
+     "acc_clean": 0.885,
+     "acc_injected": 0.235,
+     "hijack_rate": 0.65,
+     "p_target_shift": 0.43273236254229897,
+     "flipped_to_target": 0.65
+    }
+   },
+   "coverage": 1.0,
+   "toward_no": {
+    "pairs": 263,
+    "acc_clean": 0.8517110266159695,
+    "acc_injected": 0.5855513307984791,
+    "hijack_rate": 0.2661596958174905,
+    "p_target_shift": 0.22274230138153361,
+    "flipped_to_target": 0.2661596958174905
+   },
+   "toward_yes": {
+    "pairs": 537,
+    "acc_clean": 0.8715083798882681,
+    "acc_injected": 0.5567970204841713,
+    "hijack_rate": 0.3147113594040968,
+    "p_target_shift": 0.2289497167942018,
+    "flipped_to_target": 0.31843575418994413
+   },
+   "spam_passed_as_not_spam": {
+    "pairs": 30,
+    "acc_clean": 0.9,
+    "acc_injected": 0.6333333333333333,
+    "hijack_rate": 0.2666666666666666,
+    "p_target_shift": 0.24234645926734233,
+    "flipped_to_target": 0.26666666666666666
+   }
+  }
+ },
+ "Tev1-4B + recipe (Tev1 prompt)": {
+  "legal_rules": {
+   "all": {
+    "n": 885,
+    "acc": 0.6779661016949152,
+    "ece": 0.19484774935035748,
+    "brier": 0.2268894390334092,
+    "yes_rate": 0.2677966101694915
+   },
+   "by_task": {
+    "diversity (6 variants)": {
+     "n": 600,
+     "acc": 0.64,
+     "ece": 0.26642602601806603,
+     "brier": 0.2557608543169696,
+     "yes_rate": 0.09666666666666666
+    },
+    "hearsay": {
+     "n": 94,
+     "acc": 0.776595744680851,
+     "ece": 0.09750301408479523,
+     "brier": 0.16252484636309517,
+     "yes_rate": 0.5106382978723404
+    },
+    "personal_jurisdiction": {
+     "n": 50,
+     "acc": 0.5,
+     "ece": 0.2815140929437186,
+     "brier": 0.31616021106041825,
+     "yes_rate": 0.92
+    },
+    "telemarketing_sales_rule": {
+     "n": 47,
+     "acc": 0.6170212765957447,
+     "ece": 0.251085786615111,
+     "brier": 0.24355313775158977,
+     "yes_rate": 0.8936170212765957
+    },
+    "ucc_v_common_law": {
+     "n": 94,
+     "acc": 0.9468085106382979,
+     "ece": 0.06745164150299413,
+     "brier": 0.05115209966924215,
+     "yes_rate": 0.4574468085106383
+    }
+   },
+   "coverage": 1.0,
+   "macro_task_acc": 0.6960851063829787
+  },
+  "nota": {
+   "n": 1000,
+   "acc": 0.723,
+   "ece": 0.11428249999999997,
+   "coverage": 1.0,
+   "removed": {
+    "n": 500,
+    "chose_none": 0.702,
+    "mean_p_none": 0.5280456,
+    "acc": 0.702,
+    "chose_none_arc_challenge": 0.836,
+    "chose_none_mmlu": 0.568
+   },
+   "intact": {
+    "n": 500,
+    "chose_none": 0.14,
+    "mean_p_none": 0.22637939999999998,
+    "acc": 0.744,
+    "chose_none_arc_challenge": 0.108,
+    "chose_none_mmlu": 0.172
+   }
+  },
+  "injection": {
+   "all": {
+    "pairs": 800,
+    "acc_clean": 0.91375,
+    "acc_injected": 0.77625,
+    "hijack_rate": 0.1375,
+    "p_target_shift": 0.1414650016562045,
+    "flipped_to_target": 0.14
+   },
+   "by_source": {
+    "boolq": {
+     "pairs": 200,
+     "acc_clean": 0.89,
+     "acc_injected": 0.85,
+     "hijack_rate": 0.039999999999999994,
+     "p_target_shift": 0.054734134857748,
+     "flipped_to_target": 0.04
+    },
+    "civil_comments": {
+     "pairs": 200,
+     "acc_clean": 0.905,
+     "acc_injected": 0.795,
+     "hijack_rate": 0.10999999999999999,
+     "p_target_shift": 0.15835707972425042,
+     "flipped_to_target": 0.11
+    },
+    "fever_evidence": {
+     "pairs": 200,
+     "acc_clean": 0.93,
+     "acc_injected": 0.915,
+     "hijack_rate": 0.015,
+     "p_target_shift": 0.033075799284428414,
+     "flipped_to_target": 0.02
+    },
+    "sms_spam": {
+     "pairs": 200,
+     "acc_clean": 0.93,
+     "acc_injected": 0.545,
+     "hijack_rate": 0.385,
+     "p_target_shift": 0.31969299275839125,
+     "flipped_to_target": 0.39
+    }
+   },
+   "coverage": 1.0,
+   "toward_no": {
+    "pairs": 263,
+    "acc_clean": 0.8517110266159695,
+    "acc_injected": 0.7946768060836502,
+    "hijack_rate": 0.05703422053231941,
+    "p_target_shift": 0.06103237064972414,
+    "flipped_to_target": 0.060836501901140684
+   },
+   "toward_yes": {
+    "pairs": 537,
+    "acc_clean": 0.9441340782122905,
+    "acc_injected": 0.7672253258845437,
+    "hijack_rate": 0.17690875232774675,
+    "p_target_shift": 0.18085751926273022,
+    "flipped_to_target": 0.1787709497206704
+   },
+   "spam_passed_as_not_spam": {
+    "pairs": 30,
+    "acc_clean": 0.7,
+    "acc_injected": 0.6,
+    "hijack_rate": 0.10000000000000003,
+    "p_target_shift": 0.004954071983762409,
+    "flipped_to_target": 0.13333333333333333
+   }
+  }
+ },
+ "Jevify 4B Tier 2 (lr 3e-5)": {
+  "legal_rules": {
+   "all": {
+    "n": 885,
+    "acc": 0.6531073446327683,
+    "ece": 0.23821530504300825,
+    "brier": 0.26145901428038903,
+    "yes_rate": 0.2271186440677966
+   },
+   "by_task": {
+    "diversity (6 variants)": {
+     "n": 600,
+     "acc": 0.5966666666666667,
+     "ece": 0.3166876545835597,
+     "brier": 0.3155910549395681,
+     "yes_rate": 0.05333333333333334
+    },
+    "hearsay": {
+     "n": 94,
+     "acc": 0.7659574468085106,
+     "ece": 0.07851751961131043,
+     "brier": 0.15955934010841316,
+     "yes_rate": 0.5425531914893617
+    },
+    "personal_jurisdiction": {
+     "n": 50,
+     "acc": 0.46,
+     "ece": 0.25803501635789877,
+     "brier": 0.2777643038934949,
+     "yes_rate": 0.92
+    },
+    "telemarketing_sales_rule": {
+     "n": 47,
+     "acc": 0.723404255319149,
+     "ece": 0.16533794491849046,
+     "brier": 0.21363490788590056,
+     "yes_rate": 0.6595744680851063
+    },
+    "ucc_v_common_law": {
+     "n": 94,
+     "acc": 0.9680851063829787,
+     "ece": 0.027472088878176745,
+     "brier": 0.033074051477664915,
+     "yes_rate": 0.43617021276595747
+    }
+   },
+   "coverage": 1.0,
+   "macro_task_acc": 0.702822695035461
+  },
+  "nota": {
+   "n": 1000,
+   "acc": 0.732,
+   "ece": 0.0844724605293569,
+   "coverage": 1.0,
+   "removed": {
+    "n": 500,
+    "chose_none": 0.658,
+    "mean_p_none": 0.6089349386463588,
+    "acc": 0.658,
+    "chose_none_arc_challenge": 0.74,
+    "chose_none_mmlu": 0.576
+   },
+   "intact": {
+    "n": 500,
+    "chose_none": 0.044,
+    "mean_p_none": 0.0891516030956685,
+    "acc": 0.806,
+    "chose_none_arc_challenge": 0.024,
+    "chose_none_mmlu": 0.064
+   }
+  },
+  "injection": {
+   "all": {
+    "pairs": 800,
+    "acc_clean": 0.9325,
+    "acc_injected": 0.77125,
+    "hijack_rate": 0.16125,
+    "p_target_shift": 0.17191230789972906,
+    "flipped_to_target": 0.16375
+   },
+   "by_source": {
+    "boolq": {
+     "pairs": 200,
+     "acc_clean": 0.895,
+     "acc_injected": 0.865,
+     "hijack_rate": 0.030000000000000013,
+     "p_target_shift": 0.03720229111801018,
+     "flipped_to_target": 0.04
+    },
+    "civil_comments": {
+     "pairs": 200,
+     "acc_clean": 0.945,
+     "acc_injected": 0.93,
+     "hijack_rate": 0.015000000000000006,
+     "p_target_shift": 0.06078856047271983,
+     "flipped_to_target": 0.015
+    },
+    "fever_evidence": {
+     "pairs": 200,
+     "acc_clean": 0.95,
+     "acc_injected": 0.855,
+     "hijack_rate": 0.09499999999999999,
+     "p_target_shift": 0.12496168378944275,
+     "flipped_to_target": 0.095
+    },
+    "sms_spam": {
+     "pairs": 200,
+     "acc_clean": 0.94,
+     "acc_injected": 0.435,
+     "hijack_rate": 0.5049999999999999,
+     "p_target_shift": 0.4646966962187435,
+     "flipped_to_target": 0.505
+    }
+   },
+   "coverage": 1.0,
+   "toward_no": {
+    "pairs": 263,
+    "acc_clean": 0.8973384030418251,
+    "acc_injected": 0.8212927756653993,
+    "hijack_rate": 0.07604562737642585,
+    "p_target_shift": 0.10333917634526246,
+    "flipped_to_target": 0.07984790874524715
+   },
+   "toward_yes": {
+    "pairs": 537,
+    "acc_clean": 0.9497206703910615,
+    "acc_injected": 0.7467411545623837,
+    "hijack_rate": 0.20297951582867785,
+    "p_target_shift": 0.20549654178953297,
+    "flipped_to_target": 0.2048417132216015
+   },
+   "spam_passed_as_not_spam": {
+    "pairs": 30,
+    "acc_clean": 0.9333333333333333,
+    "acc_injected": 0.9333333333333333,
+    "hijack_rate": 0.0,
+    "p_target_shift": 0.04662047874492904,
+    "flipped_to_target": 0.0
+   }
+  }
+ }
+}

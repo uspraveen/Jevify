@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import math
 import time
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -129,15 +130,34 @@ class DifferentiableSlots:
                          [r.id for r in records], [p[2] for p in plans], soft.to(dev), has_soft.to(dev))
 
 
+def shuffle_choice_options(records: Sequence[BenchRecord], rng: np.random.Generator) -> list[BenchRecord]:
+    """A copy of each Choice record with its options in a random order; Score levels keep their order
+    (the order is the meaning) and Noul has none. Rendered in source order, a class sits at the same
+    position in every example, and a model can learn the position instead of the option."""
+    out = []
+    for r in records:
+        crit = r.question.get("criteria") if r.primitive == "choice" else None
+        if isinstance(crit, dict) and len(crit) > 1:
+            keys = list(crit)
+            keys = [keys[i] for i in rng.permutation(len(keys))]
+            r = replace(r, question={**r.question, "criteria": {k: crit[k] for k in keys}})
+        out.append(r)
+    return out
+
+
 def train_tier2(extractor: FeatureExtractor, train_recs: Sequence[BenchRecord], val_recs: Sequence[BenchRecord],
                 cfg: HeadConfig, *, epochs: int = 3, batch_size: int = 4, grad_accum: int = 2,
                 head_lr: float = 3e-4, lora_lr: float = 1e-4, max_slots: int = 16, seed: int = 0,
-                eval_every: int = 1, checkpoint_dir: Path | str | None = None) -> tuple[DecisionHeads, dict[str, Any]]:
+                eval_every: int = 1, checkpoint_dir: Path | str | None = None,
+                shuffle_options: bool = False) -> tuple[DecisionHeads, dict[str, Any]]:
     """Joint LoRA + head training. The head keeps its residual on the LM log-score.
 
     ``checkpoint_dir``: the best-so-far heads and adapter are written there at the end of
     every epoch that improves validation loss. A run that dies mid-way -- a host reboot took
     a six-hour 4B run with it once -- then loses at most the epoch in progress, not the run.
+
+    ``shuffle_options``: each training batch sees its Choice options in a fresh random order
+    (validation keeps the source order, so runs stay comparable).
     """
     torch.manual_seed(seed)
     dev = extractor.scorer.device
@@ -149,6 +169,8 @@ def train_tier2(extractor: FeatureExtractor, train_recs: Sequence[BenchRecord], 
     steps = max(1, math.ceil(len(train_recs) / (batch_size * grad_accum))) * epochs
     sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=[head_lr, lora_lr], total_steps=steps, pct_start=0.2)
     rng = np.random.default_rng(seed)
+    # its own stream, so a shuffled run draws the same slot subsamples as an unshuffled one
+    shuffle_rng = np.random.default_rng([seed, 1])
     history, best = [], (float("inf"), None, None, -1)
 
     for epoch in range(epochs):
@@ -159,6 +181,8 @@ def train_tier2(extractor: FeatureExtractor, train_recs: Sequence[BenchRecord], 
         opt.zero_grad(set_to_none=True)
         for i, start in enumerate(range(0, len(order), batch_size)):
             chunk = [train_recs[j] for j in order[start:start + batch_size]]
+            if shuffle_options:
+                chunk = shuffle_choice_options(chunk, shuffle_rng)
             batch = slots.batch(chunk, max_slots=max_slots, rng=rng)
             loss, _ = heads.loss(batch)
             (loss / grad_accum).backward()
