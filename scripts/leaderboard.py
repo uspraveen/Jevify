@@ -86,9 +86,10 @@ def main() -> int:
         if run.get("soft_labels"):
             variant.append("soft labels")
         shown = tier + (", " + ", ".join(variant) if variant else "")
-        # the same checkpoint read in two prompt formats is two rows: name the non-default one
+        # the same checkpoint read in two prompt formats is two rows: name the non-default one, and
+        # always name it for another team's checkpoint, which was trained on a format of its own
         fmt = (recipe.get("recipe") or {}).get("prompt", "jevify")
-        fmt_label = "" if fmt == "jevify" else f" ({fmt.capitalize()} prompt)"
+        fmt_label = "" if fmt == "jevify" and run.get("model_id") not in EXTERNAL else f" ({fmt.capitalize()} prompt)"
         entries.append({"run": d.name, "label": run.get("model_id", d.name) + ("" if not run.get("tier") else f" ({shown})") + fmt_label,
                         "tier": tier, "params": "",
                         "metrics": json.loads((d / "test_metrics.json").read_text(encoding="utf-8")),

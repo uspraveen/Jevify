@@ -7,6 +7,7 @@
 | togethercomputer/Tev1-4B-experimental (Tev1 prompt) | External | 0.703 | 0.086 | 0.361 | 0.732 | 0.717 | 0.512 | 0.850 | 0.394 | A40 |  |
 | Qwen/Qwen3.5-4B (Tier 1 residual) | Tier 1 residual | 0.698 | 0.089 | 0.378 | 0.729 | 0.699 | 0.507 | 0.862 | 0.360 | A100-80GB | $1.28 |
 | Qwen/Qwen3.5-2B (Tier 2 residual, lr 3e-05, soft labels) | Tier 2 residual | 0.694 | 0.105 | 0.390 | 0.724 | 0.697 | 0.497 | 0.859 | 0.364 | A40 |  |
+| togethercomputer/Tev1-4B-experimental (Jevify prompt) | External | 0.690 | 0.088 | 0.369 | 0.718 | 0.714 | 0.487 | 0.834 | 0.408 | A40 |  |
 | Qwen/Qwen3.5-2B (Tier 2 residual, lr 3e-05) | Tier 2 residual | 0.690 | 0.103 | 0.389 | 0.720 | 0.693 | 0.510 | 0.840 | 0.332 | A40 |  |
 | Qwen/Qwen3.5-9B | Tier 0 | 0.689 | 0.092 | 0.379 | 0.717 | 0.716 | 0.503 | 0.815 | 0.423 | A40 |  |
 | Qwen/Qwen3.5-2B (Tier 2 residual) | Tier 2 residual | 0.685 | 0.116 | 0.410 | 0.713 | 0.671 | 0.508 | 0.854 | 0.370 | A40 |  |

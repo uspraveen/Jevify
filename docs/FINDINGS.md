@@ -903,7 +903,8 @@ on on those two sources may be training data. None of the six held-out sources i
 |---|---|---|---|---|---|---|
 | Jev 1.13.0 | 0.733 / 0.113 | **0.835** / 0.090 | 0.694 / 0.122 | **0.790** / 0.084 | 0.706 / 0.144 | 0.432 |
 | Tev1-4B, as shipped | 0.701 / 0.122 | 0.763 / 0.099 | 0.678 / 0.130 | 0.777 / 0.071 | 0.641 / 0.193 | 0.417 |
-| Tev1-4B + recipe | 0.703 / **0.086** | 0.766 / **0.081** | 0.680 / 0.088 | 0.776 / **0.046** | 0.664 / **0.073** | 0.394 |
+| Tev1-4B + recipe | 0.703 / **0.086** | 0.766 / **0.081** | 0.680 / 0.088 | 0.776 / **0.046** | 0.664 / 0.073 | 0.394 |
+| Tev1-4B + recipe, **Jevify prompt** | 0.690 / 0.088 | 0.737 / 0.083 | 0.672 / 0.090 | 0.767 / **0.046** | 0.662 / **0.072** | 0.408 |
 | Qwen3.5-4B, untrained, **Tev1's prompt** + recipe | 0.673 / 0.104 | 0.763 / 0.103 | 0.639 / 0.104 | 0.731 / 0.071 | 0.633 / 0.129 | 0.421 |
 | Qwen3.5-4B, untrained, Jevify prompt + recipe | 0.662 / 0.090 | 0.719 / 0.102 | 0.641 / 0.086 | 0.716 / 0.048 | 0.634 / 0.103 | 0.438 |
 | Jevify Qwen3.5-4B Tier 2 (lr 3e-5) | **0.734** / 0.096 | 0.765 / 0.098 | **0.722** / 0.095 | 0.774 / 0.074 | **0.732** / 0.096 | **0.337** |
@@ -927,6 +928,21 @@ format letters the ordinal levels where ours asks for the level's digit, renders
 `{label, key, description}` JSON, and adds a system instruction — and the recipe fitted in that format
 switches on the contextual-prior correction ours does not need. The finding stands as a measured
 effect with a hypothesis attached, and it is the cheapest thing in this section to borrow.
+
+**11.3a The two effects add overall and overlap on unseen sources.** Reading Tev1 in Jevify's prompt
+completes a model × prompt grid (macro accuracy, all 22 configs / the 6 held-out sources):
+
+| | Jevify prompt | Tev1 prompt |
+|---|---|---|
+| Qwen3.5-4B, untrained | 0.662 / 0.719 | 0.673 / 0.763 |
+| Tev1-4B | 0.690 / 0.737 | 0.703 / 0.766 |
+
+Over all 22 configs they add: the fine-tune is worth +0.028 in Jevify's prompt and +0.030 in its own,
+the prompt +0.011 for the base and +0.013 for Tev1 — and the fine-tune survives a format it never saw.
+On the held-out sources they do not add: the fine-tune is worth +0.018 in Jevify's prompt but +0.003 in
+its own, and the prompt +0.044 for the base but +0.029 for Tev1. What the fine-tune taught the model on
+unseen sources is largely what its prompt format already gives an untrained one; the two gains
+overlap rather than stack.
 
 **11.4 Calibration.** As shipped Tev1 is overconfident: the fitted temperatures are 1.53 for Choice
 and 1.90 for Score. After the recipe its macro ECE is 0.086 — better than Jev (0.113) and than the

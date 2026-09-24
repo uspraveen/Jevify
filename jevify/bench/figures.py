@@ -205,7 +205,8 @@ def fig_calibration_map(ev: dict[str, dict[str, Any]], out: Path, model: str) ->
     fig.tight_layout(rect=_layout(fig, _wrapped_lines(fig, title, subtitle) - 1))
     _headline(fig, title, subtitle)
     _footer(fig)
-    _annotate_without_overlap(fig, ax, labelled)
+    # the unlabelled corner points are still markers: a label must not be drawn over them
+    _annotate_without_overlap(fig, ax, labelled, obstacles=[(acc, ece) for src, acc, ece, _ in pts if src in set(in_corner)])
     return _save(fig, out / "calibration_map")
 
 
@@ -377,13 +378,14 @@ def fig_compare(evs: dict[str, dict[str, dict[str, Any]]], out: Path, metric: st
         y = np.arange(len(sources)) + (i - (len(models) - 1) / 2) * h
         ax.barh(y, [v if v is not None else 0 for v in vals[m]], height=h * 0.9,
                 color=palette[i % len(palette)], label=m, edgecolor=SURFACE, linewidth=0.5, zorder=3)
-    # a thin rule between primitive groups, and the group's name beside it
+    # a thin rule between primitive groups, and the group's name just outside the right edge: inside
+    # it, the name sat on the end of any bar near the top of the scale (ARC at 0.98)
     prev = None
     for i, (prim, _s) in enumerate(groups):
         if prim != prev:
             if i:
                 ax.axhline(i - 0.5, color=GRID, lw=0.9, zorder=1)
-            ax.text(1.0, i - 0.42, prim, transform=ax.get_yaxis_transform(), ha="right", va="top",
+            ax.text(1.01, i - 0.42, prim, transform=ax.get_yaxis_transform(), ha="left", va="top",
                     fontsize=7.2, color=INK2, style="italic")
             prev = prim
     ax.set_yticks(np.arange(len(sources))); ax.set_yticklabels(sources, fontsize=7.5)
@@ -392,7 +394,10 @@ def fig_compare(evs: dict[str, dict[str, dict[str, Any]]], out: Path, metric: st
     ax.grid(True, axis="x", color=GRID, lw=0.7, zorder=0)
     for side in ("top", "right", "left"):
         ax.spines[side].set_visible(False)
-    ax.legend(loc="lower right", fontsize=7.5, frameon=True, facecolor=SURFACE, edgecolor=GRID)
+    # above the bars, not inside them: in the lower-right corner the legend covered the last row's
+    # bars whenever they passed about half the scale, which on accuracy is nearly always
+    ax.legend(loc="lower left", bbox_to_anchor=(0.0, 1.005), ncol=min(len(models), 2), fontsize=7.5,
+              frameon=False, borderaxespad=0.0, handlelength=1.6)
     fig.tight_layout(rect=_layout(fig, 1))
     _headline(fig, f"{' vs '.join(models[1:] + [models[0]])}: {label} per jev-bench config",
               f"Same test records for every model. {better.capitalize()}.")
@@ -508,15 +513,22 @@ def _annotate_without_overlap(fig, ax, pts: list[tuple[str, float, float]], font
     fig.canvas.draw()
     renderer = fig.canvas.get_renderer()
     placed = []
+    leaders = []                  # ((x0, y0), (x1, y1)) of each leader drawn so far, in display pixels
     point_boxes = []
+    # half-width of the largest marker drawn with labels (s = 74 pt², plus its edge) at the draw dpi;
+    # a 5 px box let the arms of a plus marker sit on a neighbour's label unnoticed
+    r = 0.5 * (74 ** 0.5 + 1.6) * fig.dpi / 72
     for _, x, y in pts:
         px, py = ax.transData.transform((x, y))
-        point_boxes.append(_box(px - 5, py - 5, px + 5, py + 5))
+        point_boxes.append(_box(px - r, py - r, px + r, py + r))
     for x, y in obstacles or []:
         px, py = ax.transData.transform((x, y))
-        point_boxes.append(_box(px - 4, py - 4, px + 4, py + 4))
+        point_boxes.append(_box(px - r, py - r, px + r, py + r))
     near = [(5, 3), (5, -9), (-5, 3), (-5, -9), (5, 11), (-5, 11)]
-    far = [(14, 16), (14, -18), (-14, 16), (-14, -18), (22, 28), (22, -30), (-22, 28), (-22, -30), (30, 40), (-30, 40)]
+    # the last ring is only reached when everything nearer is taken: a tight cluster (five models within
+    # 0.03 accuracy of each other on the leaderboard map) otherwise fell back to an overlapping spot
+    far = [(14, 16), (14, -18), (-14, 16), (-14, -18), (22, 28), (22, -30), (-22, 28), (-22, -30), (30, 40), (-30, 40),
+           (10, -44), (-10, -44), (40, -52), (-40, -52), (10, 50), (-10, 50), (45, 58), (-45, 58), (20, -66), (-20, -66)]
     # a label that had to move away from its point gets a thin line back to it; without
     # one, a displaced label in a crowded region reads as belonging to nothing
     leader = {"arrowstyle": "-", "color": INK2, "alpha": 0.45, "lw": 0.7, "shrinkA": 0, "shrinkB": 3}
@@ -529,11 +541,22 @@ def _annotate_without_overlap(fig, ax, pts: list[tuple[str, float, float]], font
             if (dx, dy) in far:
                 kw["arrowprops"] = leader
             ann = ax.annotate(src, (x, y), xytext=(dx, dy), textcoords="offset points", fontsize=fontsize, color=INK2, ha=ha, **kw)
-            box = ann.get_window_extent(renderer).expanded(1.06, 1.2)
+            box = _text_extent(ann, renderer).expanded(1.06, 1.2)
             inside = box.x0 >= axes_box.x0 - 2 and box.x1 <= axes_box.x1 + 2 and box.y0 >= axes_box.y0 - 2 and box.y1 <= axes_box.y1 + 2
             clash = any(box.overlaps(b) for b in placed) or any(box.overlaps(b) for b in point_boxes if not _contains(b, x, y, ax))
+            # a label on an earlier leader line hides which point that leader belongs to
+            clash = clash or any(_leader_crosses(box, b, [box], from_point=a) for a, b in leaders)
+            seg = None
+            if not clash and (dx, dy) in far:
+                # a leader that runs past another marker, through another label, or across another
+                # leader reads as pointing at the wrong thing
+                others = placed + [b for b in point_boxes if not _contains(b, x, y, ax)]
+                seg = ((box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2), tuple(ax.transData.transform((x, y)))
+                clash = _leader_crosses(box, seg[1], others) or any(_segments_cross(*seg, *l) for l in leaders)
             if inside and not clash:
                 chosen = box
+                if seg:
+                    leaders.append(seg)
                 break
             ann.remove()
         if chosen is None:
@@ -546,18 +569,27 @@ def _annotate_without_overlap(fig, ax, pts: list[tuple[str, float, float]], font
                 kw = {"arrowprops": leader} if (dx, dy) in far else {}
                 ann = ax.annotate(src, (x, y), xytext=(dx, dy), textcoords="offset points",
                                   fontsize=fontsize, color=INK2, ha=ha, **kw)
-                box = ann.get_window_extent(renderer).expanded(1.06, 1.2)
-                cost = sum(_overlap_area(box, b) for b in placed + point_boxes)
+                box = _text_extent(ann, renderer).expanded(1.06, 1.2)
+                cost = sum(_overlap_area(box, b) for b in placed + point_boxes if not _contains(b, x, y, ax))
                 if not (box.x0 >= axes_box.x0 - 2 and box.x1 <= axes_box.x1 + 2
                         and box.y0 >= axes_box.y0 - 2 and box.y1 <= axes_box.y1 + 2):
                     cost += 1e6                       # never let a label leave the axes, on either axis
+                seg = None
+                if (dx, dy) in far:
+                    # a crossed or misdirected leader misleads as much as a small overlap confuses
+                    seg = ((box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2), tuple(ax.transData.transform((x, y)))
+                    cost += 400 * sum(_segments_cross(*seg, *l) for l in leaders)
+                    cost += 400 * _leader_crosses(box, seg[1], placed + [b for b in point_boxes if not _contains(b, x, y, ax)])
+                cost += 400 * sum(_leader_crosses(box, b, [box], from_point=a) for a, b in leaders)
                 if best is None or cost < best[0]:
                     if best is not None:
                         best[1].remove()
-                    best = (cost, ann, box)
+                    best = (cost, ann, box, seg)
                 else:
                     ann.remove()
             chosen = best[2]
+            if best[3]:
+                leaders.append(best[3])       # later labels must avoid this leader too
         placed.append(chosen)
 
 
@@ -570,6 +602,39 @@ def _overlap_area(a, b) -> float:
 def _box(x0, y0, x1, y1):
     from matplotlib.transforms import Bbox
     return Bbox([[x0, y0], [x1, y1]])
+
+
+def _leader_crosses(text_box, point, boxes, from_point=None) -> bool:
+    """Whether the straight leader from the label's centre (or ``from_point``) to ``point`` passes through
+    any of ``boxes`` (sampled; the stretch inside ``text_box`` itself does not count)."""
+    cx, cy = from_point if from_point is not None else ((text_box.x0 + text_box.x1) / 2, (text_box.y0 + text_box.y1) / 2)
+    px, py = point
+    if from_point is not None:           # an existing leader tested against a new label: every sample counts
+        return any(any(b.x0 <= cx + t * (px - cx) <= b.x1 and b.y0 <= cy + t * (py - cy) <= b.y1 for b in boxes)
+                   for t in np.linspace(0.0, 0.92, 24))
+    for t in np.linspace(0.0, 0.92, 24):             # stop short of the point's own marker
+        sx, sy = cx + t * (px - cx), cy + t * (py - cy)
+        if text_box.x0 <= sx <= text_box.x1 and text_box.y0 <= sy <= text_box.y1:
+            continue
+        if any(b.x0 <= sx <= b.x1 and b.y0 <= sy <= b.y1 for b in boxes):
+            return True
+    return False
+
+
+def _segments_cross(a, b, c, d) -> bool:
+    """Whether segments ab and cd properly intersect (display coordinates)."""
+    def orient(p, q, r):
+        return (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0])
+    return orient(a, b, c) * orient(a, b, d) < 0 and orient(c, d, a) * orient(c, d, b) < 0
+
+
+def _text_extent(ann, renderer):
+    """The label's own text box. Annotation.get_window_extent also spans its leader line, whose bounding
+    rectangle covers every neighbour between label and point -- so in a cluster no far offset could ever
+    win, and every crowded label fell back to the least-bad overlap."""
+    from matplotlib.text import Text
+    ann.update_positions(renderer)
+    return Text.get_window_extent(ann, renderer)
 
 
 def _contains(box, x, y, ax) -> bool:
@@ -652,7 +717,8 @@ def _short_label(label: str) -> str:
     s = label.split("/")[-1] if "/" in label.split(" (")[0] else label
     for a, b in ((" (TypeSafe API)", ""), (" (Tier 0)", ""), ("Tier 2 residual", "T2"), ("Tier 1 residual", "T1"),
                  ("Tier 1 replace", "T1 replace"), ("lr 3e-05", "lr 3e-5"), ("soft labels", "soft"),
-                 ("6-epoch cap, mean of 3 seeds", "3 seeds"), (", ", " "), (" (", " "), (")", "")):
+                 ("6-epoch cap, mean of 3 seeds", "3 seeds"), ("Tev1-4B-experimental", "Tev1-4B"),
+                 (", ", " "), (" (", " "), (")", "")):
         s = s.replace(a, b)
     return s
 

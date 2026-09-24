@@ -302,6 +302,65 @@
   }
  },
  {
+  "run": "tev1-4b-jevfmt",
+  "label": "togethercomputer/Tev1-4B-experimental (Jevify prompt)",
+  "tier": "External",
+  "params": "",
+  "cost": null,
+  "gpu": "A40",
+  "chat": true,
+  "recipe": {
+   "mode": "index",
+   "chat": true,
+   "permutations": {
+    "choice": 2,
+    "score": 1,
+    "noul": 1
+   },
+   "state_last": false,
+   "prior_weight": {
+    "choice": 0.0,
+    "score": 0.0,
+    "noul": 0.0
+   },
+   "temperature": {
+    "choice": 1.2486,
+    "score": 2.1356,
+    "noul": 0.9879
+   },
+   "bias": {
+    "noul": -0.9
+   }
+  },
+  "summary": {
+   "choice": {
+    "acc": 0.7139739420471128,
+    "ece": 0.0821682232228476,
+    "brier": 0.3841548978670947,
+    "sel90": 0.7548802752254223
+   },
+   "score": {
+    "acc": 0.48666666666666664,
+    "ece": 0.12134609999999997,
+    "brier": 0.6453229838166666,
+    "sel90": 0.49481481481481476
+   },
+   "noul": {
+    "acc": 0.8335392493241838,
+    "ece": 0.06610389634017598,
+    "brier": 0.1127822031987711,
+    "sel90": 0.8610375250423793
+   },
+   "macro": {
+    "acc": 0.6900245556224228,
+    "ece": 0.08774172197213001,
+    "brier": 0.3690367002770568,
+    "sel90": 0.7177306382370158
+   },
+   "tvd_human": 0.40827767987206787
+  }
+ },
+ {
   "run": "qwen35-2b-t2-lowlr",
   "label": "Qwen/Qwen3.5-2B (Tier 2 residual, lr 3e-05)",
   "tier": "Tier 2 residual",
