@@ -117,9 +117,20 @@ class HFScorer:
         if len(p_ids) > self.max_prefix_tokens:   # keep the tail: the question and options live there
             prefix = self.tokenizer.decode(p_ids[-self.max_prefix_tokens:], skip_special_tokens=True)
             p_ids = self._encode(prefix)
-        cut = prefix.rfind(chr(10), 0, max(len(prefix) - 1, 0)) + 1
-        tail = prefix[cut:]
-        tail_ids = self._encode_raw(tail)
+        # the tail must re-encode to exactly the end of the prefix's own encoding. The last newline
+        # fails that when the prompt ends in a merged "\n\n" (a chat template's empty assistant turn,
+        # the Tev1 format), which sent every candidate down a full re-encode of the whole prompt:
+        # 151 of them for a 151-option question, CPU-bound. Earlier newlines are tried before giving up.
+        pos, tail, tail_ids = max(len(prefix) - 1, 0), prefix, []
+        for _ in range(4):
+            cut = prefix.rfind(chr(10), 0, pos) + 1
+            tail = prefix[cut:]
+            tail_ids = self._encode_raw(tail)
+            if tail_ids and p_ids[-len(tail_ids):] == tail_ids:
+                break
+            if cut == 0:
+                break
+            pos = cut - 1
         fast = bool(tail_ids) and p_ids[-len(tail_ids):] == tail_ids
         fulls: list[list[int]] = []
         for c in candidates:

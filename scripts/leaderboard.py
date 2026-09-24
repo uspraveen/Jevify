@@ -74,7 +74,10 @@ def main() -> int:
         if run.get("soft_labels"):
             variant.append("soft labels")
         shown = tier + (", " + ", ".join(variant) if variant else "")
-        entries.append({"run": d.name, "label": run.get("model_id", d.name) + ("" if not run.get("tier") else f" ({shown})"),
+        # the same checkpoint read in two prompt formats is two rows: name the non-default one
+        fmt = (recipe.get("recipe") or {}).get("prompt", "jevify")
+        fmt_label = "" if fmt == "jevify" else f" ({fmt.capitalize()} prompt)"
+        entries.append({"run": d.name, "label": run.get("model_id", d.name) + ("" if not run.get("tier") else f" ({shown})") + fmt_label,
                         "tier": tier, "params": "",
                         "metrics": json.loads((d / "test_metrics.json").read_text(encoding="utf-8")),
                         "preds": d / "test_predictions.jsonl", "cost": run.get("est_cost_usd"),
