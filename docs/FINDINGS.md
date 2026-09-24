@@ -1143,6 +1143,12 @@ rank these arms on the guardrail or on the new tests.
 
 ## 16. Open questions
 
+- **Why does every fine-tune stop flagging phishing?** Tev1 (which never saw jev-bench), the
+  published Tier 2 and all four retraining runs of Section 15 call almost every PhishNChips email
+  legitimate (recall 1–12% against the untrained base's 44%), yet their ranking of the same emails
+  stays close to the base's (AUROC 0.75–0.86 against 0.78). Fine-tuning moves the decision
+  threshold, not the knowledge. A bias fitted on a few labelled examples per deployment is the obvious
+  repair to test; what in training moves the threshold is not known.
 - **How far does the residual finding go?** Three backbones now (2B, 4B, 9B; 6.3a–c): the
   trained-source gain is robust at every size, and with the six-epoch cap the held-out result is
   seed-stable (±0.004 at 2B, ±0.002 at 9B). Untested: other families, and the cap at 4B.
