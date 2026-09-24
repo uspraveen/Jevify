@@ -12,7 +12,8 @@ Contents: [Jev's behaviour](#1-what-jev-actually-does) · [Controlled probes](#2
 · [Tier 2](#7-tier-2-letting-the-backbone-move) · [Engineering](#8-engineering-findings) · [Vision](#9-vision-does-any-of-this-transfer)
 · [The 8B class](#10-the-8b-class-is-a-small-models-speed-the-whole-story) · [Tev1](#11-tev1-the-same-base-model-fine-tuned-by-someone-else)
 · [Benchmarks we did not write](#12-three-benchmarks-we-did-not-write) · [CLM](#13-clm-a-contrastive-system-one-model-measured)
-· [Three untested behaviours](#14-three-behaviours-jev-bench-did-not-test) · [Open questions](#15-open-questions)
+· [Three untested behaviours](#14-three-behaviours-jev-bench-did-not-test) · [Retraining the Tev1 way](#15-retraining-the-4b-the-tev1-way-a-negative-result)
+· [Open questions](#16-open-questions)
 
 ---
 
@@ -1110,7 +1111,37 @@ toward "yes"): over-cautious, not exploitable.
 
 ---
 
-## 15. Open questions
+## 15. Retraining the 4B the Tev1 way: a negative result
+
+Two parts of Together's recipe that Jevify's Tier 2 lacked were added to the published Qwen3.5-4B Tier 2
+recipe, alone and together: Together's code-generated training data (its own generators, pinned; 1,591
+examples in four training-only sources beside jev-bench) and a fresh random option order for every
+training example (`--shuffle-options`). The unchanged recipe was re-run on the same hardware as the
+reference.
+
+| Qwen3.5-4B Tier 2 | all 22 | 6 held-out | TVD→human | phishing recall | stated rule | "none" when the answer is gone |
+|---|---|---|---|---|---|---|
+| re-run | 0.736 / 0.096 | 0.763 / 0.102 | 0.335 | 0.040 | 0.667 | 0.540 |
+| + shuffled options | 0.726 / 0.094 | 0.748 / 0.107 | 0.334 | 0.033 | 0.697 | 0.446 |
+| + Together's data | 0.735 / 0.089 | 0.760 / 0.102 | 0.329 | 0.048 | 0.652 | 0.570 |
+| + both | 0.739 / 0.092 | 0.760 / 0.104 | 0.324 | 0.049 | 0.649 | 0.516 |
+
+**15.1 Neither change improves the held-out sources** (shuffling −0.015, Together's data −0.003, both
+−0.003), and neither repairs the phishing collapse: every Tier 2 run flags 3–5% of phishing emails
+against the untrained base's 44%. Together's data improves calibration slightly (ECE 0.096 → 0.089) —
+the one consistent effect — and does not help with rules written by lawyers (0.652 against 0.667).
+
+**15.2 Behaviour outside jev-bench varies between runs of the same recipe far more than jev-bench does.**
+The re-run matches the published model on jev-bench to 0.002 in accuracy, yet catches a third as much
+phishing (0.040 against 0.118) and picks "none" less often when the answer is gone (0.540 against 0.658).
+Any claim about a fine-tune's out-of-distribution behaviour needs several runs; one run per arm cannot
+rank these arms on the guardrail or on the new tests.
+
+*(`results/c/`; `scripts/tev1_synthetic.py`; `--shuffle-options` in `jevify/engine/tier2.py`.)*
+
+---
+
+## 16. Open questions
 
 - **How far does the residual finding go?** Three backbones now (2B, 4B, 9B; 6.3a–c): the
   trained-source gain is robust at every size, and with the six-epoch cap the held-out result is

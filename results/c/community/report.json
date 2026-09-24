@@ -1,0 +1,1279 @@
+{
+ "models": [
+  {
+   "label": "Jev 1.13.0",
+   "configs": {
+    "phishnchips_click": {
+     "n": 2000,
+     "correct": 1267,
+     "accuracy": 0.6335,
+     "wilson95": [
+      0.6121452300862917,
+      0.6543429182896137
+     ],
+     "ece": 0.10638499999999997,
+     "brier": 0.45773610000000003,
+     "recall": 0.643,
+     "false_positive_rate": 0.373,
+     "flag_rate": 0.508,
+     "auroc": 0.7000705,
+     "misses_confident": 13,
+     "miss_pmax": null,
+     "mean_pmax": 0.736405
+    },
+    "phishnchips_minimal": {
+     "n": 2000,
+     "correct": 1165,
+     "accuracy": 0.5825,
+     "wilson95": [
+      0.5607492770380402,
+      0.603934410160553
+     ],
+     "ece": 0.240085,
+     "brier": 0.6150832999999999,
+     "recall": 0.181,
+     "false_positive_rate": 0.017,
+     "flag_rate": 0.099,
+     "auroc": 0.6369885,
+     "misses_confident": 270,
+     "miss_pmax": null,
+     "mean_pmax": 0.8220850000000001
+    },
+    "phishnchips_noul": {
+     "n": 2000,
+     "correct": 1210,
+     "accuracy": 0.605,
+     "wilson95": [
+      0.5833938766633713,
+      0.6262035434075655
+     ],
+     "ece": 0.17417999999999997,
+     "brier": 0.26737059999999996,
+     "recall": 0.243,
+     "false_positive_rate": 0.033,
+     "flag_rate": 0.138,
+     "auroc": 0.683165,
+     "misses_confident": 32,
+     "miss_pmax": null,
+     "mean_pmax": 0.7643099999999999
+    },
+    "phishnchips_verdict": {
+     "n": 2000,
+     "correct": 1256,
+     "accuracy": 0.628,
+     "wilson95": [
+      0.6065906596696286,
+      0.6489185762263706
+     ],
+     "ece": 0.15664,
+     "brier": 0.5055264,
+     "recall": 0.436,
+     "false_positive_rate": 0.179,
+     "flag_rate": 0.3075,
+     "auroc": 0.687579,
+     "misses_confident": 167,
+     "miss_pmax": null,
+     "mean_pmax": 0.7794500000000001
+    },
+    "ticket_routing": {
+     "n": 27,
+     "correct": 27,
+     "accuracy": 1.0,
+     "wilson95": [
+      0.8754449702581328,
+      0.9999999999999998
+     ],
+     "ece": 0.01851851851851858,
+     "brier": 0.0075629629629629614,
+     "misses_confident": 0,
+     "miss_pmax": [],
+     "mean_pmax": 0.9814814814814814
+    },
+    "tool_risk": {
+     "n": 60,
+     "correct": 56,
+     "accuracy": 0.9333333333333333,
+     "wilson95": [
+      0.8407464268680283,
+      0.9737713012754938
+     ],
+     "ece": 0.05800000000000008,
+     "brier": 0.11630333333333336,
+     "by_difficulty": {
+      "clear": {
+       "n": 34,
+       "accuracy": 1.0
+      },
+      "ambiguous": {
+       "n": 14,
+       "accuracy": 0.7142857142857143
+      },
+      "adversarial": {
+       "n": 12,
+       "accuracy": 1.0
+      }
+     },
+     "misses_confident": 1,
+     "miss_pmax": [
+      0.45,
+      0.66,
+      0.82,
+      0.99
+     ],
+     "mean_pmax": 0.9406666666666668
+    }
+   },
+   "tickets_ambiguous_mean_pmax": 0.8816666666666667,
+   "tickets_ambiguous": {
+    "ticket_routing/unlabelled/0": {
+     "answer": "account",
+     "p_max": 0.78
+    },
+    "ticket_routing/unlabelled/3": {
+     "answer": "account",
+     "p_max": 0.92
+    },
+    "ticket_routing/unlabelled/2": {
+     "answer": "technical",
+     "p_max": 1.0
+    },
+    "ticket_routing/unlabelled/4": {
+     "answer": "account",
+     "p_max": 0.94
+    },
+    "ticket_routing/unlabelled/5": {
+     "answer": "technical",
+     "p_max": 0.81
+    },
+    "ticket_routing/unlabelled/1": {
+     "answer": "billing",
+     "p_max": 0.84
+    }
+   }
+  },
+  {
+   "label": "Qwen3.5-4B Tier 0",
+   "configs": {
+    "phishnchips_click": {
+     "n": 2000,
+     "correct": 1368,
+     "accuracy": 0.684,
+     "wilson95": [
+      0.6632884153284588,
+      0.7040061112720402
+     ],
+     "ece": 0.03981765000000003,
+     "brier": 0.38012180631000003,
+     "recall": 0.95,
+     "false_positive_rate": 0.582,
+     "flag_rate": 0.766,
+     "auroc": 0.869525,
+     "misses_confident": 7,
+     "miss_pmax": null,
+     "mean_pmax": 0.69066465,
+     "vs_jev": {
+      "only_this": 440,
+      "only_jev": 339,
+      "mcnemar_p": 0.00033394597337678834
+     }
+    },
+    "phishnchips_minimal": {
+     "n": 2000,
+     "correct": 1200,
+     "accuracy": 0.6,
+     "wilson95": [
+      0.5783576985854537,
+      0.6212588919582955
+     ],
+     "ece": 0.18065849999999994,
+     "brier": 0.5247978833,
+     "recall": 0.207,
+     "false_positive_rate": 0.007,
+     "flag_rate": 0.107,
+     "auroc": 0.75452,
+     "misses_confident": 63,
+     "miss_pmax": null,
+     "mean_pmax": 0.7806585,
+     "vs_jev": {
+      "only_this": 97,
+      "only_jev": 62,
+      "mcnemar_p": 0.006822620067898665
+     }
+    },
+    "phishnchips_noul": {
+     "n": 2000,
+     "correct": 1067,
+     "accuracy": 0.5335,
+     "wilson95": [
+      0.5115928272302488,
+      0.5552787306019071
+     ],
+     "ece": 0.27538490538422283,
+     "brier": 0.3174285844083754,
+     "recall": 0.067,
+     "false_positive_rate": 0.0,
+     "flag_rate": 0.0335,
+     "auroc": 0.6200625,
+     "misses_confident": 31,
+     "miss_pmax": null,
+     "mean_pmax": 0.8088849053842228,
+     "vs_jev": {
+      "only_this": 40,
+      "only_jev": 183,
+      "mcnemar_p": 4.78309347211504e-23
+     }
+    },
+    "phishnchips_verdict": {
+     "n": 2000,
+     "correct": 1399,
+     "accuracy": 0.6995,
+     "wilson95": [
+      0.6790399713257051,
+      0.7191951268090748
+     ],
+     "ece": 0.022759749999999947,
+     "brier": 0.40655138723,
+     "recall": 0.436,
+     "false_positive_rate": 0.037,
+     "flag_rate": 0.2365,
+     "auroc": 0.783992,
+     "misses_confident": 0,
+     "miss_pmax": null,
+     "mean_pmax": 0.6989206499999999,
+     "vs_jev": {
+      "only_this": 259,
+      "only_jev": 116,
+      "mcnemar_p": 1.1394452709042693e-13
+     }
+    },
+    "ticket_routing": {
+     "n": 27,
+     "correct": 25,
+     "accuracy": 0.9259259259259259,
+     "wilson95": [
+      0.7663040731697686,
+      0.9794453459390113
+     ],
+     "ece": 0.17565185185185184,
+     "brier": 0.14690731481481484,
+     "misses_confident": 0,
+     "miss_pmax": [
+      0.333,
+      0.365
+     ],
+     "mean_pmax": 0.8019925925925926,
+     "vs_jev": {
+      "only_this": 0,
+      "only_jev": 2,
+      "mcnemar_p": 0.5
+     }
+    },
+    "tool_risk": {
+     "n": 60,
+     "correct": 52,
+     "accuracy": 0.8666666666666667,
+     "wilson95": [
+      0.7583484032350039,
+      0.9308589051941303
+     ],
+     "ece": 0.07924333333333333,
+     "brier": 0.15849076266666665,
+     "by_difficulty": {
+      "clear": {
+       "n": 34,
+       "accuracy": 1.0
+      },
+      "ambiguous": {
+       "n": 14,
+       "accuracy": 0.5714285714285714
+      },
+      "adversarial": {
+       "n": 12,
+       "accuracy": 0.8333333333333334
+      }
+     },
+     "misses_confident": 0,
+     "miss_pmax": [
+      0.344,
+      0.387,
+      0.434,
+      0.466,
+      0.474,
+      0.592,
+      0.646,
+      0.791
+     ],
+     "mean_pmax": 0.8250733333333333,
+     "vs_jev": {
+      "only_this": 1,
+      "only_jev": 5,
+      "mcnemar_p": 0.21875
+     }
+    }
+   },
+   "tickets_ambiguous_mean_pmax": 0.6678666666666667,
+   "tickets_ambiguous": {
+    "ticket_routing/unlabelled/0": {
+     "answer": "account",
+     "p_max": 0.548
+    },
+    "ticket_routing/unlabelled/1": {
+     "answer": "billing",
+     "p_max": 0.505
+    },
+    "ticket_routing/unlabelled/2": {
+     "answer": "technical",
+     "p_max": 0.977
+    },
+    "ticket_routing/unlabelled/3": {
+     "answer": "account",
+     "p_max": 0.702
+    },
+    "ticket_routing/unlabelled/4": {
+     "answer": "sales",
+     "p_max": 0.662
+    },
+    "ticket_routing/unlabelled/5": {
+     "answer": "billing",
+     "p_max": 0.614
+    }
+   }
+  },
+  {
+   "label": "Tier 2, published (A40)",
+   "configs": {
+    "phishnchips_click": {
+     "n": 2000,
+     "correct": 1180,
+     "accuracy": 0.59,
+     "wilson95": [
+      0.5682922967087976,
+      0.611362634780577
+     ],
+     "ece": 0.36091308488996465,
+     "brier": 0.7348747504710135,
+     "recall": 0.184,
+     "false_positive_rate": 0.004,
+     "flag_rate": 0.094,
+     "auroc": 0.833802,
+     "misses_confident": 666,
+     "miss_pmax": null,
+     "mean_pmax": 0.9509130848899646,
+     "vs_jev": {
+      "only_this": 367,
+      "only_jev": 454,
+      "mcnemar_p": 0.0026656917128393734
+     }
+    },
+    "phishnchips_minimal": {
+     "n": 2000,
+     "correct": 1036,
+     "accuracy": 0.518,
+     "wilson95": [
+      0.4960876073343329,
+      0.5398433789635421
+     ],
+     "ece": 0.4598755316962309,
+     "brier": 0.911664492278641,
+     "recall": 0.037,
+     "false_positive_rate": 0.001,
+     "flag_rate": 0.019,
+     "auroc": 0.723715,
+     "misses_confident": 877,
+     "miss_pmax": null,
+     "mean_pmax": 0.9771647035590836,
+     "vs_jev": {
+      "only_this": 18,
+      "only_jev": 147,
+      "mcnemar_p": 2.3851293661281201e-26
+     }
+    },
+    "phishnchips_noul": {
+     "n": 2000,
+     "correct": 1208,
+     "accuracy": 0.604,
+     "wilson95": [
+      0.582386454521585,
+      0.6252147996439142
+     ],
+     "ece": 0.25187255258904767,
+     "brier": 0.32494744343333604,
+     "recall": 0.237,
+     "false_positive_rate": 0.029,
+     "flag_rate": 0.133,
+     "auroc": 0.547908,
+     "misses_confident": 461,
+     "miss_pmax": null,
+     "mean_pmax": 0.8543680598591454,
+     "vs_jev": {
+      "only_this": 90,
+      "only_jev": 92,
+      "mcnemar_p": 0.9409380458482176
+     }
+    },
+    "phishnchips_verdict": {
+     "n": 2000,
+     "correct": 1114,
+     "accuracy": 0.557,
+     "wilson95": [
+      0.5351411243085789,
+      0.5786403323013585
+     ],
+     "ece": 0.38413311806134387,
+     "brier": 0.771331381156268,
+     "recall": 0.118,
+     "false_positive_rate": 0.004,
+     "flag_rate": 0.061,
+     "auroc": 0.781739,
+     "misses_confident": 676,
+     "miss_pmax": null,
+     "mean_pmax": 0.9411331180613439,
+     "vs_jev": {
+      "only_this": 176,
+      "only_jev": 318,
+      "mcnemar_p": 1.6897669841115507e-10
+     }
+    },
+    "ticket_routing": {
+     "n": 27,
+     "correct": 25,
+     "accuracy": 0.9259259259259259,
+     "wilson95": [
+      0.7663040731697686,
+      0.9794453459390113
+     ],
+     "ece": 0.08644512578573277,
+     "brier": 0.10352647373575337,
+     "misses_confident": 0,
+     "miss_pmax": [
+      0.636,
+      0.705
+     ],
+     "mean_pmax": 0.9130922583740789,
+     "vs_jev": {
+      "only_this": 0,
+      "only_jev": 2,
+      "mcnemar_p": 0.5
+     }
+    },
+    "tool_risk": {
+     "n": 60,
+     "correct": 53,
+     "accuracy": 0.8833333333333333,
+     "wilson95": [
+      0.7782121197582914,
+      0.9423227935994396
+     ],
+     "ece": 0.08858382579562123,
+     "brier": 0.16110119455614022,
+     "by_difficulty": {
+      "clear": {
+       "n": 34,
+       "accuracy": 1.0
+      },
+      "ambiguous": {
+       "n": 14,
+       "accuracy": 0.6428571428571429
+      },
+      "adversarial": {
+       "n": 12,
+       "accuracy": 0.8333333333333334
+      }
+     },
+     "misses_confident": 2,
+     "miss_pmax": [
+      0.503,
+      0.557,
+      0.59,
+      0.721,
+      0.889,
+      0.932,
+      0.946
+     ],
+     "mean_pmax": 0.9302560860394871,
+     "vs_jev": {
+      "only_this": 0,
+      "only_jev": 3,
+      "mcnemar_p": 0.25
+     }
+    }
+   },
+   "tickets_ambiguous_mean_pmax": 0.829266323230499,
+   "tickets_ambiguous": {
+    "ticket_routing/unlabelled/0": {
+     "answer": "account",
+     "p_max": 0.878
+    },
+    "ticket_routing/unlabelled/1": {
+     "answer": "billing",
+     "p_max": 0.801
+    },
+    "ticket_routing/unlabelled/2": {
+     "answer": "technical",
+     "p_max": 0.971
+    },
+    "ticket_routing/unlabelled/3": {
+     "answer": "account",
+     "p_max": 0.957
+    },
+    "ticket_routing/unlabelled/4": {
+     "answer": "sales",
+     "p_max": 0.782
+    },
+    "ticket_routing/unlabelled/5": {
+     "answer": "billing",
+     "p_max": 0.586
+    }
+   }
+  },
+  {
+   "label": "Tier 2, re-run",
+   "configs": {
+    "phishnchips_click": {
+     "n": 2000,
+     "correct": 1112,
+     "accuracy": 0.556,
+     "wilson95": [
+      0.5341380714639933,
+      0.5776472192405065
+     ],
+     "ece": 0.4032828415629545,
+     "brier": 0.8031139683002434,
+     "recall": 0.112,
+     "false_positive_rate": 0.0,
+     "flag_rate": 0.056,
+     "auroc": 0.864217,
+     "misses_confident": 751,
+     "miss_pmax": null,
+     "mean_pmax": 0.9559067493691764,
+     "vs_jev": {
+      "only_this": 370,
+      "only_jev": 525,
+      "mcnemar_p": 2.4694160318736983e-07
+     }
+    },
+    "phishnchips_minimal": {
+     "n": 2000,
+     "correct": 1024,
+     "accuracy": 0.512,
+     "wilson95": [
+      0.4900912399118564,
+      0.5338627509533935
+     ],
+     "ece": 0.46531879395351733,
+     "brier": 0.9162696924060951,
+     "recall": 0.024,
+     "false_positive_rate": 0.0,
+     "flag_rate": 0.012,
+     "auroc": 0.695917,
+     "misses_confident": 890,
+     "miss_pmax": null,
+     "mean_pmax": 0.9766034887099118,
+     "vs_jev": {
+      "only_this": 16,
+      "only_jev": 157,
+      "mcnemar_p": 2.7944110895165164e-30
+     }
+    },
+    "phishnchips_noul": {
+     "n": 2000,
+     "correct": 1109,
+     "accuracy": 0.5545,
+     "wilson95": [
+      0.532633659180582,
+      0.5761573826657613
+     ],
+     "ece": 0.3344114382197149,
+     "brier": 0.36480511583676034,
+     "recall": 0.109,
+     "false_positive_rate": 0.0,
+     "flag_rate": 0.0545,
+     "auroc": 0.549607,
+     "misses_confident": 572,
+     "miss_pmax": null,
+     "mean_pmax": 0.8881429955293424,
+     "vs_jev": {
+      "only_this": 43,
+      "only_jev": 144,
+      "mcnemar_p": 6.166319657350048e-14
+     }
+    },
+    "phishnchips_verdict": {
+     "n": 2000,
+     "correct": 1040,
+     "accuracy": 0.52,
+     "wilson95": [
+      0.4980870968546681,
+      0.5418362212540818
+     ],
+     "ece": 0.44492995644706557,
+     "brier": 0.8744773694142954,
+     "recall": 0.04,
+     "false_positive_rate": 0.0,
+     "flag_rate": 0.02,
+     "auroc": 0.745752,
+     "misses_confident": 844,
+     "miss_pmax": null,
+     "mean_pmax": 0.9640411766121244,
+     "vs_jev": {
+      "only_this": 175,
+      "only_jev": 391,
+      "mcnemar_p": 5.66790999224578e-20
+     }
+    },
+    "ticket_routing": {
+     "n": 27,
+     "correct": 26,
+     "accuracy": 0.9629629629629629,
+     "wilson95": [
+      0.8171653406642414,
+      0.9934318540192149
+     ],
+     "ece": 0.09060894408185428,
+     "brier": 0.09047617544377269,
+     "misses_confident": 0,
+     "miss_pmax": [
+      0.691
+     ],
+     "mean_pmax": 0.9024689354955756,
+     "vs_jev": {
+      "only_this": 0,
+      "only_jev": 1,
+      "mcnemar_p": 1.0
+     }
+    },
+    "tool_risk": {
+     "n": 60,
+     "correct": 55,
+     "accuracy": 0.9166666666666666,
+     "wilson95": [
+      0.8193105798166558,
+      0.9638795433982692
+     ],
+     "ece": 0.12982391326154208,
+     "brier": 0.15613402247770078,
+     "by_difficulty": {
+      "clear": {
+       "n": 34,
+       "accuracy": 1.0
+      },
+      "ambiguous": {
+       "n": 14,
+       "accuracy": 0.7857142857142857
+      },
+      "adversarial": {
+       "n": 12,
+       "accuracy": 0.8333333333333334
+      }
+     },
+     "misses_confident": 0,
+     "miss_pmax": [
+      0.554,
+      0.81,
+      0.866,
+      0.87,
+      0.884
+     ],
+     "mean_pmax": 0.9137678753582171,
+     "vs_jev": {
+      "only_this": 1,
+      "only_jev": 2,
+      "mcnemar_p": 1.0
+     }
+    }
+   },
+   "tickets_ambiguous_mean_pmax": 0.8122321318966672,
+   "tickets_ambiguous": {
+    "ticket_routing/unlabelled/0": {
+     "answer": "account",
+     "p_max": 0.822
+    },
+    "ticket_routing/unlabelled/1": {
+     "answer": "billing",
+     "p_max": 0.526
+    },
+    "ticket_routing/unlabelled/2": {
+     "answer": "technical",
+     "p_max": 0.943
+    },
+    "ticket_routing/unlabelled/3": {
+     "answer": "account",
+     "p_max": 0.95
+    },
+    "ticket_routing/unlabelled/4": {
+     "answer": "sales",
+     "p_max": 0.843
+    },
+    "ticket_routing/unlabelled/5": {
+     "answer": "billing",
+     "p_max": 0.789
+    }
+   }
+  },
+  {
+   "label": "+ option shuffling",
+   "configs": {
+    "phishnchips_click": {
+     "n": 2000,
+     "correct": 1045,
+     "accuracy": 0.5225,
+     "wilson95": [
+      0.5005869515842244,
+      0.5443267812881191
+     ],
+     "ece": 0.442521874770392,
+     "brier": 0.8643811793339113,
+     "recall": 0.045,
+     "false_positive_rate": 0.0,
+     "flag_rate": 0.0225,
+     "auroc": 0.898257,
+     "misses_confident": 822,
+     "miss_pmax": null,
+     "mean_pmax": 0.965021874770392,
+     "vs_jev": {
+      "only_this": 370,
+      "only_jev": 592,
+      "mcnemar_p": 8.267465778880324e-13
+     }
+    },
+    "phishnchips_minimal": {
+     "n": 2000,
+     "correct": 1008,
+     "accuracy": 0.504,
+     "wilson95": [
+      0.4821009817758073,
+      0.5258836818459427
+     ],
+     "ece": 0.49108857309414733,
+     "brier": 0.976298331983819,
+     "recall": 0.008,
+     "false_positive_rate": 0.0,
+     "flag_rate": 0.004,
+     "auroc": 0.7183595,
+     "misses_confident": 980,
+     "miss_pmax": null,
+     "mean_pmax": 0.9935082033795858,
+     "vs_jev": {
+      "only_this": 16,
+      "only_jev": 173,
+      "mcnemar_p": 1.849778063730368e-34
+     }
+    },
+    "phishnchips_noul": {
+     "n": 2000,
+     "correct": 1035,
+     "accuracy": 0.5175,
+     "wilson95": [
+      0.4955877896916976,
+      0.5393451136534584
+     ],
+     "ece": 0.40436864294856795,
+     "brier": 0.4065964748632972,
+     "recall": 0.035,
+     "false_positive_rate": 0.0,
+     "flag_rate": 0.0175,
+     "auroc": 0.589652,
+     "misses_confident": 719,
+     "miss_pmax": null,
+     "mean_pmax": 0.9218686429485679,
+     "vs_jev": {
+      "only_this": 33,
+      "only_jev": 208,
+      "mcnemar_p": 3.143357425866468e-32
+     }
+    },
+    "phishnchips_verdict": {
+     "n": 2000,
+     "correct": 1033,
+     "accuracy": 0.5165,
+     "wilson95": [
+      0.49458822007482495,
+      0.5383485173648935
+     ],
+     "ece": 0.4451518849602253,
+     "brier": 0.8660361564959294,
+     "recall": 0.033,
+     "false_positive_rate": 0.0,
+     "flag_rate": 0.0165,
+     "auroc": 0.856809,
+     "misses_confident": 833,
+     "miss_pmax": null,
+     "mean_pmax": 0.9605973546690963,
+     "vs_jev": {
+      "only_this": 175,
+      "only_jev": 398,
+      "mcnemar_p": 5.6914574598582884e-21
+     }
+    },
+    "ticket_routing": {
+     "n": 27,
+     "correct": 24,
+     "accuracy": 0.8888888888888888,
+     "wilson95": [
+      0.7194219918172017,
+      0.9614796517169016
+     ],
+     "ece": 0.13539320293120388,
+     "brier": 0.1669476703456327,
+     "misses_confident": 0,
+     "miss_pmax": [
+      0.327,
+      0.422,
+      0.729
+     ],
+     "mean_pmax": 0.8629816659933134,
+     "vs_jev": {
+      "only_this": 0,
+      "only_jev": 3,
+      "mcnemar_p": 0.25
+     }
+    },
+    "tool_risk": {
+     "n": 60,
+     "correct": 53,
+     "accuracy": 0.8833333333333333,
+     "wilson95": [
+      0.7782121197582914,
+      0.9423227935994396
+     ],
+     "ece": 0.09567863883733396,
+     "brier": 0.16539082071378294,
+     "by_difficulty": {
+      "clear": {
+       "n": 34,
+       "accuracy": 1.0
+      },
+      "ambiguous": {
+       "n": 14,
+       "accuracy": 0.6428571428571429
+      },
+      "adversarial": {
+       "n": 12,
+       "accuracy": 0.8333333333333334
+      }
+     },
+     "misses_confident": 1,
+     "miss_pmax": [
+      0.504,
+      0.563,
+      0.63,
+      0.656,
+      0.774,
+      0.861,
+      0.923
+     ],
+     "mean_pmax": 0.9032384257235643,
+     "vs_jev": {
+      "only_this": 0,
+      "only_jev": 3,
+      "mcnemar_p": 0.25
+     }
+    }
+   },
+   "tickets_ambiguous_mean_pmax": 0.8598366857972567,
+   "tickets_ambiguous": {
+    "ticket_routing/unlabelled/0": {
+     "answer": "account",
+     "p_max": 0.851
+    },
+    "ticket_routing/unlabelled/1": {
+     "answer": "billing",
+     "p_max": 0.722
+    },
+    "ticket_routing/unlabelled/2": {
+     "answer": "technical",
+     "p_max": 0.956
+    },
+    "ticket_routing/unlabelled/3": {
+     "answer": "account",
+     "p_max": 0.953
+    },
+    "ticket_routing/unlabelled/4": {
+     "answer": "sales",
+     "p_max": 0.871
+    },
+    "ticket_routing/unlabelled/5": {
+     "answer": "billing",
+     "p_max": 0.806
+    }
+   }
+  },
+  {
+   "label": "+ Tev1 data",
+   "configs": {
+    "phishnchips_click": {
+     "n": 2000,
+     "correct": 1061,
+     "accuracy": 0.5305,
+     "wilson95": [
+      0.5085901706994292,
+      0.5522928894164142
+     ],
+     "ece": 0.41527673674278526,
+     "brier": 0.7948232462941163,
+     "recall": 0.061,
+     "false_positive_rate": 0.0,
+     "flag_rate": 0.0305,
+     "auroc": 0.904102,
+     "misses_confident": 651,
+     "miss_pmax": null,
+     "mean_pmax": 0.9430551682633537,
+     "vs_jev": {
+      "only_this": 370,
+      "only_jev": 576,
+      "mcnemar_p": 2.2155557240779812e-11
+     }
+    },
+    "phishnchips_minimal": {
+     "n": 2000,
+     "correct": 1005,
+     "accuracy": 0.5025,
+     "wilson95": [
+      0.48060343126068417,
+      0.5243869835029094
+     ],
+     "ece": 0.49057410176802485,
+     "brier": 0.9743968447571038,
+     "recall": 0.005,
+     "false_positive_rate": 0.0,
+     "flag_rate": 0.0025,
+     "auroc": 0.6846055,
+     "misses_confident": 974,
+     "miss_pmax": null,
+     "mean_pmax": 0.9926978150043655,
+     "vs_jev": {
+      "only_this": 16,
+      "only_jev": 176,
+      "mcnemar_p": 3.001126857837554e-35
+     }
+    },
+    "phishnchips_noul": {
+     "n": 2000,
+     "correct": 1034,
+     "accuracy": 0.517,
+     "wilson95": [
+      0.49508799393928304,
+      0.5388468264531544
+     ],
+     "ece": 0.41356021526944825,
+     "brier": 0.41594801094434697,
+     "recall": 0.034,
+     "false_positive_rate": 0.0,
+     "flag_rate": 0.017,
+     "auroc": 0.545638,
+     "misses_confident": 725,
+     "miss_pmax": null,
+     "mean_pmax": 0.9305602152694482,
+     "vs_jev": {
+      "only_this": 33,
+      "only_jev": 209,
+      "mcnemar_p": 1.8182408940651834e-32
+     }
+    },
+    "phishnchips_verdict": {
+     "n": 2000,
+     "correct": 1048,
+     "accuracy": 0.524,
+     "wilson95": [
+      0.502087127397443,
+      0.5458208543330569
+     ],
+     "ece": 0.4318326342353416,
+     "brier": 0.8384992948964048,
+     "recall": 0.048,
+     "false_positive_rate": 0.0,
+     "flag_rate": 0.024,
+     "auroc": 0.844972,
+     "misses_confident": 758,
+     "miss_pmax": null,
+     "mean_pmax": 0.9535077770886553,
+     "vs_jev": {
+      "only_this": 176,
+      "only_jev": 384,
+      "mcnemar_p": 8.685702288240748e-19
+     }
+    },
+    "ticket_routing": {
+     "n": 27,
+     "correct": 23,
+     "accuracy": 0.8518518518518519,
+     "wilson95": [
+      0.6752131457218702,
+      0.9408407222375568
+     ],
+     "ece": 0.12847630294073015,
+     "brier": 0.1739045588576087,
+     "misses_confident": 0,
+     "miss_pmax": [
+      0.359,
+      0.462,
+      0.681,
+      0.855
+     ],
+     "mean_pmax": 0.897942753115179,
+     "vs_jev": {
+      "only_this": 0,
+      "only_jev": 4,
+      "mcnemar_p": 0.125
+     }
+    },
+    "tool_risk": {
+     "n": 60,
+     "correct": 53,
+     "accuracy": 0.8833333333333333,
+     "wilson95": [
+      0.7782121197582914,
+      0.9423227935994396
+     ],
+     "ece": 0.08176546397650876,
+     "brier": 0.1447953727394455,
+     "by_difficulty": {
+      "clear": {
+       "n": 34,
+       "accuracy": 1.0
+      },
+      "ambiguous": {
+       "n": 14,
+       "accuracy": 0.5714285714285714
+      },
+      "adversarial": {
+       "n": 12,
+       "accuracy": 0.9166666666666666
+      }
+     },
+     "misses_confident": 0,
+     "miss_pmax": [
+      0.318,
+      0.476,
+      0.591,
+      0.665,
+      0.759,
+      0.79,
+      0.864
+     ],
+     "mean_pmax": 0.9084039150967215,
+     "vs_jev": {
+      "only_this": 0,
+      "only_jev": 3,
+      "mcnemar_p": 0.25
+     }
+    }
+   },
+   "tickets_ambiguous_mean_pmax": 0.7206867234778466,
+   "tickets_ambiguous": {
+    "ticket_routing/unlabelled/0": {
+     "answer": "account",
+     "p_max": 0.801
+    },
+    "ticket_routing/unlabelled/1": {
+     "answer": "billing",
+     "p_max": 0.609
+    },
+    "ticket_routing/unlabelled/2": {
+     "answer": "technical",
+     "p_max": 0.948
+    },
+    "ticket_routing/unlabelled/3": {
+     "answer": "account",
+     "p_max": 0.952
+    },
+    "ticket_routing/unlabelled/4": {
+     "answer": "sales",
+     "p_max": 0.62
+    },
+    "ticket_routing/unlabelled/5": {
+     "answer": "technical",
+     "p_max": 0.394
+    }
+   }
+  },
+  {
+   "label": "+ Tev1 data + shuffling",
+   "configs": {
+    "phishnchips_click": {
+     "n": 2000,
+     "correct": 1070,
+     "accuracy": 0.535,
+     "wilson95": [
+      0.5130944524075373,
+      0.5567713542827751
+     ],
+     "ece": 0.38584432192272644,
+     "brier": 0.7396099999785958,
+     "recall": 0.07,
+     "false_positive_rate": 0.0,
+     "flag_rate": 0.035,
+     "auroc": 0.90483,
+     "misses_confident": 563,
+     "miss_pmax": null,
+     "mean_pmax": 0.9208443219227265,
+     "vs_jev": {
+      "only_this": 370,
+      "only_jev": 567,
+      "mcnemar_p": 1.30844858749025e-10
+     }
+    },
+    "phishnchips_minimal": {
+     "n": 2000,
+     "correct": 1012,
+     "accuracy": 0.506,
+     "wilson95": [
+      0.4840980217298558,
+      0.5278789737027693
+     ],
+     "ece": 0.4775061111481927,
+     "brier": 0.9455760671399617,
+     "recall": 0.012,
+     "false_positive_rate": 0.0,
+     "flag_rate": 0.006,
+     "auroc": 0.6618375,
+     "misses_confident": 936,
+     "miss_pmax": null,
+     "mean_pmax": 0.9830204914993302,
+     "vs_jev": {
+      "only_this": 16,
+      "only_jev": 169,
+      "mcnemar_p": 2.076371026152985e-33
+     }
+    },
+    "phishnchips_noul": {
+     "n": 2000,
+     "correct": 1065,
+     "accuracy": 0.5325,
+     "wilson95": [
+      0.5105918537750757,
+      0.5542835381516428
+     ],
+     "ece": 0.3601566283772699,
+     "brier": 0.3825838519028313,
+     "recall": 0.066,
+     "false_positive_rate": 0.001,
+     "flag_rate": 0.0335,
+     "auroc": 0.536944,
+     "misses_confident": 590,
+     "miss_pmax": null,
+     "mean_pmax": 0.89265662837727,
+     "vs_jev": {
+      "only_this": 35,
+      "only_jev": 180,
+      "mcnemar_p": 1.05028770940434e-24
+     }
+    },
+    "phishnchips_verdict": {
+     "n": 2000,
+     "correct": 1049,
+     "accuracy": 0.5245,
+     "wilson95": [
+      0.5025872298490504,
+      0.5463188348341681
+     ],
+     "ece": 0.40150119754352215,
+     "brier": 0.7781421010510241,
+     "recall": 0.049,
+     "false_positive_rate": 0.0,
+     "flag_rate": 0.0245,
+     "auroc": 0.8163035,
+     "misses_confident": 644,
+     "miss_pmax": null,
+     "mean_pmax": 0.9260011975435222,
+     "vs_jev": {
+      "only_this": 175,
+      "only_jev": 382,
+      "mcnemar_p": 1.0292376539379e-18
+     }
+    },
+    "ticket_routing": {
+     "n": 27,
+     "correct": 23,
+     "accuracy": 0.8518518518518519,
+     "wilson95": [
+      0.6752131457218702,
+      0.9408407222375568
+     ],
+     "ece": 0.09330581104868325,
+     "brier": 0.13239560517400434,
+     "misses_confident": 0,
+     "miss_pmax": [
+      0.387,
+      0.49,
+      0.551,
+      0.56
+     ],
+     "mean_pmax": 0.8746334699081212,
+     "vs_jev": {
+      "only_this": 0,
+      "only_jev": 4,
+      "mcnemar_p": 0.125
+     }
+    },
+    "tool_risk": {
+     "n": 60,
+     "correct": 54,
+     "accuracy": 0.9,
+     "wilson95": [
+      0.7985053527602123,
+      0.9533571655261158
+     ],
+     "ece": 0.060942591805477175,
+     "brier": 0.14969204715793966,
+     "by_difficulty": {
+      "clear": {
+       "n": 34,
+       "accuracy": 1.0
+      },
+      "ambiguous": {
+       "n": 14,
+       "accuracy": 0.6428571428571429
+      },
+      "adversarial": {
+       "n": 12,
+       "accuracy": 0.9166666666666666
+      }
+     },
+     "misses_confident": 2,
+     "miss_pmax": [
+      0.531,
+      0.621,
+      0.644,
+      0.719,
+      0.911,
+      0.915
+     ],
+     "mean_pmax": 0.9181753847449435,
+     "vs_jev": {
+      "only_this": 0,
+      "only_jev": 2,
+      "mcnemar_p": 0.5
+     }
+    }
+   },
+   "tickets_ambiguous_mean_pmax": 0.8784146774204736,
+   "tickets_ambiguous": {
+    "ticket_routing/unlabelled/0": {
+     "answer": "account",
+     "p_max": 0.881
+    },
+    "ticket_routing/unlabelled/1": {
+     "answer": "billing",
+     "p_max": 0.812
+    },
+    "ticket_routing/unlabelled/2": {
+     "answer": "technical",
+     "p_max": 0.974
+    },
+    "ticket_routing/unlabelled/3": {
+     "answer": "account",
+     "p_max": 0.955
+    },
+    "ticket_routing/unlabelled/4": {
+     "answer": "sales",
+     "p_max": 0.799
+    },
+    "ticket_routing/unlabelled/5": {
+     "answer": "billing",
+     "p_max": 0.849
+    }
+   }
+  }
+ ]
+}

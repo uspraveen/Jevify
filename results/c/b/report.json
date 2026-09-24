@@ -1,0 +1,821 @@
+{
+ "Jev 1.13.0": {
+  "legal_rules": {
+   "all": {
+    "n": 885,
+    "acc": 0.9242937853107345,
+    "ece": 0.12116384180790962,
+    "brier": 0.08265186440677966,
+    "yes_rate": 0.47796610169491527
+   },
+   "by_task": {
+    "diversity (6 variants)": {
+     "n": 600,
+     "acc": 0.9466666666666667,
+     "ece": 0.1477,
+     "brier": 0.07637166666666667,
+     "yes_rate": 0.5033333333333333
+    },
+    "hearsay": {
+     "n": 94,
+     "acc": 0.8404255319148937,
+     "ece": 0.10234042553191493,
+     "brier": 0.130268085106383,
+     "yes_rate": 0.3617021276595745
+    },
+    "personal_jurisdiction": {
+     "n": 50,
+     "acc": 0.84,
+     "ece": 0.09759999999999996,
+     "brier": 0.127692,
+     "yes_rate": 0.38
+    },
+    "telemarketing_sales_rule": {
+     "n": 47,
+     "acc": 0.8297872340425532,
+     "ece": 0.12872340425531914,
+     "brier": 0.12170425531914894,
+     "yes_rate": 0.6808510638297872
+    },
+    "ucc_v_common_law": {
+     "n": 94,
+     "acc": 0.9574468085106383,
+     "ece": 0.0761702127659575,
+     "brier": 0.031638297872340425,
+     "yes_rate": 0.3829787234042553
+    }
+   },
+   "coverage": 1.0,
+   "macro_task_acc": 0.8828652482269502
+  },
+  "nota": {
+   "n": 1000,
+   "acc": 0.843,
+   "ece": 0.05171000000000005,
+   "coverage": 1.0,
+   "removed": {
+    "n": 500,
+    "chose_none": 0.744,
+    "mean_p_none": 0.6753399999999999,
+    "acc": 0.744,
+    "chose_none_arc_challenge": 0.844,
+    "chose_none_mmlu": 0.644
+   },
+   "intact": {
+    "n": 500,
+    "chose_none": 0.016,
+    "mean_p_none": 0.02514,
+    "acc": 0.942,
+    "chose_none_arc_challenge": 0.012,
+    "chose_none_mmlu": 0.02
+   }
+  },
+  "injection": {
+   "all": {
+    "pairs": 800,
+    "acc_clean": 0.89625,
+    "acc_injected": 0.69125,
+    "hijack_rate": 0.20500000000000002,
+    "p_target_shift": 0.18507499999999996,
+    "flipped_to_target": 0.205
+   },
+   "by_source": {
+    "boolq": {
+     "pairs": 200,
+     "acc_clean": 0.93,
+     "acc_injected": 0.875,
+     "hijack_rate": 0.05499999999999999,
+     "p_target_shift": 0.08350000000000002,
+     "flipped_to_target": 0.055
+    },
+    "civil_comments": {
+     "pairs": 200,
+     "acc_clean": 0.74,
+     "acc_injected": 0.555,
+     "hijack_rate": 0.185,
+     "p_target_shift": 0.1682999999999999,
+     "flipped_to_target": 0.185
+    },
+    "fever_evidence": {
+     "pairs": 200,
+     "acc_clean": 0.975,
+     "acc_injected": 0.965,
+     "hijack_rate": 0.010000000000000002,
+     "p_target_shift": 0.046200000000000005,
+     "flipped_to_target": 0.01
+    },
+    "sms_spam": {
+     "pairs": 200,
+     "acc_clean": 0.94,
+     "acc_injected": 0.37,
+     "hijack_rate": 0.5700000000000001,
+     "p_target_shift": 0.4423,
+     "flipped_to_target": 0.57
+    }
+   },
+   "coverage": 1.0
+  }
+ },
+ "Qwen3.5-4B Tier 0": {
+  "legal_rules": {
+   "all": {
+    "n": 885,
+    "acc": 0.6180790960451977,
+    "ece": 0.1553112802021323,
+    "brier": 0.22791155558813828,
+    "yes_rate": 0.18531073446327684
+   },
+   "by_task": {
+    "diversity (6 variants)": {
+     "n": 600,
+     "acc": 0.5583333333333333,
+     "ece": 0.22528359341863824,
+     "brier": 0.2594798966799237,
+     "yes_rate": 0.09166666666666666
+    },
+    "hearsay": {
+     "n": 94,
+     "acc": 0.6914893617021277,
+     "ece": 0.0626986106961822,
+     "brier": 0.19024043342467498,
+     "yes_rate": 0.2553191489361702
+    },
+    "personal_jurisdiction": {
+     "n": 50,
+     "acc": 0.56,
+     "ece": 0.0987670837150746,
+     "brier": 0.23152647576968127,
+     "yes_rate": 0.54
+    },
+    "telemarketing_sales_rule": {
+     "n": 47,
+     "acc": 0.7872340425531915,
+     "ece": 0.08098079951368219,
+     "brier": 0.1752095788871971,
+     "yes_rate": 0.5531914893617021
+    },
+    "ucc_v_common_law": {
+     "n": 94,
+     "acc": 0.8723404255319149,
+     "ece": 0.09681616902472168,
+     "brier": 0.0885107866962381,
+     "yes_rate": 0.3404255319148936
+    }
+   },
+   "coverage": 1.0,
+   "macro_task_acc": 0.6938794326241136
+  },
+  "nota": {
+   "n": 1000,
+   "acc": 0.639,
+   "ece": 0.0659443,
+   "coverage": 1.0,
+   "removed": {
+    "n": 500,
+    "chose_none": 0.482,
+    "mean_p_none": 0.3640882,
+    "acc": 0.482,
+    "chose_none_arc_challenge": 0.652,
+    "chose_none_mmlu": 0.312
+   },
+   "intact": {
+    "n": 500,
+    "chose_none": 0.032,
+    "mean_p_none": 0.1047142,
+    "acc": 0.796,
+    "chose_none_arc_challenge": 0.028,
+    "chose_none_mmlu": 0.036
+   }
+  },
+  "injection": {
+   "all": {
+    "pairs": 800,
+    "acc_clean": 0.85875,
+    "acc_injected": 0.4625,
+    "hijack_rate": 0.39625,
+    "p_target_shift": 0.2934842988224853,
+    "flipped_to_target": 0.40125
+   },
+   "by_source": {
+    "boolq": {
+     "pairs": 200,
+     "acc_clean": 0.84,
+     "acc_injected": 0.55,
+     "hijack_rate": 0.29000000000000004,
+     "p_target_shift": 0.23561790082832146,
+     "flipped_to_target": 0.29
+    },
+    "civil_comments": {
+     "pairs": 200,
+     "acc_clean": 0.74,
+     "acc_injected": 0.515,
+     "hijack_rate": 0.22499999999999998,
+     "p_target_shift": 0.20335187490209927,
+     "flipped_to_target": 0.245
+    },
+    "fever_evidence": {
+     "pairs": 200,
+     "acc_clean": 0.93,
+     "acc_injected": 0.63,
+     "hijack_rate": 0.3,
+     "p_target_shift": 0.233473322177786,
+     "flipped_to_target": 0.3
+    },
+    "sms_spam": {
+     "pairs": 200,
+     "acc_clean": 0.925,
+     "acc_injected": 0.155,
+     "hijack_rate": 0.77,
+     "p_target_shift": 0.5014940973817346,
+     "flipped_to_target": 0.77
+    }
+   },
+   "coverage": 1.0
+  }
+ },
+ "Tier 2, published (A40)": {
+  "legal_rules": {
+   "all": {
+    "n": 885,
+    "acc": 0.6531073446327683,
+    "ece": 0.23821530504300825,
+    "brier": 0.26145901428038903,
+    "yes_rate": 0.2271186440677966
+   },
+   "by_task": {
+    "diversity (6 variants)": {
+     "n": 600,
+     "acc": 0.5966666666666667,
+     "ece": 0.3166876545835597,
+     "brier": 0.3155910549395681,
+     "yes_rate": 0.05333333333333334
+    },
+    "hearsay": {
+     "n": 94,
+     "acc": 0.7659574468085106,
+     "ece": 0.07851751961131043,
+     "brier": 0.15955934010841316,
+     "yes_rate": 0.5425531914893617
+    },
+    "personal_jurisdiction": {
+     "n": 50,
+     "acc": 0.46,
+     "ece": 0.25803501635789877,
+     "brier": 0.2777643038934949,
+     "yes_rate": 0.92
+    },
+    "telemarketing_sales_rule": {
+     "n": 47,
+     "acc": 0.723404255319149,
+     "ece": 0.16533794491849046,
+     "brier": 0.21363490788590056,
+     "yes_rate": 0.6595744680851063
+    },
+    "ucc_v_common_law": {
+     "n": 94,
+     "acc": 0.9680851063829787,
+     "ece": 0.027472088878176745,
+     "brier": 0.033074051477664915,
+     "yes_rate": 0.43617021276595747
+    }
+   },
+   "coverage": 1.0,
+   "macro_task_acc": 0.702822695035461
+  },
+  "nota": {
+   "n": 1000,
+   "acc": 0.732,
+   "ece": 0.0844724605293569,
+   "coverage": 1.0,
+   "removed": {
+    "n": 500,
+    "chose_none": 0.658,
+    "mean_p_none": 0.6089349386463588,
+    "acc": 0.658,
+    "chose_none_arc_challenge": 0.74,
+    "chose_none_mmlu": 0.576
+   },
+   "intact": {
+    "n": 500,
+    "chose_none": 0.044,
+    "mean_p_none": 0.0891516030956685,
+    "acc": 0.806,
+    "chose_none_arc_challenge": 0.024,
+    "chose_none_mmlu": 0.064
+   }
+  },
+  "injection": {
+   "all": {
+    "pairs": 800,
+    "acc_clean": 0.9325,
+    "acc_injected": 0.77125,
+    "hijack_rate": 0.16125,
+    "p_target_shift": 0.17191230789972906,
+    "flipped_to_target": 0.16375
+   },
+   "by_source": {
+    "boolq": {
+     "pairs": 200,
+     "acc_clean": 0.895,
+     "acc_injected": 0.865,
+     "hijack_rate": 0.030000000000000013,
+     "p_target_shift": 0.03720229111801018,
+     "flipped_to_target": 0.04
+    },
+    "civil_comments": {
+     "pairs": 200,
+     "acc_clean": 0.945,
+     "acc_injected": 0.93,
+     "hijack_rate": 0.015000000000000006,
+     "p_target_shift": 0.06078856047271983,
+     "flipped_to_target": 0.015
+    },
+    "fever_evidence": {
+     "pairs": 200,
+     "acc_clean": 0.95,
+     "acc_injected": 0.855,
+     "hijack_rate": 0.09499999999999999,
+     "p_target_shift": 0.12496168378944275,
+     "flipped_to_target": 0.095
+    },
+    "sms_spam": {
+     "pairs": 200,
+     "acc_clean": 0.94,
+     "acc_injected": 0.435,
+     "hijack_rate": 0.5049999999999999,
+     "p_target_shift": 0.4646966962187435,
+     "flipped_to_target": 0.505
+    }
+   },
+   "coverage": 1.0
+  }
+ },
+ "Tier 2, re-run": {
+  "legal_rules": {
+   "all": {
+    "n": 885,
+    "acc": 0.6666666666666666,
+    "ece": 0.1616264569491548,
+    "brier": 0.2113060747388272,
+    "yes_rate": 0.3129943502824859
+   },
+   "by_task": {
+    "diversity (6 variants)": {
+     "n": 600,
+     "acc": 0.6266666666666667,
+     "ece": 0.19848760335395732,
+     "brier": 0.23213043400556568,
+     "yes_rate": 0.17333333333333334
+    },
+    "hearsay": {
+     "n": 94,
+     "acc": 0.7446808510638298,
+     "ece": 0.12164335259969562,
+     "brier": 0.17632093203121282,
+     "yes_rate": 0.5425531914893617
+    },
+    "personal_jurisdiction": {
+     "n": 50,
+     "acc": 0.46,
+     "ece": 0.34166795015335083,
+     "brier": 0.3357601546681117,
+     "yes_rate": 0.96
+    },
+    "telemarketing_sales_rule": {
+     "n": 47,
+     "acc": 0.6595744680851063,
+     "ece": 0.21729285741581564,
+     "brier": 0.22797195581055385,
+     "yes_rate": 0.723404255319149
+    },
+    "ucc_v_common_law": {
+     "n": 94,
+     "acc": 0.9574468085106383,
+     "ece": 0.06636687825641971,
+     "brier": 0.03883785609667077,
+     "yes_rate": 0.425531914893617
+    }
+   },
+   "coverage": 1.0,
+   "macro_task_acc": 0.6896737588652482
+  },
+  "nota": {
+   "n": 1000,
+   "acc": 0.676,
+   "ece": 0.1239282208561479,
+   "coverage": 1.0,
+   "removed": {
+    "n": 500,
+    "chose_none": 0.54,
+    "mean_p_none": 0.532679994518095,
+    "acc": 0.54,
+    "chose_none_arc_challenge": 0.672,
+    "chose_none_mmlu": 0.408
+   },
+   "intact": {
+    "n": 500,
+    "chose_none": 0.03,
+    "mean_p_none": 0.07000176483178076,
+    "acc": 0.812,
+    "chose_none_arc_challenge": 0.02,
+    "chose_none_mmlu": 0.04
+   }
+  },
+  "injection": {
+   "all": {
+    "pairs": 800,
+    "acc_clean": 0.93125,
+    "acc_injected": 0.7525,
+    "hijack_rate": 0.17875,
+    "p_target_shift": 0.1783496472792467,
+    "flipped_to_target": 0.17875
+   },
+   "by_source": {
+    "boolq": {
+     "pairs": 200,
+     "acc_clean": 0.89,
+     "acc_injected": 0.855,
+     "hijack_rate": 0.03499999999999999,
+     "p_target_shift": 0.04250435015710535,
+     "flipped_to_target": 0.035
+    },
+    "civil_comments": {
+     "pairs": 200,
+     "acc_clean": 0.945,
+     "acc_injected": 0.935,
+     "hijack_rate": 0.010000000000000002,
+     "p_target_shift": 0.059985293705249215,
+     "flipped_to_target": 0.01
+    },
+    "fever_evidence": {
+     "pairs": 200,
+     "acc_clean": 0.945,
+     "acc_injected": 0.885,
+     "hijack_rate": 0.060000000000000005,
+     "p_target_shift": 0.08515765383373947,
+     "flipped_to_target": 0.06
+    },
+    "sms_spam": {
+     "pairs": 200,
+     "acc_clean": 0.945,
+     "acc_injected": 0.335,
+     "hijack_rate": 0.61,
+     "p_target_shift": 0.5257512914208927,
+     "flipped_to_target": 0.61
+    }
+   },
+   "coverage": 1.0
+  }
+ },
+ "+ option shuffling": {
+  "legal_rules": {
+   "all": {
+    "n": 885,
+    "acc": 0.6971751412429379,
+    "ece": 0.11722616040500378,
+    "brier": 0.2031923769464494,
+    "yes_rate": 0.3593220338983051
+   },
+   "by_task": {
+    "diversity (6 variants)": {
+     "n": 600,
+     "acc": 0.675,
+     "ece": 0.10598745515880484,
+     "brier": 0.20641812618286784,
+     "yes_rate": 0.23833333333333334
+    },
+    "hearsay": {
+     "n": 94,
+     "acc": 0.7340425531914894,
+     "ece": 0.12523416715099456,
+     "brier": 0.1977256014150528,
+     "yes_rate": 0.5319148936170213
+    },
+    "personal_jurisdiction": {
+     "n": 50,
+     "acc": 0.44,
+     "ece": 0.4844669848680496,
+     "brier": 0.4438115755806975,
+     "yes_rate": 0.98
+    },
+    "telemarketing_sales_rule": {
+     "n": 47,
+     "acc": 0.6808510638297872,
+     "ece": 0.2220047625138405,
+     "brier": 0.2333790577003459,
+     "yes_rate": 0.7446808510638298
+    },
+    "ucc_v_common_law": {
+     "n": 94,
+     "acc": 0.9468085106382979,
+     "ece": 0.034331834627355014,
+     "brier": 0.04498698791405227,
+     "yes_rate": 0.43617021276595747
+    }
+   },
+   "coverage": 1.0,
+   "macro_task_acc": 0.6953404255319149
+  },
+  "nota": {
+   "n": 1000,
+   "acc": 0.632,
+   "ece": 0.16900417432466758,
+   "coverage": 1.0,
+   "removed": {
+    "n": 500,
+    "chose_none": 0.446,
+    "mean_p_none": 0.44551299330903443,
+    "acc": 0.446,
+    "chose_none_arc_challenge": 0.604,
+    "chose_none_mmlu": 0.288
+   },
+   "intact": {
+    "n": 500,
+    "chose_none": 0.02,
+    "mean_p_none": 0.05807255569046731,
+    "acc": 0.818,
+    "chose_none_arc_challenge": 0.016,
+    "chose_none_mmlu": 0.024
+   }
+  },
+  "injection": {
+   "all": {
+    "pairs": 800,
+    "acc_clean": 0.93625,
+    "acc_injected": 0.77375,
+    "hijack_rate": 0.1625,
+    "p_target_shift": 0.1791976601433271,
+    "flipped_to_target": 0.165
+   },
+   "by_source": {
+    "boolq": {
+     "pairs": 200,
+     "acc_clean": 0.88,
+     "acc_injected": 0.86,
+     "hijack_rate": 0.020000000000000018,
+     "p_target_shift": 0.03136546890629688,
+     "flipped_to_target": 0.025
+    },
+    "civil_comments": {
+     "pairs": 200,
+     "acc_clean": 0.945,
+     "acc_injected": 0.935,
+     "hijack_rate": 0.010000000000000002,
+     "p_target_shift": 0.07024792206590062,
+     "flipped_to_target": 0.01
+    },
+    "fever_evidence": {
+     "pairs": 200,
+     "acc_clean": 0.935,
+     "acc_injected": 0.91,
+     "hijack_rate": 0.024999999999999994,
+     "p_target_shift": 0.06038087585940957,
+     "flipped_to_target": 0.03
+    },
+    "sms_spam": {
+     "pairs": 200,
+     "acc_clean": 0.985,
+     "acc_injected": 0.39,
+     "hijack_rate": 0.595,
+     "p_target_shift": 0.5547963737417012,
+     "flipped_to_target": 0.595
+    }
+   },
+   "coverage": 1.0
+  }
+ },
+ "+ Tev1 data": {
+  "legal_rules": {
+   "all": {
+    "n": 885,
+    "acc": 0.6519774011299435,
+    "ece": 0.1849251406318587,
+    "brier": 0.21285076683617235,
+    "yes_rate": 0.26666666666666666
+   },
+   "by_task": {
+    "diversity (6 variants)": {
+     "n": 600,
+     "acc": 0.615,
+     "ece": 0.2218050105287694,
+     "brier": 0.23181925265152212,
+     "yes_rate": 0.07166666666666667
+    },
+    "hearsay": {
+     "n": 94,
+     "acc": 0.7021276595744681,
+     "ece": 0.11080799961185205,
+     "brier": 0.19244426084307928,
+     "yes_rate": 0.6914893617021277
+    },
+    "personal_jurisdiction": {
+     "n": 50,
+     "acc": 0.48,
+     "ece": 0.32009536802768707,
+     "brier": 0.30614589570150025,
+     "yes_rate": 0.94
+    },
+    "telemarketing_sales_rule": {
+     "n": 47,
+     "acc": 0.6382978723404256,
+     "ece": 0.24654483937836708,
+     "brier": 0.2299325888350719,
+     "yes_rate": 0.8297872340425532
+    },
+    "ucc_v_common_law": {
+     "n": 94,
+     "acc": 0.9361702127659575,
+     "ece": 0.033920639366694226,
+     "brier": 0.0540158519098558,
+     "yes_rate": 0.44680851063829785
+    }
+   },
+   "coverage": 1.0,
+   "macro_task_acc": 0.6743191489361703
+  },
+  "nota": {
+   "n": 1000,
+   "acc": 0.69,
+   "ece": 0.08368440874495743,
+   "coverage": 1.0,
+   "removed": {
+    "n": 500,
+    "chose_none": 0.57,
+    "mean_p_none": 0.5370445045380909,
+    "acc": 0.57,
+    "chose_none_arc_challenge": 0.688,
+    "chose_none_mmlu": 0.452
+   },
+   "intact": {
+    "n": 500,
+    "chose_none": 0.042,
+    "mean_p_none": 0.09480117195934148,
+    "acc": 0.81,
+    "chose_none_arc_challenge": 0.032,
+    "chose_none_mmlu": 0.052
+   }
+  },
+  "injection": {
+   "all": {
+    "pairs": 800,
+    "acc_clean": 0.93125,
+    "acc_injected": 0.76,
+    "hijack_rate": 0.17124999999999999,
+    "p_target_shift": 0.17428612138737662,
+    "flipped_to_target": 0.17125
+   },
+   "by_source": {
+    "boolq": {
+     "pairs": 200,
+     "acc_clean": 0.895,
+     "acc_injected": 0.87,
+     "hijack_rate": 0.02500000000000001,
+     "p_target_shift": 0.02826825735741295,
+     "flipped_to_target": 0.025
+    },
+    "civil_comments": {
+     "pairs": 200,
+     "acc_clean": 0.945,
+     "acc_injected": 0.935,
+     "hijack_rate": 0.010000000000000002,
+     "p_target_shift": 0.08721448736498133,
+     "flipped_to_target": 0.01
+    },
+    "fever_evidence": {
+     "pairs": 200,
+     "acc_clean": 0.945,
+     "acc_injected": 0.92,
+     "hijack_rate": 0.025,
+     "p_target_shift": 0.0621584111719858,
+     "flipped_to_target": 0.025
+    },
+    "sms_spam": {
+     "pairs": 200,
+     "acc_clean": 0.94,
+     "acc_injected": 0.315,
+     "hijack_rate": 0.625,
+     "p_target_shift": 0.5195033296551264,
+     "flipped_to_target": 0.625
+    }
+   },
+   "coverage": 1.0
+  }
+ },
+ "+ Tev1 data + shuffling": {
+  "legal_rules": {
+   "all": {
+    "n": 885,
+    "acc": 0.6485875706214689,
+    "ece": 0.234176023430875,
+    "brier": 0.24559839644560316,
+    "yes_rate": 0.24067796610169492
+   },
+   "by_task": {
+    "diversity (6 variants)": {
+     "n": 600,
+     "acc": 0.6033333333333334,
+     "ece": 0.2873505430990675,
+     "brier": 0.27672952115947375,
+     "yes_rate": 0.056666666666666664
+    },
+    "hearsay": {
+     "n": 94,
+     "acc": 0.7127659574468085,
+     "ece": 0.12123487144708633,
+     "brier": 0.18823660825889346,
+     "yes_rate": 0.5957446808510638
+    },
+    "personal_jurisdiction": {
+     "n": 50,
+     "acc": 0.46,
+     "ece": 0.39178445279598234,
+     "brier": 0.36123399855202676,
+     "yes_rate": 0.92
+    },
+    "telemarketing_sales_rule": {
+     "n": 47,
+     "acc": 0.7021276595744681,
+     "ece": 0.23539637352161585,
+     "brier": 0.23400006398885528,
+     "yes_rate": 0.723404255319149
+    },
+    "ucc_v_common_law": {
+     "n": 94,
+     "acc": 0.9468085106382979,
+     "ece": 0.038596789970587714,
+     "brier": 0.048541745183628464,
+     "yes_rate": 0.4574468085106383
+    }
+   },
+   "coverage": 1.0,
+   "macro_task_acc": 0.6850070921985816
+  },
+  "nota": {
+   "n": 1000,
+   "acc": 0.655,
+   "ece": 0.13163297338203853,
+   "coverage": 1.0,
+   "removed": {
+    "n": 500,
+    "chose_none": 0.516,
+    "mean_p_none": 0.48709624735098683,
+    "acc": 0.516,
+    "chose_none_arc_challenge": 0.648,
+    "chose_none_mmlu": 0.384
+   },
+   "intact": {
+    "n": 500,
+    "chose_none": 0.05,
+    "mean_p_none": 0.07625067223532371,
+    "acc": 0.794,
+    "chose_none_arc_challenge": 0.028,
+    "chose_none_mmlu": 0.072
+   }
+  },
+  "injection": {
+   "all": {
+    "pairs": 800,
+    "acc_clean": 0.92875,
+    "acc_injected": 0.75625,
+    "hijack_rate": 0.1725,
+    "p_target_shift": 0.1670017170325082,
+    "flipped_to_target": 0.175
+   },
+   "by_source": {
+    "boolq": {
+     "pairs": 200,
+     "acc_clean": 0.89,
+     "acc_injected": 0.865,
+     "hijack_rate": 0.02500000000000001,
+     "p_target_shift": 0.027398703310900607,
+     "flipped_to_target": 0.035
+    },
+    "civil_comments": {
+     "pairs": 200,
+     "acc_clean": 0.955,
+     "acc_injected": 0.935,
+     "hijack_rate": 0.020000000000000004,
+     "p_target_shift": 0.06610414409980876,
+     "flipped_to_target": 0.02
+    },
+    "fever_evidence": {
+     "pairs": 200,
+     "acc_clean": 0.94,
+     "acc_injected": 0.9,
+     "hijack_rate": 0.04000000000000001,
+     "p_target_shift": 0.05619366124155932,
+     "flipped_to_target": 0.04
+    },
+    "sms_spam": {
+     "pairs": 200,
+     "acc_clean": 0.93,
+     "acc_injected": 0.325,
+     "hijack_rate": 0.605,
+     "p_target_shift": 0.518310359477764,
+     "flipped_to_target": 0.605
+    }
+   },
+   "coverage": 1.0
+  }
+ }
+}

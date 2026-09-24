@@ -32,6 +32,7 @@ on the Hub. **Each figure exists in exactly one place: next to the data that pro
 | `community/` | [Three Jev benchmarks written by other people](community/README.md) (phishing, agent tool risk, ticket routing), every model scored unchanged: `report.json`, `tables.md`, `community.png`; predictions (on the Hub) carry ids and scores only | `scripts/build_community.py`, `scripts/community_eval.py`, `scripts/community_report.py` |
 | `clm-8b/` | [CLM-v0.1-8B](clm-8b/README.md) (Stanford / NVIDIA contrastive model), served by its own code, nothing fitted; with a Jev comparison and hand probes | `jevify-run api --base-url <clm-serve>` |
 | `b/` | [Three new tests](b/README.md): applying a stated rule (LegalBench), "none of the above", instructions hidden in the input; `report.json`, `tables.md`; predictions on the Hub | `scripts/build_b.py`, `scripts/b_report.py` |
+| `c/` | [The 4B Tier 2 retrained with Together's data and shuffled options](c/README.md), four runs on the same hardware, checked on jev-bench, the community benchmarks and the new tests; per-run `run.json` / `test_metrics.json` under `runs/` (nested, so they stay off the leaderboard) | `scripts/tev1_synthetic.py`, `python -m jevify.train tier2 --shuffle-options` |
 
 Run ids: `<model>` is Tier 0; `<model>-t1` Tier 1 with heads replacing the LM score; `<model>-t1r`
 Tier 1 residual (`-sN` a seed replicate, `-e6-sN` the six-epoch-cap replicates); `<model>-t2` Tier 2 (LoRA + residual heads; `-lowlr` LoRA lr 3e-5, `-soft` human-distribution targets); `qwen3-vl-2b-px<N>` a vision run

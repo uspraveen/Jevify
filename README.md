@@ -200,6 +200,17 @@ scale. CLM-v0.1-8B, served by its own code, is 0.340.
 
 ![Three Jev benchmarks written by other people](results/community/community.png)
 
+**14 · Given a rule, Jev applies it; no open model does yet — and retraining ours the Tev1 way does not
+change that.** Three new tests: 885 human-written legal fact patterns with the rule written into the
+question, "none of the above" with the right option removed, and instructions planted inside the input.
+Jev applies a stated rule at **0.924**; every open model — untrained, Tev1, our Tier 2 — sits at
+0.62–0.70, its largest lead anywhere in this project. Fine-tuning did make both 4Bs notice a missing
+answer (0.48 → 0.66–0.70) and resist planted instructions (hijack rate 0.40 → 0.14–0.16). Retraining
+our 4B Tier 2 with Together's generated data and shuffled options moved held-out accuracy by −0.003 to
+−0.015, left the phishing collapse in place, and showed that a fine-tune's behaviour outside jev-bench
+varies between identical runs far more than its jev-bench score does.
+[· new tests](results/b/README.md) [· retraining](results/c/README.md)
+
 ## Try it
 
 **Playground:** [https://uspraveenraj--jevify-playground.modal.run](https://uspraveenraj--jevify-playground.modal.run) — ask a Jevified open model typed questions and watch the
