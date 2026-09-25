@@ -268,7 +268,12 @@ Readout fine-tunes (FINDINGS 18; each ships its recipe, a LoRA merged at load an
 [-coh](https://huggingface.co/Praveenrajus/jevify-gemma-4-e4b-it-readout-coh) ·
 from base checkpoints [jevify-qwen3.5-4b-base-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-base-readout) /
 [-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-base-readout-coh) ·
-[jevify-qwen3.5-2b-base-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-base-readout).
+[jevify-qwen3.5-2b-base-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-base-readout) /
+[-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-base-readout-coh) ·
+[jevify-gemma-4-e4b-readout](https://huggingface.co/Praveenrajus/jevify-gemma-4-e4b-readout) (from the base checkpoint) ·
+full fine-tunes (weights in the repo, 3.8 GB) [jevify-qwen3.5-2b-readout-full](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-readout-full) /
+[-full-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-readout-full-coh) (lr 1e-6, selected on validation; the other
+learning rates are branches `lr1e-5`, `lr3e-6`, `lr3e-7`). The 4B repos carry a second seed on a `seed1` branch.
 The backbone is pulled from its own repo, so nothing is duplicated.
 
 ```python
@@ -321,6 +326,13 @@ swapping is deliberately not offered — the projector is trained against one en
 → `jevify/engine/vision.py`, `jevify/engine/vision_tier2.py`, `jevify/engine/vision_backbone.py`,
 `scripts/vision_budget.py`, `scripts/latency_vision.py`.
 
+**Readout fine-tuning and the post-training battery** — train a model on its own decision readout
+(LoRA or every weight, optionally with a coherence penalty), and measure any checkpoint with one battery:
+jev-bench, coherence families, the probe suite, the identifier (tag) test, the new tests and the community
+benchmarks. Every fine-tune ships as a loadable repo whose card is generated from the study table and which
+passes a reproduction check before upload. → `scripts/publish_readout.py`, `scripts/tag_invariance.py`,
+`results/post-training/`, FINDINGS 17–18.
+
 ## Leaderboard
 
 Every model on the same 22,773 test records. Tier 0 = no training (prompt + logit readout + a
@@ -330,17 +342,33 @@ calibration-gold configs — lower is better, and it is the number Jev's own cla
 **External** = another team's model: Together AI's Tev1 fine-tune, read through our Tier 0 readout in
 its own prompt format (FINDINGS §11), and CLM-v0.1-8B, served by its authors' code with nothing fitted
 (§13). The bracket names the prompt a checkpoint was read in when it is not simply ours: Tev1's own
-format, or — for Tev1 — Jevify's.
+format, or — for Tev1 — Jevify's. **Readout FT** = readout fine-tuning (FINDINGS 18): the published LoRA and full fine-tunes,
+trained on the model's own decision distribution, with or without the coherence penalty; the map draws the
+coherence arm of each backbone as a star.
 
 | model | tier | macro acc | macro ECE | macro Brier | sel@90 | choice acc | score acc | noul acc | TVD→human | GPU | test cost |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | **Jev 1.13.0 (TypeSafe API)** | API | 0.733 | 0.113 | 0.349 | 0.760 | 0.770 | 0.503 | 0.881 | 0.432 |  |  |
+| Qwen/Qwen3.5-9B (readout LoRA + coherence) | Readout FT | 0.763 | 0.056 | 0.299 | 0.791 | 0.791 | 0.554 | 0.906 | 0.301 |  |  |
+| Qwen/Qwen3.5-9B (readout LoRA) | Readout FT | 0.759 | 0.052 | 0.302 | 0.787 | 0.790 | 0.541 | 0.905 | 0.314 |  |  |
+| Qwen/Qwen3.5-4B (readout LoRA + coherence) | Readout FT | 0.751 | 0.058 | 0.316 | 0.779 | 0.771 | 0.555 | 0.893 | 0.303 |  |  |
+| Qwen/Qwen3.5-4B-Base (readout LoRA + coherence) | Readout FT | 0.747 | 0.058 | 0.318 | 0.777 | 0.771 | 0.535 | 0.897 | 0.314 |  |  |
 | Qwen/Qwen3.5-4B (Tier 2 residual) | Tier 2 residual | 0.747 | 0.110 | 0.342 | 0.774 | 0.770 | 0.529 | 0.903 | 0.347 | A40 |  |
+| Qwen/Qwen3.5-4B (readout LoRA) | Readout FT | 0.743 | 0.059 | 0.321 | 0.772 | 0.766 | 0.530 | 0.896 | 0.326 |  |  |
+| google/gemma-4-E4B-it (readout LoRA + coherence) | Readout FT | 0.742 | 0.053 | 0.322 | 0.772 | 0.759 | 0.546 | 0.889 | 0.297 |  |  |
+| Qwen/Qwen3.5-4B-Base (readout LoRA) | Readout FT | 0.741 | 0.064 | 0.324 | 0.770 | 0.768 | 0.522 | 0.893 | 0.324 |  |  |
+| google/gemma-4-E4B-it (readout LoRA) | Readout FT | 0.737 | 0.057 | 0.330 | 0.766 | 0.754 | 0.531 | 0.892 | 0.316 |  |  |
 | Qwen/Qwen3.5-4B (Tier 2 residual, lr 3e-05) | Tier 2 residual | 0.734 | 0.096 | 0.342 | 0.762 | 0.761 | 0.518 | 0.884 | 0.337 | A40 |  |
 | google/gemma-4-12B-it | Tier 0 | 0.716 | 0.086 | 0.359 | 0.740 | 0.749 | 0.507 | 0.855 | 0.405 | A40 |  |
-| Qwen/Qwen3.5-9B (Tier 1 residual, 6-epoch cap, mean of 3 seeds) | Tier 1 residual | 0.714 | 0.071 | 0.362 | 0.740 | 0.725 | 0.507 | 0.878 | 0.376 | A40 |  |
+| google/gemma-4-E4B (readout LoRA) | Readout FT | 0.708 | 0.061 | 0.359 | 0.736 | 0.717 | 0.502 | 0.874 | 0.335 |  |  |
+| Qwen/Qwen3.5-2B (readout full fine-tune + coherence) | Readout FT | 0.704 | 0.056 | 0.358 | 0.735 | 0.718 | 0.510 | 0.853 | 0.307 |  |  |
 | togethercomputer/Tev1-4B-experimental (Tev1 prompt) | External | 0.703 | 0.086 | 0.361 | 0.732 | 0.717 | 0.512 | 0.850 | 0.394 | A40 |  |
+| Qwen/Qwen3.5-2B (readout full fine-tune) | Readout FT | 0.703 | 0.056 | 0.358 | 0.734 | 0.715 | 0.509 | 0.855 | 0.315 |  |  |
+| Qwen/Qwen3.5-2B-Base (readout LoRA + coherence) | Readout FT | 0.702 | 0.051 | 0.365 | 0.731 | 0.714 | 0.509 | 0.852 | 0.320 |  |  |
+| Qwen/Qwen3.5-2B (readout LoRA + coherence) | Readout FT | 0.702 | 0.054 | 0.364 | 0.729 | 0.718 | 0.496 | 0.858 | 0.315 |  |  |
+| Qwen/Qwen3.5-2B (readout LoRA) | Readout FT | 0.701 | 0.051 | 0.362 | 0.730 | 0.713 | 0.508 | 0.849 | 0.324 |  |  |
 | Qwen/Qwen3.5-4B (Tier 1 residual) | Tier 1 residual | 0.698 | 0.089 | 0.378 | 0.729 | 0.699 | 0.507 | 0.862 | 0.360 | A100-80GB | $1.28 |
+| Qwen/Qwen3.5-2B-Base (readout LoRA) | Readout FT | 0.696 | 0.053 | 0.365 | 0.725 | 0.714 | 0.487 | 0.852 | 0.342 |  |  |
 | Qwen/Qwen3.5-2B (Tier 2 residual, lr 3e-05, soft labels) | Tier 2 residual | 0.694 | 0.105 | 0.390 | 0.724 | 0.697 | 0.497 | 0.859 | 0.364 | A40 |  |
 | togethercomputer/Tev1-4B-experimental (Jevify prompt) | External | 0.690 | 0.088 | 0.369 | 0.718 | 0.714 | 0.487 | 0.834 | 0.408 | A40 |  |
 | Qwen/Qwen3.5-2B (Tier 2 residual, lr 3e-05) | Tier 2 residual | 0.690 | 0.103 | 0.389 | 0.720 | 0.693 | 0.510 | 0.840 | 0.332 | A40 |  |
@@ -397,6 +425,9 @@ per-config metrics, recipe and figures.
 - [x] Gemma-4-12B text Tier 0 (0.716, closest to Jev without training); Tier 1 at 9B (seed-stable, beats Jev on trained sources)
 - [x] Recipe fitter fixed (it read the rounded wire format); every Tier 0 run refitted; T(K) measured and left opt-in
 - [x] Tier 2 at the low learning rate on 4B (matches Jev's accuracy, better ECE and human agreement); soft labels fail at both rates
+- [x] Post-training study: five families at every published stage, one battery (FINDINGS 17)
+- [x] Readout fine-tuning + coherence penalty at 2B/4B/9B and on Gemma-4; full fine-tuning at 2B (LR swept on validation); 15 model repos published with reproduction checks
+- [ ] Full fine-tuning at 4B (two GPUs per run, in progress)
 - [ ] More ordinal scales; Decision 1.0 (vLLM Semantic Router) on jev-bench; synthetic structure data
 - [ ] Label-first synthetic data pipeline; HF Space; model zoo
 

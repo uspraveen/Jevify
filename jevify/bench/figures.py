@@ -713,7 +713,11 @@ def fig_cardinality_probe(probe_json: Path, out: Path, model: str) -> Path | Non
 
 
 def _short_label(label: str) -> str:
-    """'Qwen/Qwen3.5-2B (Tier 2 residual, lr 3e-05, soft labels)' -> 'Qwen3.5-2B T2 lr 3e-5 soft'."""
+    """'Qwen/Qwen3.5-2B (Tier 2 residual, lr 3e-05, soft labels)' -> 'Qwen3.5-2B T2 lr 3e-5 soft'.
+    Readout fine-tunes sit in a tight cluster, so they get tags ('9B +coh'); the legend names the backbones."""
+    if "(readout" in label:
+        base = label.split(" (")[0].split("/")[-1].replace("Qwen3.5-", "").replace("gemma-4-", "Gemma ").replace("-it", "")
+        return base + (" +coh" if "coherence" in label else "")
     s = label.split("/")[-1] if "/" in label.split(" (")[0] else label
     for a, b in ((" (TypeSafe API)", ""), (" (Tier 0)", ""), ("Tier 2 residual", "T2"), ("Tier 1 residual", "T1"),
                  ("Tier 1 replace", "T1 replace"), ("lr 3e-05", "lr 3e-5"), ("soft labels", "soft"),
@@ -740,11 +744,14 @@ def fig_models_map(rows: list[dict[str, Any]], out: Path, title: str = "Jevified
     # validated over all pairs with the dataviz palette checker; Tier 2 was purple, which sat 12.9 ΔE
     # from Tier 0's blue for full colour vision (a hard fail), so it is magenta now
     style = {"API": ("#eb6834", "D", 74), "Tier 0": (PRIM_COLOR["choice"], "o", 42),
-             "Tier 1": ("#1baf7a", "^", 62), "Tier 2": ("#c83c8c", "s", 54), "External": ("#6b6b00", "P", 66)}
+             "Tier 1": ("#1baf7a", "^", 62), "Tier 2": ("#c83c8c", "s", 54), "External": ("#6b6b00", "P", 66),
+             # a readout fine-tune is also LoRA-trained: Tier 2's validated magenta, told apart by shape (no sixth hue
+             # passes the all-pairs colour-vision check against these five)
+             "Readout FT": ("#c83c8c", "*", 150)}
     for e in rows:
         s = e["summary"]["macro"]
         t = str(e.get("tier", ""))
-        kind = ("API" if t == "API" else "External" if t == "External" else
+        kind = ("API" if t == "API" else "External" if t == "External" else "Readout FT" if t == "Readout FT" else
                 "Tier 2" if t.startswith("Tier 2") else "Tier 1" if t.startswith("Tier 1") else "Tier 0")
         color, marker, size = style[kind]
         ax.scatter(s["acc"], s["ece"], s=size, color=color, marker=marker, zorder=3, linewidths=0.8, edgecolors=SURFACE)
@@ -762,8 +769,11 @@ def fig_models_map(rows: list[dict[str, Any]], out: Path, title: str = "Jevified
                        Line2D([0], [0], marker="s", color="#c83c8c", lw=0, markersize=6.5, label="Jevified, Tier 2 (LoRA + heads)")]
                       + ([Line2D([0], [0], marker="P", color="#6b6b00", lw=0, markersize=7,
                                  label="other teams' models")]
-                         if any(str(e.get("tier")) == "External" for e in rows) else []),
-              loc="upper right", fontsize=8)
+                         if any(str(e.get("tier")) == "External" for e in rows) else [])
+                      + ([Line2D([0], [0], marker="*", color="#c83c8c", lw=0, markersize=11,
+                                 label="Jevified, readout fine-tuned + coherence (Qwen3.5 2B/4B/9B, Gemma E4B)")]
+                         if any(str(e.get("tier")) == "Readout FT" for e in rows) else []),
+              loc="lower left", fontsize=8)   # the empty corner: upper right now holds Jev and the Tier 2 rows
     sub = ("Every model scored on the same 22,773 test records. Tier 0 = zero training: prompt + logit readout + "
            "a recipe fitted on validation only. Down and to the right is better.")
     if off_chart:

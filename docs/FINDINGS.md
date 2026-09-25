@@ -1366,7 +1366,10 @@ from the base checkpoints [jevify-qwen3.5-4b-base-readout](https://huggingface.c
 [jevify-qwen3.5-2b-base-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-base-readout) ·
 [-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-base-readout-coh) ·
 [jevify-gemma-4-e4b-readout](https://huggingface.co/Praveenrajus/jevify-gemma-4-e4b-readout). The 4B repos also carry
-the seed-1 runs on a `seed1` branch.
+the seed-1 runs on a `seed1` branch. Full fine-tunes, weights included:
+[jevify-qwen3.5-2b-readout-full](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-readout-full) ·
+[-full-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-readout-full-coh) (lr 1e-6; the sweep's other learning
+rates are branches `lr1e-5`, `lr3e-6`, `lr3e-7`).
 
 *(`results/post-training/`; `scripts/publish_readout.py` packages a run.)*
 

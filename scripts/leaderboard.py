@@ -24,6 +24,21 @@ from jevify.bench import figures as F  # noqa: E402
 PRIMS = ("choice", "score", "noul")
 # checkpoints trained by other teams, scored here with the Tier 0 readout and a recipe fitted on validation
 EXTERNAL = {"togethercomputer/Tev1-4B-experimental": "Together AI, LoRA SFT of Qwen3.5-4B"}
+# the published readout fine-tunes (FINDINGS 18; seed 0), read from results/post-training/models/<slug>/. The figures
+# draw only the coherence arm of each backbone, so four new points join the map instead of fifteen.
+READOUT = [("2b-lora-supervised", "Qwen/Qwen3.5-2B", "readout LoRA"), ("2b-lora-coherence", "Qwen/Qwen3.5-2B", "readout LoRA + coherence"),
+           ("4b-lora-supervised-seed-0", "Qwen/Qwen3.5-4B", "readout LoRA"), ("4b-lora-coherence-seed-0", "Qwen/Qwen3.5-4B", "readout LoRA + coherence"),
+           ("9b-lora-supervised", "Qwen/Qwen3.5-9B", "readout LoRA"), ("9b-lora-coherence", "Qwen/Qwen3.5-9B", "readout LoRA + coherence"),
+           ("gemma-4-e4b-it-lora-supervised", "google/gemma-4-E4B-it", "readout LoRA"),
+           ("gemma-4-e4b-it-lora-coherence", "google/gemma-4-E4B-it", "readout LoRA + coherence"),
+           ("qwen3-5-4b-base-lora-supervised", "Qwen/Qwen3.5-4B-Base", "readout LoRA"),
+           ("qwen3-5-4b-base-lora-coherence", "Qwen/Qwen3.5-4B-Base", "readout LoRA + coherence"),
+           ("qwen3-5-2b-base-lora-supervised", "Qwen/Qwen3.5-2B-Base", "readout LoRA"),
+           ("qwen3-5-2b-base-lora-coherence", "Qwen/Qwen3.5-2B-Base", "readout LoRA + coherence"),
+           ("gemma-4-e4b-base-lora-supervised", "google/gemma-4-E4B", "readout LoRA"),
+           ("2b-full-ft-supervised-lr-1e-6", "Qwen/Qwen3.5-2B", "readout full fine-tune"),
+           ("2b-full-ft-coherence-lr-1e-6", "Qwen/Qwen3.5-2B", "readout full fine-tune + coherence")]
+IN_FIGURES = {"2b-lora-coherence", "4b-lora-coherence-seed-0", "9b-lora-coherence", "gemma-4-e4b-it-lora-coherence"}
 
 
 def summarize(metrics: dict, prim_of: dict[str, str]) -> dict:
@@ -97,6 +112,12 @@ def main() -> int:
                         # rented runs record the Modal GPU name; runs on our own hardware record the device
                         "gpu": run.get("gpu") or (run.get("device", "").replace("NVIDIA ", "") or None),
                         "chat": run.get("chat_applied"), "recipe": recipe.get("recipe")})
+    for slug, model, variant in READOUT:
+        d = ROOT / "results" / "post-training" / "models" / slug
+        if (d / "test_metrics.json").exists():
+            entries.append({"run": f"post-training/{slug}", "label": f"{model} ({variant})", "tier": "Readout FT", "params": "",
+                            "metrics": json.loads((d / "test_metrics.json").read_text(encoding="utf-8")),
+                            "preds": None, "cost": None, "gpu": None, "in_figures": slug in IN_FIGURES})
     rows = []
     for e in entries:
         s = summarize(e["metrics"], prim_of)
@@ -123,13 +144,14 @@ def main() -> int:
     import datetime as _dt
     F.PROVENANCE = f"jev-bench v{manifest.get('version', '?')} · {_dt.date.today().isoformat()}"
     # CLM sits at 0.34 / 0.34, far from every other model; drawn, it squeezes the rest into one corner
-    F.fig_models_map([e for e in rows if e["run"] != "clm-8b"], out,
-                     off_chart=[e for e in rows if e["run"] == "clm-8b"])
+    drawn = [e for e in rows if e.get("in_figures", True)]
+    F.fig_models_map([e for e in drawn if e["run"] != "clm-8b"], out,
+                     off_chart=[e for e in drawn if e["run"] == "clm-8b"])
     # per-config detail for every model at once: a heatmap built from each run's
     # test_metrics.json. Nothing here reads a predictions file -- the previous grouped bar
     # chart loaded all of them and then only drew when there were six models or fewer,
     # which left a stale six-model chart published under a thirteen-model leaderboard.
-    heat_rows = [{"label": "Jev 1.13.0" if e["tier"] == "API" else e["label"].split("/")[-1], "metrics": e["metrics"]} for e in rows]
+    heat_rows = [{"label": "Jev 1.13.0" if e["tier"] == "API" else e["label"].split("/")[-1], "metrics": e["metrics"]} for e in drawn]
     for metric in ("accuracy", "ece"):
         F.fig_metric_heatmap(heat_rows, prim_of, out, metric)
     print(table)
