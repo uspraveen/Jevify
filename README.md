@@ -7,15 +7,15 @@
 [**Try it**](https://uspraveenraj--jevify-playground.modal.run) ·
 [**Findings**](docs/FINDINGS.md) ·
 [jev-bench on the Hub](https://huggingface.co/datasets/Praveenrajus/jev-bench) ·
+[Models](#published-models) ·
+[Leaderboard](#leaderboard) ·
 [Jev baseline + label audit](results/jev-1.13.0/README.md) ·
-[Behavioral probes](results/jev-1.13.0/probes/README.md) ·
-[Tier 1 write-up](reports/tier1/README.md) ·
 [Jev API contract](docs/JEV_CONTRACT.md) ·
-[Dataset rationale](docs/DATASETS.md) ·
-[Training-data plan](docs/DATA_PLAN.md) ·
-[Benchmarks we did not write](results/community/README.md)
+[Dataset rationale](docs/DATASETS.md)
 
 </div>
+
+![every model on jev-bench: accuracy vs calibration](results/leaderboard/models_map.png)
 
 A *System One* model doesn't write text. It reads a `state`, answers typed questions, and returns
 probability distributions your code can branch on:
@@ -32,9 +32,110 @@ paper, weights or data. Jevify is the open version: a benchmark that can measure
 engine that gives any Hugging Face checkpoint the same interface, and a training recipe that
 optimizes the same objective.
 
-## Headline findings
+| | |
+|---|---|
+| **Jev 1.13.0** (TypeSafe API) | 0.733 accuracy, ECE 0.113 on jev-bench — calibrated on crisp questions, over-confident where people disagree |
+| **Best open model here** | Qwen3.5-9B, readout fine-tuned + coherence: 0.763 accuracy, ECE 0.056, TVD to human labels 0.301 (Jev 0.432) |
+| **Where Jev still leads** | the six held-out sources (0.835 vs 0.804), and applying a rule stated in the question (0.924 vs 0.80) |
+| **Speed** | a readout is one forward pass: 45–100 ms per question with up to ~27 options on one A40 (2B–9B), under Jev's 180–220 ms round trip |
 
-Full catalogue with evidence and caveats in **[docs/FINDINGS.md](docs/FINDINGS.md)**.
+**Contents** — [Quickstart](#quickstart) · [Published models](#published-models) · [Highlights](#highlights) ·
+[Leaderboard](#leaderboard) · [What's here](#whats-here) · [Why tiers](#why-tiers-and-why-no-rl) · [Roadmap](#roadmap) · [License](#license)
+
+## Quickstart
+
+**Playground:** [https://uspraveenraj--jevify-playground.modal.run](https://uspraveenraj--jevify-playground.modal.run) — ask a Jevified open model typed questions and watch the
+distributions. Scales to zero, so the first question waits ~30 s for a cold start.
+
+**Hosted API**, same wire format as TypeSafe's:
+
+```bash
+curl -X POST https://uspraveenraj--jevify-playground.modal.run/api/v1/systemone   -H 'Content-Type: application/json'   -d '{"state": "I was charged twice, please refund.", "model": "jevify-latest",
+       "questions": {"refund": {"type": "noul", "instructions": "Is this a refund request?"}}}'
+```
+
+The official `typesafe-sdk` works against it unchanged:
+
+```python
+# TYPESAFE_BASE_URL=https://uspraveenraj--jevify-playground.modal.run/api
+from typesafe_sdk import Noul, TypeSafeClient
+with TypeSafeClient() as client:
+    r = client.system_one(state="I was charged twice, please refund.", model="jevify-latest",
+                          questions={"refund": Noul(instructions="Is this a refund request?")})
+```
+
+**From source** — build the benchmark, score Jev on it, serve a Jevified checkpoint, run the probes:
+
+```bash
+pip install -e ".[bench,engine,serve,dev]"
+
+# the benchmark
+jevify-bench list
+jevify-bench build --out data/jev-bench                     # or load Praveenrajus/jev-bench from the Hub
+
+# score Jev (or any /v1/systemone server) on it
+TYPESAFE_API_KEY=... jevify-run api --records data/jev-bench --out preds/jev.jsonl
+jevify-run report --records data/jev-bench --preds preds/jev.jsonl --md report.md --figures figures/
+
+# Jevify a checkpoint and serve it
+jevify-serve --model Qwen/Qwen3.5-0.8B --port 8000
+TYPESAFE_BASE_URL=http://localhost:8000 python -c "from typesafe_sdk import *; print(TypeSafeClient().system_one('Refund please', {'r': Noul(instructions='Is this a refund request?')}))"
+
+# behavioral probes
+jevify-bench probe --records data/jev-bench --out data/jev-probes --n 200
+jevify-run api --records data/jev-probes --out preds/probes.jsonl
+jevify-bench probe-report --records data/jev-probes --preds preds/probes.jsonl --out results/probes
+```
+
+Tests: `pytest` (engine and server tests download a 135M model and run on CPU).
+
+## Published models
+
+Load with `load_jevified("<repo>")`, or serve as a TypeSafe drop-in with `jevify-serve --model <repo>`. The backbone is pulled
+from its own repo, so nothing is duplicated; every readout fine-tune ships a reproduction check.
+
+| family | repos | note |
+|---|---|---|
+| Readout fine-tuned + coherence | [qwen3.5-4b-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-readout-coh) · [qwen3.5-2b-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-readout-coh) · [gemma-4-e4b-it-coh](https://huggingface.co/Praveenrajus/jevify-gemma-4-e4b-it-readout-coh) | 4B: 0.751 accuracy, ECE 0.058, sure loss 0.029 (FINDINGS 18) |
+| Readout fine-tuned, supervised | [qwen3.5-9b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-9b-readout) · [qwen3.5-4b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-readout) · [qwen3.5-2b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-readout) · [gemma-4-e4b-it](https://huggingface.co/Praveenrajus/jevify-gemma-4-e4b-it-readout) | 9B: 0.759 accuracy, ECE 0.052; the 4B repos carry seed 1 on a `seed1` branch |
+| From base checkpoints | [qwen3.5-4b-base](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-base-readout) / [-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-base-readout-coh) · [qwen3.5-2b-base](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-base-readout) / [-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-base-readout-coh) · [gemma-4-e4b](https://huggingface.co/Praveenrajus/jevify-gemma-4-e4b-readout) | the starting checkpoint matters little after readout fine-tuning |
+| Full fine-tunes | [qwen3.5-2b-full](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-readout-full) · [qwen3.5-2b-full-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-readout-full-coh) | weights in the repo (3.8 GB); lr 1e-6 selected on validation, other learning rates as branches |
+| Tier 2 (LoRA + heads) | [qwen3.5-4b-t2-lowlr](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-t2-lowlr) · [qwen3.5-4b-t2](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-t2) | lowlr: accuracy 0.734 = Jev, ECE 0.096, TVD 0.337 |
+| Tier 1 (decision heads, backbone frozen) | [qwen3.5-4b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b) · [qwen3.5-2b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b) | ~11 MB each |
+| Vision | [qwen3-vl-2b](https://huggingface.co/Praveenrajus/jevify-qwen3-vl-2b) · [qwen3-vl-2b-t2](https://huggingface.co/Praveenrajus/jevify-qwen3-vl-2b-t2) | Tier 0 recipe; decoder LoRA merged at load |
+
+## Highlights
+
+**Jev, measured**
+- Excellent and calibrated on crisp, grounded questions (ARC 0.979 at ECE 0.010, FEVER 0.972) — and over-confident exactly where
+  humans disagree: on ChaosNLI its confidence stays at 0.81–0.88 while its accuracy runs 0.47 → 0.96 (r = 0.046).
+- Applies a rule written into the question at 0.924 — its largest lead over every open model ([results/b](results/b/README.md)).
+- ~75 ms + 5.5 µs per input token, flat in the number of options: the answer is read, not decoded (FINDINGS §1).
+
+**Open models, no training (Tier 0)**
+- A readout plus a validation-fitted temperature matches Jev's calibration, not its accuracy: Gemma-4-12B-it 0.716 / ECE 0.086,
+  Qwen3.5-9B 0.689 / 0.092. Instruction tuning distorts the confidence scale; one temperature per primitive repairs it.
+- On a phishing benchmark written by someone else, untrained Gemma-4-12B beats Jev by twenty points (0.825 vs 0.628)
+  ([results/community](results/community/README.md)).
+
+**Training on the decision itself** (FINDINGS 18, [results/post-training](results/post-training/README.md))
+- Readout fine-tuning puts open models above Jev overall: 9B 0.763 / ECE 0.056, 4B 0.751 / 0.058, Gemma-4-E4B 0.742 / 0.053,
+  with TVD to human labels ~0.30 against Jev's 0.43.
+- Trained alone, answers to related questions drift apart (sure loss 0.15 → 0.28 at 4B); a coherence penalty cuts that tenfold,
+  to 0.02–0.03 — below Jev's 0.081 — at no accuracy cost, at every size, in both families and under full fine-tuning.
+- Held-out sources keep us honest: a head that replaces the model's scorer loses −0.098 on sources it never saw; a residual keeps
+  Tier 0's accuracy there (FINDINGS 6).
+
+**What post-training does to a decision readout** (FINDINGS 17)
+- Base readouts are under-confident; SFT calibrates them; preference optimisation (Tülu DPO, SmolLM3 APO) makes them
+  over-confident at flat accuracy. The first post-training step makes decisions more invariant in all eight pairs tested.
+
+**Vision and speed** (FINDINGS 9–10)
+- The same primitives about an image: recipe-fitted Qwen3-VL-8B reaches ECE 0.025–0.038 on POPE, A-OKVQA and AI2D, and answers an
+  image question in 120 ms on one A40.
+
+<details>
+<summary><b>The fifteen headline findings in full</b> (with figures)</summary>
 
 **1 · Jev is calibrated right up until humans disagree — which is when calibration matters.**
 On ChaosNLI, where 100 annotators label every item, Jev's confidence is essentially **flat no
@@ -227,60 +328,101 @@ the same place in Qwen3.5 (4B: 0.741 vs 0.743; Gemma-4 closes most of its wider 
 fine-tuning matches LoRA at 2B.
 [· results](results/post-training/README.md) [· FINDINGS 17–18](docs/FINDINGS.md#17-what-post-training-does-to-a-decision-readout)
 
-## Try it
+</details>
 
-**Playground:** [https://uspraveenraj--jevify-playground.modal.run](https://uspraveenraj--jevify-playground.modal.run) — ask a Jevified open model typed questions and watch the
-distributions. Scales to zero, so the first question waits ~30 s for a cold start.
+Full catalogue with evidence and caveats: **[docs/FINDINGS.md](docs/FINDINGS.md)**. Further reading:
+[behavioral probes](results/jev-1.13.0/probes/README.md) · [Tier 1 write-up](reports/tier1/README.md) ·
+[training-data plan](docs/DATA_PLAN.md) · [benchmarks we did not write](results/community/README.md) ·
+[results index](results/README.md).
 
-**Hosted API**, same wire format as TypeSafe's:
+## Leaderboard
 
-```bash
-curl -X POST https://uspraveenraj--jevify-playground.modal.run/api/v1/systemone   -H 'Content-Type: application/json'   -d '{"state": "I was charged twice, please refund.", "model": "jevify-latest",
-       "questions": {"refund": {"type": "noul", "instructions": "Is this a refund request?"}}}'
-```
+Every model on the same 22,773 test records. Tier 0 = no training (prompt + logit readout + a
+recipe fitted on validation splits only, with the corrected fitter of FINDINGS 4.5). Tier 1 = trained decision heads, six sources held out
+of training. **TVD→human** is the mean distance to human label distributions on the four
+calibration-gold configs — lower is better, and it is the number Jev's own claim rests on.
+**External** = another team's model: Together AI's Tev1 fine-tune, read through our Tier 0 readout in
+its own prompt format (FINDINGS §11), and CLM-v0.1-8B, served by its authors' code with nothing fitted
+(§13). The bracket names the prompt a checkpoint was read in when it is not simply ours: Tev1's own
+format, or — for Tev1 — Jevify's. **Readout FT** = readout fine-tuning (FINDINGS 18): the published LoRA and full fine-tunes,
+trained on the model's own decision distribution, with or without the coherence penalty; the map draws the
+coherence arm of each backbone as a star.
 
-The official `typesafe-sdk` works against it unchanged:
+| model | tier | macro acc | macro ECE | macro Brier | sel@90 | choice acc | score acc | noul acc | TVD→human | GPU | test cost |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| **Jev 1.13.0 (TypeSafe API)** | API | 0.733 | 0.113 | 0.349 | 0.760 | 0.770 | 0.503 | 0.881 | 0.432 |  |  |
+| Qwen/Qwen3.5-9B (readout LoRA + coherence) | Readout FT | 0.763 | 0.056 | 0.299 | 0.791 | 0.791 | 0.554 | 0.906 | 0.301 |  |  |
+| Qwen/Qwen3.5-4B (readout LoRA + coherence) | Readout FT | 0.751 | 0.058 | 0.316 | 0.779 | 0.771 | 0.555 | 0.893 | 0.303 |  |  |
+| google/gemma-4-E4B-it (readout LoRA + coherence) | Readout FT | 0.742 | 0.053 | 0.322 | 0.772 | 0.759 | 0.546 | 0.889 | 0.297 |  |  |
+| Qwen/Qwen3.5-4B (Tier 2 residual, lr 3e-05) | Tier 2 residual | 0.734 | 0.096 | 0.342 | 0.762 | 0.761 | 0.518 | 0.884 | 0.337 | A40 |  |
+| google/gemma-4-12B-it | Tier 0 | 0.716 | 0.086 | 0.359 | 0.740 | 0.749 | 0.507 | 0.855 | 0.405 | A40 |  |
+| Qwen/Qwen3.5-9B (Tier 1 residual, 6-epoch cap, mean of 3 seeds) | Tier 1 residual | 0.714 | 0.071 | 0.362 | 0.740 | 0.725 | 0.507 | 0.878 | 0.376 | A40 |  |
+| togethercomputer/Tev1-4B-experimental (Tev1 prompt) | External | 0.703 | 0.086 | 0.361 | 0.732 | 0.717 | 0.512 | 0.850 | 0.394 | A40 |  |
+| Qwen/Qwen3.5-9B | Tier 0 | 0.689 | 0.092 | 0.379 | 0.717 | 0.716 | 0.503 | 0.815 | 0.423 | A40 |  |
 
-```python
-# TYPESAFE_BASE_URL=https://uspraveenraj--jevify-playground.modal.run/api
-from typesafe_sdk import Noul, TypeSafeClient
-with TypeSafeClient() as client:
-    r = client.system_one(state="I was charged twice, please refund.", model="jevify-latest",
-                          questions={"refund": Noul(instructions="Is this a refund request?")})
-```
+<details>
+<summary><b>All 43 rows</b>, and accuracy / ECE per config</summary>
 
-**Models:** [jevify-qwen3.5-4b-t2-lowlr](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-t2-lowlr)
-(Tier 2, the balanced one: accuracy 0.734 = Jev, ECE 0.096 and TVD 0.337 both better) ·
-[jevify-qwen3.5-4b-t2](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-t2)
-(Tier 2: heads + a LoRA merged at load, 97 MB — macro accuracy 0.747, above Jev's 0.733) ·
-[jevify-qwen3.5-4b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b) ·
-[jevify-qwen3.5-2b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b) (Tier 1, ~11 MB each) ·
-[jevify-qwen3-vl-2b](https://huggingface.co/Praveenrajus/jevify-qwen3-vl-2b) (vision, Tier 0 recipe) ·
-[jevify-qwen3-vl-2b-t2](https://huggingface.co/Praveenrajus/jevify-qwen3-vl-2b-t2) (vision, decoder LoRA merged at load).
-Readout fine-tunes (FINDINGS 18; each ships its recipe, a LoRA merged at load and a reproduction check):
-[jevify-qwen3.5-4b-readout-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-readout-coh)
-(4B + coherence: 0.751 accuracy, ECE 0.058, sure loss 0.029) ·
-[-4b-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-readout) ·
-[-9b-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-9b-readout) ·
-[-2b-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-readout) /
-[-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-readout-coh) ·
-[jevify-gemma-4-e4b-it-readout](https://huggingface.co/Praveenrajus/jevify-gemma-4-e4b-it-readout) /
-[-coh](https://huggingface.co/Praveenrajus/jevify-gemma-4-e4b-it-readout-coh) ·
-from base checkpoints [jevify-qwen3.5-4b-base-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-base-readout) /
-[-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-base-readout-coh) ·
-[jevify-qwen3.5-2b-base-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-base-readout) /
-[-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-base-readout-coh) ·
-[jevify-gemma-4-e4b-readout](https://huggingface.co/Praveenrajus/jevify-gemma-4-e4b-readout) (from the base checkpoint) ·
-full fine-tunes (weights in the repo, 3.8 GB) [jevify-qwen3.5-2b-readout-full](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-readout-full) /
-[-full-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-readout-full-coh) (lr 1e-6, selected on validation; the other
-learning rates are branches `lr1e-5`, `lr3e-6`, `lr3e-7`). The 4B repos carry a second seed on a `seed1` branch.
-The backbone is pulled from its own repo, so nothing is duplicated.
+| model | tier | macro acc | macro ECE | macro Brier | sel@90 | choice acc | score acc | noul acc | TVD→human | GPU | test cost |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| **Jev 1.13.0 (TypeSafe API)** | API | 0.733 | 0.113 | 0.349 | 0.760 | 0.770 | 0.503 | 0.881 | 0.432 |  |  |
+| Qwen/Qwen3.5-9B (readout LoRA + coherence) | Readout FT | 0.763 | 0.056 | 0.299 | 0.791 | 0.791 | 0.554 | 0.906 | 0.301 |  |  |
+| Qwen/Qwen3.5-9B (readout LoRA) | Readout FT | 0.759 | 0.052 | 0.302 | 0.787 | 0.790 | 0.541 | 0.905 | 0.314 |  |  |
+| Qwen/Qwen3.5-4B (readout LoRA + coherence) | Readout FT | 0.751 | 0.058 | 0.316 | 0.779 | 0.771 | 0.555 | 0.893 | 0.303 |  |  |
+| Qwen/Qwen3.5-4B-Base (readout LoRA + coherence) | Readout FT | 0.747 | 0.058 | 0.318 | 0.777 | 0.771 | 0.535 | 0.897 | 0.314 |  |  |
+| Qwen/Qwen3.5-4B (Tier 2 residual) | Tier 2 residual | 0.747 | 0.110 | 0.342 | 0.774 | 0.770 | 0.529 | 0.903 | 0.347 | A40 |  |
+| Qwen/Qwen3.5-4B (readout LoRA) | Readout FT | 0.743 | 0.059 | 0.321 | 0.772 | 0.766 | 0.530 | 0.896 | 0.326 |  |  |
+| google/gemma-4-E4B-it (readout LoRA + coherence) | Readout FT | 0.742 | 0.053 | 0.322 | 0.772 | 0.759 | 0.546 | 0.889 | 0.297 |  |  |
+| Qwen/Qwen3.5-4B-Base (readout LoRA) | Readout FT | 0.741 | 0.064 | 0.324 | 0.770 | 0.768 | 0.522 | 0.893 | 0.324 |  |  |
+| google/gemma-4-E4B-it (readout LoRA) | Readout FT | 0.737 | 0.057 | 0.330 | 0.766 | 0.754 | 0.531 | 0.892 | 0.316 |  |  |
+| Qwen/Qwen3.5-4B (Tier 2 residual, lr 3e-05) | Tier 2 residual | 0.734 | 0.096 | 0.342 | 0.762 | 0.761 | 0.518 | 0.884 | 0.337 | A40 |  |
+| google/gemma-4-12B-it | Tier 0 | 0.716 | 0.086 | 0.359 | 0.740 | 0.749 | 0.507 | 0.855 | 0.405 | A40 |  |
+| Qwen/Qwen3.5-9B (Tier 1 residual, 6-epoch cap, mean of 3 seeds) | Tier 1 residual | 0.714 | 0.071 | 0.362 | 0.740 | 0.725 | 0.507 | 0.878 | 0.376 | A40 |  |
+| google/gemma-4-E4B (readout LoRA) | Readout FT | 0.708 | 0.061 | 0.359 | 0.736 | 0.717 | 0.502 | 0.874 | 0.335 |  |  |
+| Qwen/Qwen3.5-2B (readout full fine-tune + coherence) | Readout FT | 0.704 | 0.056 | 0.358 | 0.735 | 0.718 | 0.510 | 0.853 | 0.307 |  |  |
+| togethercomputer/Tev1-4B-experimental (Tev1 prompt) | External | 0.703 | 0.086 | 0.361 | 0.732 | 0.717 | 0.512 | 0.850 | 0.394 | A40 |  |
+| Qwen/Qwen3.5-2B (readout full fine-tune) | Readout FT | 0.703 | 0.056 | 0.358 | 0.734 | 0.715 | 0.509 | 0.855 | 0.315 |  |  |
+| Qwen/Qwen3.5-2B-Base (readout LoRA + coherence) | Readout FT | 0.702 | 0.051 | 0.365 | 0.731 | 0.714 | 0.509 | 0.852 | 0.320 |  |  |
+| Qwen/Qwen3.5-2B (readout LoRA + coherence) | Readout FT | 0.702 | 0.054 | 0.364 | 0.729 | 0.718 | 0.496 | 0.858 | 0.315 |  |  |
+| Qwen/Qwen3.5-2B (readout LoRA) | Readout FT | 0.701 | 0.051 | 0.362 | 0.730 | 0.713 | 0.508 | 0.849 | 0.324 |  |  |
+| Qwen/Qwen3.5-4B (Tier 1 residual) | Tier 1 residual | 0.698 | 0.089 | 0.378 | 0.729 | 0.699 | 0.507 | 0.862 | 0.360 | A100-80GB | $1.28 |
+| Qwen/Qwen3.5-2B-Base (readout LoRA) | Readout FT | 0.696 | 0.053 | 0.365 | 0.725 | 0.714 | 0.487 | 0.852 | 0.342 |  |  |
+| Qwen/Qwen3.5-2B (Tier 2 residual, lr 3e-05, soft labels) | Tier 2 residual | 0.694 | 0.105 | 0.390 | 0.724 | 0.697 | 0.497 | 0.859 | 0.364 | A40 |  |
+| togethercomputer/Tev1-4B-experimental (Jevify prompt) | External | 0.690 | 0.088 | 0.369 | 0.718 | 0.714 | 0.487 | 0.834 | 0.408 | A40 |  |
+| Qwen/Qwen3.5-2B (Tier 2 residual, lr 3e-05) | Tier 2 residual | 0.690 | 0.103 | 0.389 | 0.720 | 0.693 | 0.510 | 0.840 | 0.332 | A40 |  |
+| Qwen/Qwen3.5-9B | Tier 0 | 0.689 | 0.092 | 0.379 | 0.717 | 0.716 | 0.503 | 0.815 | 0.423 | A40 |  |
+| Qwen/Qwen3.5-2B (Tier 2 residual) | Tier 2 residual | 0.685 | 0.116 | 0.410 | 0.713 | 0.671 | 0.508 | 0.854 | 0.370 | A40 |  |
+| Qwen/Qwen3.5-2B (Tier 2 residual, soft labels) | Tier 2 residual | 0.674 | 0.116 | 0.412 | 0.703 | 0.682 | 0.471 | 0.837 | 0.433 | A40 |  |
+| Qwen/Qwen3.5-4B (Tev1 prompt) | Tier 0 | 0.673 | 0.104 | 0.402 | 0.702 | 0.687 | 0.499 | 0.805 | 0.421 | A40 |  |
+| Qwen/Qwen3.5-4B | Tier 0 | 0.662 | 0.090 | 0.401 | 0.689 | 0.687 | 0.468 | 0.796 | 0.438 | A100-80GB | $0.96 |
+| google/gemma-4-E4B-it | Tier 0 | 0.658 | 0.092 | 0.398 | 0.682 | 0.700 | 0.432 | 0.798 | 0.434 | A100-80GB | $1.00 |
+| Qwen/Qwen3.5-2B (Tier 1 residual) | Tier 1 residual | 0.632 | 0.069 | 0.445 | 0.657 | 0.596 | 0.449 | 0.835 | 0.374 | A100-80GB | $0.67 |
+| Qwen/Qwen3.5-2B (Tier 1 residual, 6-epoch cap, mean of 5 seeds) | Tier 1 residual | 0.631 | 0.078 | 0.450 | 0.655 | 0.603 | 0.445 | 0.827 | 0.373 | A40 |  |
+| IFM/K2-Horizon-7B | Tier 0 | 0.623 | 0.093 | 0.436 | 0.647 | 0.617 | 0.409 | 0.813 | 0.434 | A40 |  |
+| Qwen/Qwen3.5-2B (Tier 1 replace) | Tier 1 replace | 0.599 | 0.083 | 0.475 | 0.621 | 0.567 | 0.378 | 0.828 | 0.416 | A100-80GB | $0.62 |
+| google/gemma-4-E2B-it | Tier 0 | 0.591 | 0.123 | 0.484 | 0.612 | 0.594 | 0.440 | 0.716 | 0.492 | L4 | $0.75 |
+| Qwen/Qwen3.5-2B | Tier 0 | 0.577 | 0.089 | 0.485 | 0.599 | 0.545 | 0.424 | 0.750 | 0.458 | A100-80GB | $0.66 |
+| HuggingFaceTB/SmolLM3-3B | Tier 0 | 0.552 | 0.111 | 0.519 | 0.570 | 0.504 | 0.401 | 0.744 | 0.460 | A100-80GB | $0.64 |
+| Qwen/Qwen3.5-0.8B | Tier 0 | 0.526 | 0.112 | 0.542 | 0.544 | 0.436 | 0.388 | 0.759 | 0.440 | L4 | $0.55 |
+| Qwen/Qwen3.5-0.8B-Base | Tier 0 | 0.466 | 0.105 | 0.582 | 0.478 | 0.326 | 0.412 | 0.692 | 0.452 | L4 | $0.50 |
+| IFM/K2-Horizon-0.9B | Tier 0 | 0.448 | 0.119 | 0.589 | 0.461 | 0.344 | 0.343 | 0.670 | 0.479 | L4 | $0.35 |
+| google/gemma-4-E2B | Tier 0 | 0.396 | 0.115 | 0.609 | 0.404 | 0.247 | 0.382 | 0.600 | 0.496 | L4 | $0.69 |
+| CLM-v0.1-8B (Contrastive-LM, self-hosted) | External | 0.340 | 0.338 | 0.814 | 0.349 | 0.213 | 0.234 | 0.593 | 0.669 |  |  |
 
-```python
-from jevify import load_jevified
-model = load_jevified("Praveenrajus/jevify-qwen3.5-4b")
-model.ask(state, questions)
-```
+![accuracy per config](results/leaderboard/heatmap_accuracy.png)
+
+![ECE per config](results/leaderboard/heatmap_ece.png)
+
+</details>
+
+![models](results/leaderboard/models_map.png)
+
+Per config, for every model at once — the dark cells are Jev on Score and CLM almost everywhere:
+
+![ECE per config, every model](results/leaderboard/heatmap_ece.png)
+
+Refresh with `python scripts/leaderboard.py`; every row has `results/<run>/` with its predictions,
+per-config metrics, recipe and figures.
 
 ## What's here
 
@@ -333,73 +475,17 @@ benchmarks. Every fine-tune ships as a loadable repo whose card is generated fro
 passes a reproduction check before upload. → `scripts/publish_readout.py`, `scripts/tag_invariance.py`,
 `results/post-training/`, FINDINGS 17–18.
 
-## Leaderboard
+## Why tiers, and why no RL
 
-Every model on the same 22,773 test records. Tier 0 = no training (prompt + logit readout + a
-recipe fitted on validation splits only, with the corrected fitter of FINDINGS 4.5). Tier 1 = trained decision heads, six sources held out
-of training. **TVD→human** is the mean distance to human label distributions on the four
-calibration-gold configs — lower is better, and it is the number Jev's own claim rests on.
-**External** = another team's model: Together AI's Tev1 fine-tune, read through our Tier 0 readout in
-its own prompt format (FINDINGS §11), and CLM-v0.1-8B, served by its authors' code with nothing fitted
-(§13). The bracket names the prompt a checkpoint was read in when it is not simply ours: Tev1's own
-format, or — for Tev1 — Jevify's. **Readout FT** = readout fine-tuning (FINDINGS 18): the published LoRA and full fine-tunes,
-trained on the model's own decision distribution, with or without the coherence penalty; the map draws the
-coherence arm of each backbone as a star.
+Calibration comes from optimizing a strictly proper scoring rule against real outcomes. TypeSafe
+calls their version RLCD. When the model *emits* a decision you need RL to push that objective
+through a sampling step; when the decision is read from a differentiable head on the backbone's
+hidden states, the same objective is just a loss. Jevify trains heads (and optionally LoRA) by
+gradient descent on log/Brier/ranked-probability losses — no reward model, no rollouts — and each
+tier has to earn its place on jev-bench.
 
-| model | tier | macro acc | macro ECE | macro Brier | sel@90 | choice acc | score acc | noul acc | TVD→human | GPU | test cost |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| **Jev 1.13.0 (TypeSafe API)** | API | 0.733 | 0.113 | 0.349 | 0.760 | 0.770 | 0.503 | 0.881 | 0.432 |  |  |
-| Qwen/Qwen3.5-9B (readout LoRA + coherence) | Readout FT | 0.763 | 0.056 | 0.299 | 0.791 | 0.791 | 0.554 | 0.906 | 0.301 |  |  |
-| Qwen/Qwen3.5-9B (readout LoRA) | Readout FT | 0.759 | 0.052 | 0.302 | 0.787 | 0.790 | 0.541 | 0.905 | 0.314 |  |  |
-| Qwen/Qwen3.5-4B (readout LoRA + coherence) | Readout FT | 0.751 | 0.058 | 0.316 | 0.779 | 0.771 | 0.555 | 0.893 | 0.303 |  |  |
-| Qwen/Qwen3.5-4B-Base (readout LoRA + coherence) | Readout FT | 0.747 | 0.058 | 0.318 | 0.777 | 0.771 | 0.535 | 0.897 | 0.314 |  |  |
-| Qwen/Qwen3.5-4B (Tier 2 residual) | Tier 2 residual | 0.747 | 0.110 | 0.342 | 0.774 | 0.770 | 0.529 | 0.903 | 0.347 | A40 |  |
-| Qwen/Qwen3.5-4B (readout LoRA) | Readout FT | 0.743 | 0.059 | 0.321 | 0.772 | 0.766 | 0.530 | 0.896 | 0.326 |  |  |
-| google/gemma-4-E4B-it (readout LoRA + coherence) | Readout FT | 0.742 | 0.053 | 0.322 | 0.772 | 0.759 | 0.546 | 0.889 | 0.297 |  |  |
-| Qwen/Qwen3.5-4B-Base (readout LoRA) | Readout FT | 0.741 | 0.064 | 0.324 | 0.770 | 0.768 | 0.522 | 0.893 | 0.324 |  |  |
-| google/gemma-4-E4B-it (readout LoRA) | Readout FT | 0.737 | 0.057 | 0.330 | 0.766 | 0.754 | 0.531 | 0.892 | 0.316 |  |  |
-| Qwen/Qwen3.5-4B (Tier 2 residual, lr 3e-05) | Tier 2 residual | 0.734 | 0.096 | 0.342 | 0.762 | 0.761 | 0.518 | 0.884 | 0.337 | A40 |  |
-| google/gemma-4-12B-it | Tier 0 | 0.716 | 0.086 | 0.359 | 0.740 | 0.749 | 0.507 | 0.855 | 0.405 | A40 |  |
-| google/gemma-4-E4B (readout LoRA) | Readout FT | 0.708 | 0.061 | 0.359 | 0.736 | 0.717 | 0.502 | 0.874 | 0.335 |  |  |
-| Qwen/Qwen3.5-2B (readout full fine-tune + coherence) | Readout FT | 0.704 | 0.056 | 0.358 | 0.735 | 0.718 | 0.510 | 0.853 | 0.307 |  |  |
-| togethercomputer/Tev1-4B-experimental (Tev1 prompt) | External | 0.703 | 0.086 | 0.361 | 0.732 | 0.717 | 0.512 | 0.850 | 0.394 | A40 |  |
-| Qwen/Qwen3.5-2B (readout full fine-tune) | Readout FT | 0.703 | 0.056 | 0.358 | 0.734 | 0.715 | 0.509 | 0.855 | 0.315 |  |  |
-| Qwen/Qwen3.5-2B-Base (readout LoRA + coherence) | Readout FT | 0.702 | 0.051 | 0.365 | 0.731 | 0.714 | 0.509 | 0.852 | 0.320 |  |  |
-| Qwen/Qwen3.5-2B (readout LoRA + coherence) | Readout FT | 0.702 | 0.054 | 0.364 | 0.729 | 0.718 | 0.496 | 0.858 | 0.315 |  |  |
-| Qwen/Qwen3.5-2B (readout LoRA) | Readout FT | 0.701 | 0.051 | 0.362 | 0.730 | 0.713 | 0.508 | 0.849 | 0.324 |  |  |
-| Qwen/Qwen3.5-4B (Tier 1 residual) | Tier 1 residual | 0.698 | 0.089 | 0.378 | 0.729 | 0.699 | 0.507 | 0.862 | 0.360 | A100-80GB | $1.28 |
-| Qwen/Qwen3.5-2B-Base (readout LoRA) | Readout FT | 0.696 | 0.053 | 0.365 | 0.725 | 0.714 | 0.487 | 0.852 | 0.342 |  |  |
-| Qwen/Qwen3.5-2B (Tier 2 residual, lr 3e-05, soft labels) | Tier 2 residual | 0.694 | 0.105 | 0.390 | 0.724 | 0.697 | 0.497 | 0.859 | 0.364 | A40 |  |
-| togethercomputer/Tev1-4B-experimental (Jevify prompt) | External | 0.690 | 0.088 | 0.369 | 0.718 | 0.714 | 0.487 | 0.834 | 0.408 | A40 |  |
-| Qwen/Qwen3.5-2B (Tier 2 residual, lr 3e-05) | Tier 2 residual | 0.690 | 0.103 | 0.389 | 0.720 | 0.693 | 0.510 | 0.840 | 0.332 | A40 |  |
-| Qwen/Qwen3.5-9B | Tier 0 | 0.689 | 0.092 | 0.379 | 0.717 | 0.716 | 0.503 | 0.815 | 0.423 | A40 |  |
-| Qwen/Qwen3.5-2B (Tier 2 residual) | Tier 2 residual | 0.685 | 0.116 | 0.410 | 0.713 | 0.671 | 0.508 | 0.854 | 0.370 | A40 |  |
-| Qwen/Qwen3.5-2B (Tier 2 residual, soft labels) | Tier 2 residual | 0.674 | 0.116 | 0.412 | 0.703 | 0.682 | 0.471 | 0.837 | 0.433 | A40 |  |
-| Qwen/Qwen3.5-4B (Tev1 prompt) | Tier 0 | 0.673 | 0.104 | 0.402 | 0.702 | 0.687 | 0.499 | 0.805 | 0.421 | A40 |  |
-| Qwen/Qwen3.5-4B | Tier 0 | 0.662 | 0.090 | 0.401 | 0.689 | 0.687 | 0.468 | 0.796 | 0.438 | A100-80GB | $0.96 |
-| google/gemma-4-E4B-it | Tier 0 | 0.658 | 0.092 | 0.398 | 0.682 | 0.700 | 0.432 | 0.798 | 0.434 | A100-80GB | $1.00 |
-| Qwen/Qwen3.5-2B (Tier 1 residual) | Tier 1 residual | 0.632 | 0.069 | 0.445 | 0.657 | 0.596 | 0.449 | 0.835 | 0.374 | A100-80GB | $0.67 |
-| IFM/K2-Horizon-7B | Tier 0 | 0.623 | 0.093 | 0.436 | 0.647 | 0.617 | 0.409 | 0.813 | 0.434 | A40 |  |
-| Qwen/Qwen3.5-2B (Tier 1 replace) | Tier 1 replace | 0.599 | 0.083 | 0.475 | 0.621 | 0.567 | 0.378 | 0.828 | 0.416 | A100-80GB | $0.62 |
-| google/gemma-4-E2B-it | Tier 0 | 0.591 | 0.123 | 0.484 | 0.612 | 0.594 | 0.440 | 0.716 | 0.492 | L4 | $0.75 |
-| Qwen/Qwen3.5-2B | Tier 0 | 0.577 | 0.089 | 0.485 | 0.599 | 0.545 | 0.424 | 0.750 | 0.458 | A100-80GB | $0.66 |
-| HuggingFaceTB/SmolLM3-3B | Tier 0 | 0.552 | 0.111 | 0.519 | 0.570 | 0.504 | 0.401 | 0.744 | 0.460 | A100-80GB | $0.64 |
-| Qwen/Qwen3.5-0.8B | Tier 0 | 0.526 | 0.112 | 0.542 | 0.544 | 0.436 | 0.388 | 0.759 | 0.440 | L4 | $0.55 |
-| Qwen/Qwen3.5-0.8B-Base | Tier 0 | 0.466 | 0.105 | 0.582 | 0.478 | 0.326 | 0.412 | 0.692 | 0.452 | L4 | $0.50 |
-| IFM/K2-Horizon-0.9B | Tier 0 | 0.448 | 0.119 | 0.589 | 0.461 | 0.344 | 0.343 | 0.670 | 0.479 | L4 | $0.35 |
-| google/gemma-4-E2B | Tier 0 | 0.396 | 0.115 | 0.609 | 0.404 | 0.247 | 0.382 | 0.600 | 0.496 | L4 | $0.69 |
-| CLM-v0.1-8B (Contrastive-LM, self-hosted) | External | 0.340 | 0.338 | 0.814 | 0.349 | 0.213 | 0.234 | 0.593 | 0.669 |  |  |
-
-![models](results/leaderboard/models_map.png)
-
-Per config, for every model at once — the dark cells are Jev on Score and CLM almost everywhere:
-
-![ECE per config, every model](results/leaderboard/heatmap_ece.png)
-
-Refresh with `python scripts/leaderboard.py`; every row has `results/<run>/` with its predictions,
-per-config metrics, recipe and figures.
-
-## Roadmap
+<details>
+<summary><b>Roadmap</b></summary>
 
 - [x] jev-bench v0.1.1, Jev 1.13.0 baseline, figures, label audit, behavioral probes
 - [x] Tier 0 engine + server + offline recipe search
@@ -431,39 +517,7 @@ per-config metrics, recipe and figures.
 - [ ] More ordinal scales; Decision 1.0 (vLLM Semantic Router) on jev-bench; synthetic structure data
 - [ ] Label-first synthetic data pipeline; HF Space; model zoo
 
-## Why tiers, and why no RL
-
-Calibration comes from optimizing a strictly proper scoring rule against real outcomes. TypeSafe
-calls their version RLCD. When the model *emits* a decision you need RL to push that objective
-through a sampling step; when the decision is read from a differentiable head on the backbone's
-hidden states, the same objective is just a loss. Jevify trains heads (and optionally LoRA) by
-gradient descent on log/Brier/ranked-probability losses — no reward model, no rollouts — and each
-tier has to earn its place on jev-bench.
-
-## Quickstart
-
-```bash
-pip install -e ".[bench,engine,serve,dev]"
-
-# the benchmark
-jevify-bench list
-jevify-bench build --out data/jev-bench                     # or load Praveenrajus/jev-bench from the Hub
-
-# score Jev (or any /v1/systemone server) on it
-TYPESAFE_API_KEY=... jevify-run api --records data/jev-bench --out preds/jev.jsonl
-jevify-run report --records data/jev-bench --preds preds/jev.jsonl --md report.md --figures figures/
-
-# Jevify a checkpoint and serve it
-jevify-serve --model Qwen/Qwen3.5-0.8B --port 8000
-TYPESAFE_BASE_URL=http://localhost:8000 python -c "from typesafe_sdk import *; print(TypeSafeClient().system_one('Refund please', {'r': Noul(instructions='Is this a refund request?')}))"
-
-# behavioral probes
-jevify-bench probe --records data/jev-bench --out data/jev-probes --n 200
-jevify-run api --records data/jev-probes --out preds/probes.jsonl
-jevify-bench probe-report --records data/jev-probes --preds preds/probes.jsonl --out results/probes
-```
-
-Tests: `pytest` (engine and server tests download a 135M model and run on CPU).
+</details>
 
 ## License
 

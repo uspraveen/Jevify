@@ -112,6 +112,29 @@ def main() -> int:
                         # rented runs record the Modal GPU name; runs on our own hardware record the device
                         "gpu": run.get("gpu") or (run.get("device", "").replace("NVIDIA ", "") or None),
                         "chat": run.get("chat_applied"), "recipe": recipe.get("recipe")})
+    # a model reported only as seed replicates (<run>-s0 ... -sN with no <run>/) gets one row: the per-source mean over
+    # its seeds. Without this, the 9B Tier 1 row existed only as a hand edit of the README and a regeneration dropped it.
+    groups: dict[str, list[Path]] = {}
+    for d in sorted((ROOT / "results").glob("*/")):
+        m = re.match(r"(.+)-s\d+$", d.name)
+        if m and (d / "test_metrics.json").exists() and (d / "run.json").exists():
+            groups.setdefault(m.group(1), []).append(d)
+    for base, ds in groups.items():
+        if len(ds) < 2 or (ROOT / "results" / base / "run.json").exists():
+            continue                          # a single-run row already stands for this model
+        run = json.loads((ds[0] / "run.json").read_text())
+        ms = [json.loads((d / "test_metrics.json").read_text(encoding="utf-8")) for d in ds]
+        num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
+        mean = {src: {k: (float(np.mean([m[src][k] for m in ms])) if all(num(m[src].get(k)) for m in ms) else ms[0][src].get(k))
+                      for k in ms[0][src]} for src in ms[0] if all(src in m for m in ms)}
+        tier = f"Tier {run.get('tier', 0)}" + ("" if not run.get("tier") else (" residual" if run.get("residual") else " replace"))
+        cap = f"{run['epochs']}-epoch cap, " if run.get("tier") == 1 and run.get("epochs") == 6 else ""
+        # drawn only when it is the backbone's sole row at this tier (the 9B Tier 1); a capped-schedule ablation of a
+        # model already on the map stays in the table and off the figure
+        drawn = not any(x["label"].split(" (")[0] == run.get("model_id") and x["tier"] == tier for x in entries)
+        entries.append({"run": base, "label": f"{run.get('model_id', base)} ({tier}, {cap}mean of {len(ds)} seeds)", "tier": tier,
+                        "params": "", "metrics": mean, "preds": None, "cost": None, "in_figures": drawn,
+                        "gpu": (run.get("device", "").replace("NVIDIA ", "") or None)})
     for slug, model, variant in READOUT:
         d = ROOT / "results" / "post-training" / "models" / slug
         if (d / "test_metrics.json").exists():

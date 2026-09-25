@@ -12,6 +12,7 @@
 | google/gemma-4-E4B-it (readout LoRA) | Readout FT | 0.737 | 0.057 | 0.330 | 0.766 | 0.754 | 0.531 | 0.892 | 0.316 |  |  |
 | Qwen/Qwen3.5-4B (Tier 2 residual, lr 3e-05) | Tier 2 residual | 0.734 | 0.096 | 0.342 | 0.762 | 0.761 | 0.518 | 0.884 | 0.337 | A40 |  |
 | google/gemma-4-12B-it | Tier 0 | 0.716 | 0.086 | 0.359 | 0.740 | 0.749 | 0.507 | 0.855 | 0.405 | A40 |  |
+| Qwen/Qwen3.5-9B (Tier 1 residual, 6-epoch cap, mean of 3 seeds) | Tier 1 residual | 0.714 | 0.071 | 0.362 | 0.740 | 0.725 | 0.507 | 0.878 | 0.376 | A40 |  |
 | google/gemma-4-E4B (readout LoRA) | Readout FT | 0.708 | 0.061 | 0.359 | 0.736 | 0.717 | 0.502 | 0.874 | 0.335 |  |  |
 | Qwen/Qwen3.5-2B (readout full fine-tune + coherence) | Readout FT | 0.704 | 0.056 | 0.358 | 0.735 | 0.718 | 0.510 | 0.853 | 0.307 |  |  |
 | togethercomputer/Tev1-4B-experimental (Tev1 prompt) | External | 0.703 | 0.086 | 0.361 | 0.732 | 0.717 | 0.512 | 0.850 | 0.394 | A40 |  |
@@ -31,6 +32,7 @@
 | Qwen/Qwen3.5-4B | Tier 0 | 0.662 | 0.090 | 0.401 | 0.689 | 0.687 | 0.468 | 0.796 | 0.438 | A100-80GB | $0.96 |
 | google/gemma-4-E4B-it | Tier 0 | 0.658 | 0.092 | 0.398 | 0.682 | 0.700 | 0.432 | 0.798 | 0.434 | A100-80GB | $1.00 |
 | Qwen/Qwen3.5-2B (Tier 1 residual) | Tier 1 residual | 0.632 | 0.069 | 0.445 | 0.657 | 0.596 | 0.449 | 0.835 | 0.374 | A100-80GB | $0.67 |
+| Qwen/Qwen3.5-2B (Tier 1 residual, 6-epoch cap, mean of 5 seeds) | Tier 1 residual | 0.631 | 0.078 | 0.450 | 0.655 | 0.603 | 0.445 | 0.827 | 0.373 | A40 |  |
 | IFM/K2-Horizon-7B | Tier 0 | 0.623 | 0.093 | 0.436 | 0.647 | 0.617 | 0.409 | 0.813 | 0.434 | A40 |  |
 | Qwen/Qwen3.5-2B (Tier 1 replace) | Tier 1 replace | 0.599 | 0.083 | 0.475 | 0.621 | 0.567 | 0.378 | 0.828 | 0.416 | A100-80GB | $0.62 |
 | google/gemma-4-E2B-it | Tier 0 | 0.591 | 0.123 | 0.484 | 0.612 | 0.594 | 0.440 | 0.716 | 0.492 | L4 | $0.75 |
