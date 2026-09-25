@@ -1,0 +1,6 @@
+{
+ "label": "9B LoRA, + coherence",
+ "family": "Readout fine-tuning \u00b7 other starting points",
+ "size": "9B",
+ "stage": "LoRA coh"
+}

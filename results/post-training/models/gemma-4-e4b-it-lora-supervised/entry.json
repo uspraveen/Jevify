@@ -1,0 +1,6 @@
+{
+ "label": "Gemma-4-E4B-it LoRA, supervised",
+ "family": "Readout fine-tuning \u00b7 other starting points",
+ "size": "E4B",
+ "stage": "LoRA sup"
+}

@@ -1,0 +1,10 @@
+[
+  {"run_id": "smollm3-3b-base-nochat", "model_id": "HuggingFaceTB/SmolLM3-3B-Base", "revision": "d78a42f79198603e614095753484a04c10c2b940", "gpu": "A100-80GB", "chat": false},
+  {"run_id": "smollm3-3b-mid-nochat", "model_id": "HuggingFaceTB/SmolLM3-3B-checkpoints", "revision": "0485ec16b618f88f6dbb27b23dbdecca1d6a1cdd", "gpu": "A100-80GB", "chat": false},
+  {"run_id": "smollm3-3b-sft-nochat", "model_id": "HuggingFaceTB/SmolLM3-3B-checkpoints", "revision": "f6ddaa5f2e99f24ea507596c214595769fb06387", "gpu": "A100-80GB", "chat": false},
+  {"run_id": "smollm3-3b-apo-nochat", "model_id": "HuggingFaceTB/SmolLM3-3B-checkpoints", "revision": "cfb32d505f5025ec9be4e704f70cfbf5bdf8da94", "gpu": "A100-80GB", "chat": false},
+  {"run_id": "smollm3-3b-final-nochat", "model_id": "HuggingFaceTB/SmolLM3-3B", "revision": "a07cc9a04f16550a088caea529712d1d335b0ac1", "gpu": "A100-80GB", "chat": false},
+  {"run_id": "smollm3-3b-mid", "model_id": "HuggingFaceTB/SmolLM3-3B-checkpoints", "revision": "0485ec16b618f88f6dbb27b23dbdecca1d6a1cdd", "gpu": "A100-80GB"},
+  {"run_id": "smollm3-3b-sft", "model_id": "HuggingFaceTB/SmolLM3-3B-checkpoints", "revision": "f6ddaa5f2e99f24ea507596c214595769fb06387", "gpu": "A100-80GB"},
+  {"run_id": "smollm3-3b-apo", "model_id": "HuggingFaceTB/SmolLM3-3B-checkpoints", "revision": "cfb32d505f5025ec9be4e704f70cfbf5bdf8da94", "gpu": "A100-80GB"}
+]

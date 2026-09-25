@@ -63,7 +63,14 @@ def read_predictions(path: Path) -> Iterator[Prediction]:
 
 
 def done_ids(path: Path) -> set[str]:
-    """Ids already present in a predictions file (for --resume). Errored rows are retried."""
+    """Ids already present in a predictions file (for --resume). Errored rows are retried.
+
+    A run killed mid-write leaves a partial last line; it is cut off here, before anything is appended,
+    or the next record would be glued onto it and the file could no longer be read."""
     if not path.exists():
         return set()
+    data = path.read_bytes()
+    if data and not data.endswith(b"\n"):
+        with path.open("r+b") as f:
+            f.truncate(data.rfind(b"\n") + 1)
     return {p.id for p in read_predictions(path) if not p.error}

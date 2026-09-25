@@ -1,0 +1,126 @@
+{
+ "model": "gemma4-e2b-it",
+ "adapter": null,
+ "prompt": "jevify",
+ "temperatures": {
+  "choice": 3.295,
+  "score": 6.5186,
+  "noul": 13.9553
+ },
+ "sources": [
+  "arc_challenge",
+  "chaosnli",
+  "helpsteer2_helpfulness",
+  "helpsteer2_verbosity",
+  "measuring_hate_speech",
+  "mmlu",
+  "mnli",
+  "sst5",
+  "stsb",
+  "yelp5"
+ ],
+ "results": {
+  "upper": {
+   "raw": {
+    "n": 1500,
+    "acc": 0.5,
+    "ece": 0.4331300021001874
+   },
+   "tempered": {
+    "n": 1500,
+    "acc": 0.5,
+    "ece": 0.1346207934439834
+   }
+  },
+  "shifted": {
+   "raw": {
+    "n": 1500,
+    "acc": 0.504,
+    "ece": 0.4329910497062005,
+    "tvd_vs_upper": 0.039252451232828424,
+    "flip_vs_upper": 0.04,
+    "pairs": 1500
+   },
+   "tempered": {
+    "n": 1500,
+    "acc": 0.504,
+    "ece": 0.14162023414509067,
+    "tvd_vs_upper": 0.03552298342824704,
+    "flip_vs_upper": 0.04,
+    "pairs": 1500
+   }
+  },
+  "lower": {
+   "raw": {
+    "n": 1500,
+    "acc": 0.5013333333333333,
+    "ece": 0.43152015182008063,
+    "tvd_vs_upper": 0.01625439317465363,
+    "flip_vs_upper": 0.015333333333333332,
+    "pairs": 1500
+   },
+   "tempered": {
+    "n": 1500,
+    "acc": 0.5013333333333333,
+    "ece": 0.13125729009629072,
+    "tvd_vs_upper": 0.016644977708735895,
+    "flip_vs_upper": 0.015333333333333332,
+    "pairs": 1500
+   }
+  },
+  "digits1": {
+   "raw": {
+    "n": 1500,
+    "acc": 0.512,
+    "ece": 0.4217146930043361,
+    "tvd_vs_upper": 0.04017882960092681,
+    "flip_vs_upper": 0.03933333333333333,
+    "pairs": 1500
+   },
+   "tempered": {
+    "n": 1500,
+    "acc": 0.512,
+    "ece": 0.10802897264058664,
+    "tvd_vs_upper": 0.04110682442720318,
+    "flip_vs_upper": 0.03933333333333333,
+    "pairs": 1500
+   }
+  },
+  "digits0": {
+   "raw": {
+    "n": 1500,
+    "acc": 0.5153333333333333,
+    "ece": 0.41694414814179,
+    "tvd_vs_upper": 0.048458308833058975,
+    "flip_vs_upper": 0.04666666666666667,
+    "pairs": 1500
+   },
+   "tempered": {
+    "n": 1500,
+    "acc": 0.5153333333333333,
+    "ece": 0.10044107125298513,
+    "tvd_vs_upper": 0.04919147799169978,
+    "flip_vs_upper": 0.04666666666666667,
+    "pairs": 1500
+   }
+  },
+  "symbols": {
+   "raw": {
+    "n": 1500,
+    "acc": 0.5,
+    "ece": 0.43002586626730765,
+    "tvd_vs_upper": 0.053437978577634375,
+    "flip_vs_upper": 0.056,
+    "pairs": 1500
+   },
+   "tempered": {
+    "n": 1500,
+    "acc": 0.5,
+    "ece": 0.13930912365495296,
+    "tvd_vs_upper": 0.04991912825660402,
+    "flip_vs_upper": 0.056,
+    "pairs": 1500
+   }
+  }
+ }
+}

@@ -213,6 +213,19 @@ one shift fitted on **sixteen labelled emails** takes Tev1 from 0.51 to 0.76 and
 0.70 on the emails it never saw.
 [· new tests](results/b/README.md) [· retraining](results/c/README.md) [· the phishing threshold](results/phishing-recalibration/README.md)
 
+**15 · Post-training shapes a decision readout stage by stage — and a coherence penalty removes the
+incoherence that fine-tuning adds.** Scored at every published stage of five families, base readouts are
+under-confident, SFT calibrates them and adds ~10 points, and preference optimisation (Tülu DPO, SmolLM3 APO —
+two labs, two algorithms) makes them over-confident at flat accuracy (fitted temperatures up 1.3–2.4×). The first
+post-training step makes decisions more invariant in all eight base → post-trained pairs, and Gemma-4's instruct
+models score *below* their bases without their chat template. Readout fine-tuning — training a model on its own
+decision distribution — takes Qwen3.5 2B/4B/9B and Gemma-4-E4B to **0.70–0.76** accuracy at ECE 0.05–0.06 (Jev
+0.733 / 0.113), but makes their answers to related questions contradict each other more (sure loss 0.15 → 0.28 at
+4B). Adding that sure loss as a penalty cuts it tenfold, to 0.02–0.03 — below Jev's 0.081 — at no accuracy cost
+and with closer agreement to human label distributions at every size. Starting from the base checkpoint ends in
+the same place (4B: 0.741 vs 0.743), and full fine-tuning matches LoRA at 2B.
+[· results](results/post-training/README.md) [· FINDINGS 17–18](docs/FINDINGS.md#17-what-post-training-does-to-a-decision-readout)
+
 ## Try it
 
 **Playground:** [https://uspraveenraj--jevify-playground.modal.run](https://uspraveenraj--jevify-playground.modal.run) — ask a Jevified open model typed questions and watch the
@@ -243,6 +256,18 @@ with TypeSafeClient() as client:
 [jevify-qwen3.5-2b](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b) (Tier 1, ~11 MB each) ·
 [jevify-qwen3-vl-2b](https://huggingface.co/Praveenrajus/jevify-qwen3-vl-2b) (vision, Tier 0 recipe) ·
 [jevify-qwen3-vl-2b-t2](https://huggingface.co/Praveenrajus/jevify-qwen3-vl-2b-t2) (vision, decoder LoRA merged at load).
+Readout fine-tunes (FINDINGS 18; each ships its recipe, a LoRA merged at load and a reproduction check):
+[jevify-qwen3.5-4b-readout-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-readout-coh)
+(4B + coherence: 0.751 accuracy, ECE 0.058, sure loss 0.029) ·
+[-4b-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-readout) ·
+[-9b-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-9b-readout) ·
+[-2b-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-readout) /
+[-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-readout-coh) ·
+[jevify-gemma-4-e4b-it-readout](https://huggingface.co/Praveenrajus/jevify-gemma-4-e4b-it-readout) /
+[-coh](https://huggingface.co/Praveenrajus/jevify-gemma-4-e4b-it-readout-coh) ·
+from base checkpoints [jevify-qwen3.5-4b-base-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-base-readout) /
+[-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-base-readout-coh) ·
+[jevify-qwen3.5-2b-base-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-base-readout).
 The backbone is pulled from its own repo, so nothing is duplicated.
 
 ```python

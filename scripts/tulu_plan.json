@@ -1,0 +1,5 @@
+[
+  {"run_id": "tulu3-8b-sft",  "model_id": "allenai/Llama-3.1-Tulu-3-8B-SFT", "gpu": "A100-80GB"},
+  {"run_id": "tulu3-8b-dpo",  "model_id": "allenai/Llama-3.1-Tulu-3-8B-DPO", "gpu": "A100-80GB"},
+  {"run_id": "tulu3-8b-rlvr", "model_id": "allenai/Llama-3.1-Tulu-3-8B",     "gpu": "A100-80GB"}
+]

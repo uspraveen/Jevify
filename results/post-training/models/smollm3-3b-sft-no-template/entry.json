@@ -1,0 +1,6 @@
+{
+ "label": "SmolLM3-3B SFT, no template",
+ "family": "SmolLM3-3B",
+ "size": "3B",
+ "stage": "SFT (no template)"
+}

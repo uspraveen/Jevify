@@ -1,0 +1,6 @@
+{
+ "label": "4B LoRA, + coherence, seed 0",
+ "family": "Readout fine-tuning \u00b7 Qwen3.5-4B",
+ "size": "4B",
+ "stage": "LoRA coh"
+}

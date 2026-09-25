@@ -1,0 +1,6 @@
+{
+ "label": "Tev1-4B (own prompt)",
+ "family": "References",
+ "size": "4B",
+ "stage": "external fine-tune"
+}

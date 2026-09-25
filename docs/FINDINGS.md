@@ -260,7 +260,8 @@ in Brier, which penalizes both (0.484 vs 0.609 for the Gemma pair).
 base models would win because "RLHF wrecks calibration" was wrong in this setting, and the sweep
 is what corrected it. *Caveat:* base checkpoints run without a chat template, so prompt format
 differs between rows of a pair; the Qwen pair is the cleaner of the two and shows the same direction
-with a smaller gap.
+with a smaller gap. *Now measured (Section 17.4): with no template for either, Gemma-4-E2B-it is below
+its base; the +0.195 is the template and the tuning together.*
 
 ---
 
@@ -1167,7 +1168,197 @@ known. *(`results/phishing-recalibration/`.)*
 
 ---
 
-## 17. Open questions
+## 17. What post-training does to a decision readout
+
+Section 5 compared two instruct checkpoints with their base models on accuracy and calibration, with the
+caveat that the Gemma pair also differed in prompt format. This section runs one battery — jev-bench,
+coherence (4,749 question families, Section 18), Jev's probe suite, the tag test, the three new tests of
+Section 14 and the community benchmarks — on every stage that five model families publish:
+
+| family | stages scored |
+|---|---|
+| Qwen3.5 (2B, 4B, 9B) | base, instruct (both in the instruct template, which the base checkpoints ship) |
+| Qwen3-4B | base, Instruct-2507, Thinking-2507 |
+| Gemma-4 (E2B, E4B) | base and instruct with no template (the bases have none), instruct in its template |
+| Llama-3.1-8B → Tülu 3 | base, SFT (both with no template); SFT, DPO, RLVR in Tülu's template |
+| SmolLM3-3B | base, mid-training, SFT, APO, final merge (no template); mid-training, SFT, APO, final in its template |
+
+Every model is read the same way (Tier 0, recipe fitted on validation). The Llama-3.1-8B base weights come
+from the `unsloth/Meta-Llama-3.1-8B` mirror, whose four safetensors shards are sha256-identical to the gated
+`meta-llama/Llama-3.1-8B`; the SmolLM3 stages are pinned commits of `HuggingFaceTB/SmolLM3-3B-checkpoints`.
+
+**What each step changes** (after − before; T choice is the fitted temperature, above 1 = the raw readout was
+over-confident; sure loss is the mean incoherence of Section 18; K drop is the accuracy lost from 2 options
+to the most):
+
+| step | acc | T choice | sure loss | order flip | K drop |
+|---|---|---|---|---|---|
+| Qwen3.5 2B: base → instruct | +0.044 | -0.760 | -0.164 | -0.131 | -0.191 |
+| Qwen3.5 4B: base → instruct | +0.015 | +0.060 | -0.037 | -0.051 | -0.072 |
+| Qwen3.5 9B: base → instruct | +0.011 | +0.053 | -0.028 | -0.029 | -0.066 |
+| Qwen3-4B: base → Instruct-2507 | +0.015 | +3.697 | -0.058 | -0.128 | -0.119 |
+| Qwen3-4B: base → Thinking-2507 | +0.015 | +0.762 | -0.123 | -0.108 | -0.120 |
+| Gemma-4 E2B: base → it | +0.195 | +2.599 | +0.041 | -0.410 | -0.353 |
+| Gemma-4 E4B: base → it | +0.170 | +1.381 | -0.229 | -0.352 | -0.312 |
+| Llama-3.1-8B → Tülu 3 SFT (no template) | +0.097 | +0.395 | -0.092 | -0.184 | -0.208 |
+| Tülu 3: SFT → DPO | +0.004 | +0.601 | +0.071 | -0.003 | -0.022 |
+| Tülu 3: DPO → RLVR | +0.005 | +0.011 | -0.057 | -0.009 | +0.001 |
+| SmolLM3-3B: SFT → APO | +0.018 | +0.297 | -0.054 | -0.045 | -0.032 |
+
+**17.1 Calibration changes by stage, in the same direction in two independent ladders.** Base readouts are
+*under*-confident (fitted T choice 0.62 for Llama-3.1-8B,
+0.59 for SmolLM3-3B, 0.70 for Gemma-4-E2B). SFT brings the temperature to
+about one and adds ~10 points (Llama → Tülu SFT 0.508 → 0.605, T
+1.02; SmolLM3 SFT T 1.00). **Preference optimisation then makes the readout
+over-confident at flat accuracy**: Tülu DPO T choice / score / Noul 0.99 / 2.32 /
+0.96 → 1.59 / 5.45 / 1.99 for
++0.004 accuracy; SmolLM3 APO 1.00 / 2.74 /
+1.27 → 1.30 / 5.15 / 3.03 for
++0.018 — two labs, two preference algorithms. RLVR after DPO leaves the temperature where DPO
+put it. The extreme is
+Qwen3-4B-Instruct-2507 (T 4.71 / 12.99 / 12.58 from the base's
+1.02 / 1.68 / 0.85); the exception is Qwen3.5, whose instruct checkpoints sit at the
+base's temperature. A fitted temperature absorbs most of it (post-recipe ECE 0.089–0.155 across every
+checkpoint in the table), which is why Section 5 found the cost small once calibrated.
+
+**17.2 The first post-training step makes decisions more invariant, and usually more coherent.** Order flips
+and the cardinality drop fall in all eight base → post-trained pairs above; the sure loss falls in seven of
+the eight. In Qwen3.5 the gains shrink with scale (order flip -0.131 / -0.051 /
+-0.029 and accuracy +0.044 / +0.015 /
++0.011 at 2B / 4B / 9B): the bigger base already has most of it.
+
+**17.3 What does not replicate, and is therefore not claimed.** Preference optimisation's effect on coherence
+has opposite signs in the two ladders (DPO +0.071, APO -0.054),
+and so does its effect on "none of the above". Sensitivity to the question's *form* (the same question asked
+as a Noul or as a Choice) rises in some steps and falls in others.
+
+**17.4 Some instruct models only work in their own template — which settles Section 5's caveat.** With no
+template, Gemma-4's instruct checkpoints are *worse* than their bases: E2B 0.355 vs
+0.396, E4B 0.317 vs 0.488, with fitted temperatures at the fitter's bound (the raw
+readout is close to uninformative); in the template they reach 0.591 and 0.658. SmolLM3's
+post-trained stages degrade the same way. Tülu is indifferent (SFT 0.605 without,
+0.603 with). So an "equal prompt" base-vs-instruct comparison is only fair for families that
+tolerate it; Gemma's +0.195 in 5.3 is the template and the tuning together.
+
+*(`results/post-training/` — `pt.md` has every table, `models/<model>/` the per-source files; model commits,
+hardware and the full protocol are listed in its README.)*
+
+---
+
+## 18. Readout fine-tuning, and what a coherence penalty adds
+
+One question implies others: "which option?" implies "is it option A?"; "is the claim supported?" implies
+"is it *not* supported?"; "which level?" implies "is it at least level k?". A rational forecaster's answers
+to all of them are explainable by one distribution over the true answer. When they are not, de Finetti's
+theorem gives a set of answers that is strictly better *whatever the truth is*; the squared distance to it,
+the **sure loss** d², needs no labels. Families of such questions are built automatically from any labelled
+question (the options as yes/no questions, the negation, the thresholds of a scale): 4,749 families, 19,595
+questions, from 150 test records per jev-bench source plus all of ChaosNLI.
+
+**Readout fine-tuning** trains a model on its own decision readout — the distribution over the allowed
+answers at the answer position — with the primitive's proper scoring rule, options shuffled per family,
+on the train splits of the 16 non-held-out sources (5,885 families; lr 3e-5, rank-16 LoRA, two epochs, best
+epoch by validation loss). The **coherence arm** adds the family's sure loss to the loss (weight 1). A full
+fine-tune variant trains every weight (fp32 master weights, learning rate chosen on validation from
+1e-5 / 3e-6 / 1e-6 / 3e-7; 1e-6 selected). Each result below is one seed; seed spreads are in 18.5.
+
+| model | acc | ECE | held-out | TVD→human | sure loss | order flip |
+|---|---|---|---|---|---|---|
+| Qwen3.5-2B, untuned | 0.577 | 0.089 | 0.634 | 0.458 | 0.212 | 0.271 |
+|   readout LoRA, supervised | 0.701 | 0.051 | 0.736 | 0.324 | 0.339 | 0.104 |
+|   readout LoRA + coherence | 0.702 | 0.054 | 0.742 | 0.315 | 0.031 | 0.094 |
+|   full fine-tune, supervised (lr 1e-6) | 0.703 | 0.056 | 0.746 | 0.315 | 0.344 | 0.113 |
+|   full fine-tune + coherence (lr 3e-6) | 0.693 | 0.063 | 0.718 | 0.311 | 0.021 | 0.101 |
+| Qwen3.5-4B, untuned | 0.662 | 0.090 | 0.719 | 0.438 | 0.151 | 0.140 |
+|   readout LoRA, supervised | 0.743 | 0.059 | 0.774 | 0.326 | 0.283 | 0.072 |
+|   readout LoRA + coherence | 0.751 | 0.058 | 0.792 | 0.303 | 0.029 | 0.057 |
+| Qwen3.5-9B, untuned | 0.689 | 0.092 | 0.745 | 0.423 | 0.141 | 0.118 |
+|   readout LoRA, supervised | 0.759 | 0.052 | 0.798 | 0.314 | 0.323 | 0.049 |
+|   readout LoRA + coherence | 0.763 | 0.056 | 0.804 | 0.301 | 0.022 | — |
+| Gemma-4-E4B-it, untuned | 0.658 | 0.092 | 0.742 | 0.434 | 0.205 | 0.104 |
+|   readout LoRA, supervised | 0.737 | 0.057 | 0.792 | 0.316 | 0.295 | 0.091 |
+|   readout LoRA + coherence | 0.742 | 0.053 | 0.799 | 0.297 | 0.031 | 0.082 |
+| Jev 1.13.0 | 0.733 | 0.113 | 0.835 | 0.432 | 0.081 | 0.046 |
+
+**18.1 Readout fine-tuning repairs calibration and invariance, but makes the model less coherent.** At every
+size and in both families it adds 7–13 points of accuracy, brings ECE to 0.05–0.06 and TVD to human label
+distributions from 0.42–0.46 to 0.31–0.33, and cuts order flips (2B 0.271 → 0.104,
+4B 0.140 → 0.072, 9B 0.118 → 0.049;
+Gemma, already low, 0.104 → 0.091; Jev 0.046). But the supervised readout contradicts itself more: sure loss
+0.151 → 0.283 at 4B, 0.141 →
+0.323 at 9B, 0.205 → 0.295 on Gemma — training each question
+alone sharpens it without keeping its siblings consistent.
+
+**18.2 The coherence penalty removes that at no accuracy cost.** Sure loss falls about tenfold, to 0.02–0.03
+(Jev: 0.081), accuracy is unchanged within seed noise, and agreement with human
+label distributions improves in every case (TVD 2B 0.324 → 0.315, 4B
+0.326 → 0.303, 9B 0.314 → 0.301, Gemma
+0.316 → 0.297) — small, but the same direction at every size and in
+the seed means (18.5). It also works under full fine-tuning (sure loss 0.021).
+
+**18.3 After readout fine-tuning, the starting checkpoint stops mattering.** From Qwen3.5-4B-Base the same
+recipe reaches 0.741 (supervised) and 0.747 (+ coherence), against
+0.743 and 0.751 from the instruct checkpoint — the untuned gap was
+0.647 vs 0.662. At 2B: 0.696 from the base,
+0.701 from the instruct model (untuned 0.533 vs 0.577).
+
+**18.4 Full fine-tuning matches LoRA at 2B.** Validation loss is lowest at 1e-6 and rises on both sides
+(1e-5: 0.803, 3e-6: 0.669, 1e-6: 0.605, 3e-7: 0.620), and at the selected 1e-6 the full fine-tune scores
+0.703 / held-out 0.746 against LoRA's
+0.701 / 0.736; at 1e-5 it overfits (held-out 0.609).
+Full fine-tuning was run at 2B only.
+
+**18.5 Seeds.** The jev-bench and coherence numbers are stable across seeds: 2B, three seeds, accuracy
+0.695 ± 0.006 (supervised) vs 0.701 ±
+0.008 (+ coherence), sure loss 0.335 vs 0.033;
+4B, two seeds, 0.748 ± 0.005 vs 0.748 ±
+0.003, sure loss 0.288 vs 0.030.
+Re-running 2B seed 0 to save its adapter reproduced it to 0.001 accuracy. Out-of-distribution results vary
+far more between identical runs (15.2), so the table below is one seed and is read for direction only.
+
+| model | stated rule | "none" when gone | hijack | phishing AUROC |
+|---|---|---|---|---|
+| Qwen3.5-2B, untuned | 0.602 | 0.850 | 0.269 | 0.902 |
+|   readout LoRA, supervised | 0.536 | 0.472 | 0.055 | 0.776 |
+|   readout LoRA + coherence | 0.545 | 0.596 | 0.041 | 0.803 |
+|   full fine-tune, supervised (lr 1e-6) | 0.671 | 0.336 | 0.055 | 0.775 |
+|   full fine-tune + coherence (lr 3e-6) | 0.606 | 0.310 | 0.076 | 0.805 |
+| Qwen3.5-4B, untuned | 0.619 | 0.484 | 0.394 | 0.784 |
+|   readout LoRA, supervised | 0.742 | 0.614 | 0.116 | 0.864 |
+|   readout LoRA + coherence | 0.723 | 0.682 | 0.089 | 0.929 |
+| Qwen3.5-9B, untuned | 0.689 | 0.674 | 0.296 | 0.753 |
+|   readout LoRA, supervised | 0.800 | 0.592 | 0.146 | 0.788 |
+|   readout LoRA + coherence | — | — | — | — |
+| Gemma-4-E4B-it, untuned | 0.744 | 0.382 | 0.255 | 0.747 |
+|   readout LoRA, supervised | 0.795 | 0.498 | 0.135 | 0.690 |
+|   readout LoRA + coherence | 0.791 | 0.540 | 0.122 | 0.682 |
+| Jev 1.13.0 | 0.924 | 0.744 | 0.205 | 0.688 |
+
+**18.6 Out of distribution: fewer hijacks everywhere, the rest mixed.** Every readout fine-tune follows
+injected instructions far less (4B 0.394 → 0.116, 9B 0.296 →
+0.146) and applies stated rules better at 4B, 9B and on Gemma; at 2B the LoRA arms get worse
+at stated rules and at "none of the above", and Gemma's phishing ranking drops. The coherence penalty does
+not change these consistently.
+
+**Published models** (each repo: recipe, adapter merged at load, `results/` with every number above and a
+reproduction check — loading the repo with `load_jevified` and re-scoring 72 test records gave the same
+top choice as the training run, mean |Δp| ≤ 0.007):
+[jevify-qwen3.5-2b-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-readout) ·
+[-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-readout-coh) ·
+[jevify-qwen3.5-4b-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-readout) ·
+[-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-readout-coh) ·
+[jevify-qwen3.5-9b-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-9b-readout) ·
+[jevify-gemma-4-e4b-it-readout](https://huggingface.co/Praveenrajus/jevify-gemma-4-e4b-it-readout) ·
+[-coh](https://huggingface.co/Praveenrajus/jevify-gemma-4-e4b-it-readout-coh) ·
+from the base checkpoints [jevify-qwen3.5-4b-base-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-base-readout) ·
+[-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-base-readout-coh) ·
+[jevify-qwen3.5-2b-base-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-base-readout).
+
+*(`results/post-training/`; `scripts/publish_readout.py` packages a run.)*
+
+---
+
+## 19. Open questions
 
 - **What moves the threshold?** Every fine-tune loses phishing recall while keeping its ranking
   (Section 16). Candidates: the label balance of the training sources, the prompt family, or proper

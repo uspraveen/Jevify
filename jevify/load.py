@@ -164,6 +164,10 @@ def load_jevified(repo_or_path: str, *, device: str | None = None, hf_token: str
 
         path = Path(snapshot_download(repo_or_path, token=hf_token or os.environ.get("HF_TOKEN")))
     config = _config_for(path)
+    # a full fine-tune ships its own weights: "backbone": "." means this repo; a pointer to another repo may pin its
+    # commit with "backbone_revision", so a published result stays tied to the exact weights it was measured on
+    backbone = str(path) if config.get("backbone") == "." else config["backbone"]
+    revision = config.get("backbone_revision") if config.get("backbone") != "." else None
     if config.get("modality") == "vision":
         from .engine.vision import VisionScorer
 
@@ -187,8 +191,8 @@ def load_jevified(repo_or_path: str, *, device: str | None = None, hf_token: str
         scorer = VLLMScorer(config["backbone"], trust_remote_code=trust_remote_code or config.get("trust_remote_code", False),
                             hf_token=hf_token or os.environ.get("HF_TOKEN"))
         return JevifiedModel(scorer, config, None)
-    scorer = HFScorer(config["backbone"], device=device, hf_token=hf_token or os.environ.get("HF_TOKEN"),
-                      trust_remote_code=trust_remote_code or config.get("trust_remote_code", False))
+    scorer = HFScorer(backbone, device=device, hf_token=hf_token or os.environ.get("HF_TOKEN"),
+                      trust_remote_code=trust_remote_code or config.get("trust_remote_code", False), revision=revision)
     if (path / "lora" / "adapter_config.json").exists():
         # Tier 2: the adapter is merged into the weights at load, so serving a LoRA-trained model
         # costs exactly what serving its backbone costs -- no adapter matmuls at inference

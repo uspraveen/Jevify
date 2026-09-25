@@ -1,0 +1,6 @@
+{
+ "label": "T\u00fclu-3-8B-SFT",
+ "family": "Llama-3.1 8B \u2192 T\u00fclu 3",
+ "size": "8B",
+ "stage": "SFT"
+}

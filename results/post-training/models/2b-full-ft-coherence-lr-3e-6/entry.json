@@ -1,0 +1,6 @@
+{
+ "label": "2B full FT, + coherence, lr 3e-6",
+ "family": "Readout fine-tuning \u00b7 Qwen3.5-2B",
+ "size": "2B",
+ "stage": "full coh"
+}

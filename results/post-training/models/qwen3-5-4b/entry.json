@@ -1,0 +1,6 @@
+{
+ "label": "Qwen3.5-4B",
+ "family": "Qwen3.5 (own template both)",
+ "size": "4B",
+ "stage": "instruct"
+}

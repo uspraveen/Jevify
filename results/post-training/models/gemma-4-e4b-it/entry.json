@@ -1,0 +1,6 @@
+{
+ "label": "Gemma-4-E4B-it",
+ "family": "Gemma-4",
+ "size": "E4B",
+ "stage": "instruct (template)"
+}

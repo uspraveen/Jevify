@@ -1,0 +1,6 @@
+{
+ "label": "Qwen3.5-2B-Base LoRA, + coherence",
+ "family": "Readout fine-tuning \u00b7 other starting points",
+ "size": "2B",
+ "stage": "LoRA coh"
+}

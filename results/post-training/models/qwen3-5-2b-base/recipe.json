@@ -1,0 +1,155 @@
+{
+ "recipe": {
+  "mode": "index",
+  "chat": true,
+  "permutations": {
+   "choice": 2,
+   "score": 1,
+   "noul": 1
+  },
+  "state_last": false,
+  "prior_weight": {
+   "choice": 0.0,
+   "score": 0.0,
+   "noul": 0.0
+  },
+  "temperature": {
+   "choice": 1.7337,
+   "score": 1.9487,
+   "noul": 0.7022
+  },
+  "bias": {
+   "noul": -0.9
+  }
+ },
+ "search": {
+  "grid": [
+   {
+    "permutations": 1,
+    "prior_weight": 0.0,
+    "choice": {
+     "T": 2.774,
+     "bias": 0.0,
+     "nll": 2.8351,
+     "nll_raw": 3.5182,
+     "n": 1600
+    },
+    "score": {
+     "T": 1.9487,
+     "bias": 0.0,
+     "nll": 1.4013,
+     "nll_raw": 1.4874,
+     "n": 1200
+    },
+    "noul": {
+     "T": 0.7022,
+     "bias": -0.9,
+     "nll": 0.4781,
+     "nll_raw": 0.5961,
+     "n": 1320
+    }
+   },
+   {
+    "permutations": 1,
+    "prior_weight": 1.0,
+    "choice": {
+     "T": 2.774,
+     "bias": 0.0,
+     "nll": 2.8351,
+     "nll_raw": 3.5182,
+     "n": 1600
+    },
+    "score": {
+     "T": 1.9487,
+     "bias": 0.0,
+     "nll": 1.4013,
+     "nll_raw": 1.4874,
+     "n": 1200
+    },
+    "noul": {
+     "T": 0.7022,
+     "bias": -0.9,
+     "nll": 0.4781,
+     "nll_raw": 0.5961,
+     "n": 1320
+    }
+   },
+   {
+    "permutations": 2,
+    "prior_weight": 0.0,
+    "choice": {
+     "T": 1.7337,
+     "bias": 0.0,
+     "nll": 2.6688,
+     "nll_raw": 2.8485,
+     "n": 1600
+    },
+    "score": {
+     "T": 1.9487,
+     "bias": 0.0,
+     "nll": 1.4013,
+     "nll_raw": 1.4874,
+     "n": 1200
+    },
+    "noul": {
+     "T": 0.7022,
+     "bias": -0.9,
+     "nll": 0.4781,
+     "nll_raw": 0.5961,
+     "n": 1320
+    }
+   },
+   {
+    "permutations": 2,
+    "prior_weight": 1.0,
+    "choice": {
+     "T": 1.7337,
+     "bias": 0.0,
+     "nll": 2.6688,
+     "nll_raw": 2.8485,
+     "n": 1600
+    },
+    "score": {
+     "T": 1.9487,
+     "bias": 0.0,
+     "nll": 1.4013,
+     "nll_raw": 1.4874,
+     "n": 1200
+    },
+    "noul": {
+     "T": 0.7022,
+     "bias": -0.9,
+     "nll": 0.4781,
+     "nll_raw": 0.5961,
+     "n": 1320
+    }
+   }
+  ],
+  "chosen": {
+   "choice": {
+    "permutations": 2,
+    "prior_weight": 0.0,
+    "T": 1.7337,
+    "bias": 0.0,
+    "k_slope": 0.0,
+    "val_nll": 2.6688
+   },
+   "score": {
+    "permutations": 1,
+    "prior_weight": 0.0,
+    "T": 1.9487,
+    "bias": 0.0,
+    "k_slope": 0.0,
+    "val_nll": 1.4013
+   },
+   "noul": {
+    "permutations": 1,
+    "prior_weight": 0.0,
+    "T": 0.7022,
+    "bias": -0.9,
+    "k_slope": 0.0,
+    "val_nll": 0.4781
+   }
+  }
+ }
+}

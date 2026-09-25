@@ -1,0 +1,6 @@
+{
+ "label": "2B LoRA, supervised",
+ "family": "Readout fine-tuning \u00b7 Qwen3.5-2B",
+ "size": "2B",
+ "stage": "LoRA sup"
+}

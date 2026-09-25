@@ -41,14 +41,14 @@ def _bench_root() -> Path:
 
 def _tier0_impl(gpu_name: str, model_id: str, run_id: str, sources: str = "", split: str = "test", limit: int = 0, mode: str = "index",
           chat: bool = True, permutations: int = 2, batch: int = 16, cand_chunk: int = 64, trust_remote_code: bool = False,
-          resume: bool = True) -> dict:
-    """Tier 0 on a rented GPU; the work itself lives in ``jevify.train``."""
+          resume: bool = True, revision: str = "") -> dict:
+    """Tier 0 on a rented GPU; the work itself lives in ``jevify.train``. ``revision`` pins a branch or commit."""
     from jevify.train import run_tier0
 
     meta = run_tier0(model_id, run_id, Path(f"/runs/{run_id}"), _bench_root(),
                      sources=[s for s in sources.split(",") if s] or None, split=split, limit=limit, mode=mode,
                      chat=chat, permutations=permutations, batch=batch, cand_chunk=cand_chunk,
-                     trust_remote_code=trust_remote_code, resume=resume)
+                     trust_remote_code=trust_remote_code, resume=resume, revision=revision or None)
     return _priced(meta, gpu_name, Path(f"/runs/{run_id}"))
 
 
@@ -87,7 +87,7 @@ def sweep(plan: list[dict], permutations: int = 2, val_limit: int = 200, batch: 
             t0 = time.time()
             try:
                 info = fn.remote(entry["model_id"], run_id, "", split, limit, "index", entry.get("chat", True), permutations, batch, 64,
-                                 bool(entry.get("trust_remote_code")), True)
+                                 bool(entry.get("trust_remote_code")), True, revision=entry.get("revision", ""))
                 status = "ok"
             except Exception as e:  # keep going; the ledger records the failure
                 info = {"run_id": run_id, "error": f"{type(e).__name__}: {str(e)[:300]}"}

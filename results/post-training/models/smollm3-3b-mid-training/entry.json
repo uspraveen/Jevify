@@ -1,0 +1,6 @@
+{
+ "label": "SmolLM3-3B mid-training",
+ "family": "SmolLM3-3B",
+ "size": "3B",
+ "stage": "mid-training"
+}

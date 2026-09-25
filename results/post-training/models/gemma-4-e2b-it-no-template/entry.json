@@ -1,0 +1,6 @@
+{
+ "label": "Gemma-4-E2B-it, no template",
+ "family": "Gemma-4",
+ "size": "E2B",
+ "stage": "instruct (no template)"
+}
