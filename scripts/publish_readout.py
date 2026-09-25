@@ -49,6 +49,7 @@ def main() -> int:
     ap.add_argument("--compare", action="append", default=[],
                     help="other pt.json rows for the card's tables, LABEL or LABEL=display name")
     ap.add_argument("--verification", type=Path, default=None, help="verify_pub output (JSON) to report on the card")
+    ap.add_argument("--related", action="append", default=[], help="LABEL=URL: sibling repos or branches to link from the card")
     ap.add_argument("--branch", default="main", help="the Hub branch this folder is meant for (e.g. seed1)")
     ap.add_argument("--title", default=None)
     ap.add_argument("--out", type=Path, default=None)
@@ -136,6 +137,28 @@ def main() -> int:
     usage_rev = "" if a.branch == "main" else f', revision="{a.branch}"'
     load_line = (f'model = load_jevified("{a.repo}")' if a.branch == "main" else
                  f'from huggingface_hub import snapshot_download\nmodel = load_jevified(snapshot_download("{a.repo}"{usage_rev}))')
+    gh = "https://github.com/uspraveen/Jevify"
+    ds = "https://huggingface.co/datasets/Praveenrajus/jev-bench"
+    jev = next((r for lab, r in comp if "Jev" in lab), None)
+    base_row = comp[0] if comp and "Jev" not in comp[0][0] else None
+    glance_keys = (("accuracy", "acc"), ("ECE", "ece"), ("held-out", "heldout_acc"), ("TVD to human labels", "tvd"), ("sure loss", "sure_loss"))
+    glance = " · ".join(f"{n} **{f3(me.get(k))}**" for n, k in glance_keys)
+    refs = []
+    if base_row:
+        refs.append(f"{base_row[0]}: " + " / ".join(f3(base_row[1].get(k)) for _, k in glance_keys))
+    if jev:
+        refs.append("Jev 1.13.0: " + " / ".join(f3(jev.get(k)) for _, k in glance_keys))
+    related = []
+    for rspec in a.related:
+        lab, _, url = rspec.partition("=")
+        related.append(f"- [{lab}]({url})")
+    files = (["- `jevify_config.json` — the recipe, the backbone and the training settings `load_jevified` reads"]
+             + (["- model weights, tokenizer and chat template — the full fine-tuned checkpoint"] if full else
+                ["- `lora/` — the adapter, merged into the backbone at load"])
+             + ["- `results/test_metrics.json` — every jev-bench config; `recipe.json` — the fitted recipe",
+                "- `results/coherence.json`, `probes.json`, `tags.json` — the coherence, probe and tag tests",
+                "- `results/train.json` — the training log; `summary.json` — this model's row of the study table"]
+             + (["- `results/verification.json` — the reproduction check reported under Results"] if ver else []))
     readme = f"""---
 license: apache-2.0
 base_model: {base}
@@ -146,17 +169,16 @@ datasets: [Praveenrajus/jev-bench]
 
 # {title}{seed_note}
 
-A **System One decision model**: it does not write text. It reads a `state`, answers typed questions (`choice`, `score`,
-`noul`), and returns calibrated probability distributions your code can branch on. This repo is {what}.
+A **System One decision model**: it reads a `state`, answers typed questions (`choice`, `score`, `noul`) and returns calibrated
+probability distributions your code can branch on — it never writes text. This repo is {what}, trained on its own decision
+readout{" with a coherence penalty" if beta else ""}.
 
-**How it was trained (readout fine-tuning).** The model is trained on its own *decision readout* — the distribution over
-the allowed answers read at the answer position, one forward pass, no decoding — with the primitive's proper scoring
-rule{f", plus a **coherence penalty** (weight {beta}): every training question comes with automatically derived siblings (the options as yes/no questions, the negation, the threshold questions of a scale), and the de Finetti sure loss of the family's answers is penalised, so the model's answers to related questions stay mutually consistent" if beta else ""}.
-Options are shuffled per family. Training data: the train splits of the 16 non-held-out jev-bench sources
-({train.get('n_train'):,} families, at most {train.get('cap')} records per source); lr {train.get('lr')}, {train.get('epochs')} epochs,
-best epoch by validation loss (epoch {train.get('best_epoch')}), seed {train.get('seed')}{", fp32 master weights with bf16 autocast" if full else ""}.
-A Tier 0 recipe (temperature per primitive, Noul bias, option-order permutations) was then fitted on validation splits.
-The six held-out sources (`{"`, `".join(HELDOUT)}`) never appeared in training.
+> **At a glance** — {glance}
+> {("<br>" + "<br>".join("same order, " + r for r in refs)) if refs else ""}
+
+[jev-bench]({ds}) · [leaderboard]({ds}#leaderboard) · [findings]({gh}/blob/main/docs/FINDINGS.md#18-readout-fine-tuning-and-what-a-coherence-penalty-adds) · [code]({gh})
+
+## Use it
 
 ```python
 from jevify import load_jevified
@@ -171,8 +193,8 @@ model.ask({{"text": "The battery lasted two days on a single charge."}},
 
 ## Results
 
-Every number is on the jev-bench **test** splits (22,773 records) or the study's other test suites, scored the same way
-for every model; rows below this model are references from the same study.
+Every number is on the jev-bench **test** splits (22,773 records) or the study's other test suites, scored the same way for
+every model; the rows under this model are references from the same study.
 
 **Decisions and calibration**
 
@@ -190,11 +212,21 @@ removed, injected-instruction hijack rate, and three community Jev benchmarks.
 
 {table([("stated rule", "rule_acc"), ("'none' when gone", "nota_none_when_gone"), ("hijack", "hijack"), ("phishing AUROC", "phish_auroc"),
          ("tool risk", "tool_acc")])}
-
 {ver_line}
-`results/` holds the raw files: `test_metrics.json` (per source), `recipe.json`, `coherence.json`, `probes.json`,
-`tags.json`, `train.json` (the training log) and `summary.json` (this model's row of the study table).
+## How it was trained
 
+The model is trained on its own *decision readout* — the distribution over the allowed answers read at the answer position,
+one forward pass, no decoding — with the primitive's proper scoring rule{f", plus a **coherence penalty** (weight {beta}): every training question comes with automatically derived siblings (the options as yes/no questions, the negation, the threshold questions of a scale), and the de Finetti sure loss of the family's answers is penalised, so the model's answers to related questions stay mutually consistent" if beta else ""}.
+Options are shuffled per family. Training data: the train splits of the 16 non-held-out jev-bench sources
+({train.get('n_train'):,} families, at most {train.get('cap')} records per source); lr {train.get('lr')}, {train.get('epochs')} epochs,
+best epoch by validation loss (epoch {train.get('best_epoch')}), seed {train.get('seed')}{", fp32 master weights with bf16 autocast" if full else ""}.
+A Tier 0 recipe (temperature per primitive, Noul bias, option-order permutations) was then fitted on validation splits.
+The six held-out sources (`{"`, `".join(HELDOUT)}`) never appeared in training.
+
+## Files
+
+{chr(10).join(files)}
+{("" if not related else chr(10) + "## Related models" + chr(10) + chr(10) + chr(10).join(related) + chr(10))}
 ## Limitations
 
 - One training seed per repo branch; out-of-distribution numbers in particular vary between identical runs, so compare
@@ -202,9 +234,6 @@ removed, injected-instruction hijack rate, and three community Jev benchmarks.
 - The phishing benchmark's decision threshold shifts after fine-tuning (ranking, AUROC, is preserved); a one-number
   log-odds shift fitted on a handful of labelled emails repairs it.
 - English only; the recipe was fitted on jev-bench validation splits and may need refitting on a very different domain.
-
-Method, benchmark and findings: [github.com/uspraveen/Jevify](https://github.com/uspraveen/Jevify)
-([docs/FINDINGS.md](https://github.com/uspraveen/Jevify/blob/main/docs/FINDINGS.md)).
 """
     (out / "README.md").write_text(readme, encoding="utf-8")
     size = sum(p.stat().st_size for p in out.rglob("*") if p.is_file())
