@@ -1205,11 +1205,13 @@ to the most):
 | Tülu 3: DPO → RLVR | +0.005 | +0.011 | -0.057 | -0.009 | +0.001 |
 | SmolLM3-3B: SFT → APO | +0.018 | +0.297 | -0.054 | -0.045 | -0.032 |
 
-**17.1 Calibration changes by stage, in the same direction in two independent ladders.** Base readouts are
-*under*-confident (fitted T choice 0.62 for Llama-3.1-8B,
-0.59 for SmolLM3-3B, 0.70 for Gemma-4-E2B). SFT brings the temperature to
-about one and adds ~10 points (Llama → Tülu SFT 0.508 → 0.605, T
-1.02; SmolLM3 SFT T 1.00). **Preference optimisation then makes the readout
+**17.1 Calibration changes by stage, in the same direction in two independent ladders.** Base checkpoints are not
+consistently calibrated: their fitted choice temperatures run from 0.59 (under-confident; Llama-3.1-8B
+0.62, SmolLM3-3B 0.59, Gemma-4-E2B 0.70) to 1.73
+(over-confident; Qwen3.5-2B-Base). What replicates is the step after them. Where a family publishes its SFT checkpoint, SFT
+leaves the readout close to calibrated (Tülu SFT T 0.99, SmolLM3 SFT 1.00); on the Llama ladder it also
+adds ten points (base 0.508 → SFT 0.605, no template for either), on SmolLM3 one
+(0.448 → 0.459). **Preference optimisation then makes the readout
 over-confident at flat accuracy**: Tülu DPO T choice / score / Noul 0.99 / 2.32 /
 0.96 → 1.59 / 5.45 / 1.99 for
 +0.004 accuracy; SmolLM3 APO 1.00 / 2.74 /

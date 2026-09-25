@@ -127,7 +127,8 @@ from its own repo, so nothing is duplicated; every readout fine-tune ships a rep
   Tier 0's accuracy there (FINDINGS 6).
 
 **What post-training does to a decision readout** (FINDINGS 17)
-- Base readouts are under-confident; SFT calibrates them; preference optimisation (Tülu DPO, SmolLM3 APO) makes them
+- Base checkpoints range from under- to over-confident (fitted temperature 0.6–1.7). Where the SFT checkpoint is published,
+  SFT leaves the readout close to calibrated, and preference optimisation (Tülu DPO, SmolLM3 APO) then makes it
   over-confident at flat accuracy. The first post-training step makes decisions more invariant in all eight pairs tested.
 
 **Vision and speed** (FINDINGS 9–10)
@@ -315,9 +316,9 @@ one shift fitted on **sixteen labelled emails** takes Tev1 from 0.51 to 0.76 and
 [· new tests](results/b/README.md) [· retraining](results/c/README.md) [· the phishing threshold](results/phishing-recalibration/README.md)
 
 **15 · Post-training shapes a decision readout stage by stage — and a coherence penalty removes the
-incoherence that fine-tuning adds.** Scored at every published stage of five families, base readouts are
-under-confident, SFT calibrates them and adds ~10 points, and preference optimisation (Tülu DPO, SmolLM3 APO —
-two labs, two algorithms) makes them over-confident at flat accuracy (fitted temperatures up 1.3–2.4×). The first
+incoherence that fine-tuning adds.** Scored at every published stage of five families, base checkpoints range
+from under- to over-confident, SFT leaves the readout close to calibrated, and preference optimisation (Tülu DPO,
+SmolLM3 APO — two labs, two algorithms) then makes it over-confident at flat accuracy (fitted temperatures up 1.3–2.4×). The first
 post-training step makes decisions more invariant in all eight base → post-trained pairs, and Gemma-4's instruct
 models score *below* their bases without their chat template. Readout fine-tuning — training a model on its own
 decision distribution — takes Qwen3.5 2B/4B/9B and Gemma-4-E4B to **0.70–0.76** accuracy at ECE 0.05–0.06 (Jev
