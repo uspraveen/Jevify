@@ -48,15 +48,18 @@
 | 2B full FT, supervised, lr 1e-6 | full sup | 0.703 | 0.056 | 0.358 | 0.746 | 0.315 | 0.95 | 1.12 | 1.61 |
 | 2B full FT, supervised, lr 3e-7 | full sup | 0.689 | 0.052 | 0.375 | 0.722 | 0.333 | 0.93 | 1.36 | 1.19 |
 | 2B full FT, + coherence, lr 3e-6 | full coh | 0.693 | 0.063 | 0.379 | 0.718 | 0.311 | 1.01 | 0.96 | 1.10 |
+| 2B full FT, + coherence, lr 1e-6 | full coh | 0.704 | 0.056 | 0.358 | 0.742 | 0.307 | 0.92 | 0.92 | 1.24 |
 | **Readout fine-tuning · Qwen3.5-4B** | | | | | | | | | |
 | 4B LoRA, supervised, seed 0 | LoRA sup | 0.743 | 0.059 | 0.321 | 0.774 | 0.326 | 1.16 | 1.56 | 1.28 |
 | 4B LoRA, supervised, seed 1 | LoRA sup | 0.739 | 0.060 | 0.323 | 0.767 | 0.333 | 1.28 | 1.63 | 1.29 |
 | 4B LoRA, + coherence, seed 0 | LoRA coh | 0.751 | 0.058 | 0.316 | 0.792 | 0.303 | 1.10 | 1.26 | 1.23 |
+| 4B LoRA, + coherence, seed 1 | LoRA coh | 0.754 | 0.054 | 0.310 | 0.784 | 0.323 | 1.25 | 1.34 | 1.59 |
 | **Readout fine-tuning · other starting points** | | | | | | | | | |
 | Qwen3.5-4B-Base LoRA, supervised | LoRA sup | 0.741 | 0.064 | 0.324 | 0.769 | 0.324 | 1.20 | 1.65 | 1.34 |
 | Qwen3.5-4B-Base LoRA, + coherence | LoRA coh | 0.747 | 0.058 | 0.318 | 0.783 | 0.314 | 1.18 | 1.46 | 1.36 |
 | Qwen3.5-2B-Base LoRA, supervised | LoRA sup | 0.696 | 0.053 | 0.365 | 0.726 | 0.342 | 1.11 | 1.41 | 1.45 |
 | Qwen3.5-2B-Base LoRA, + coherence | LoRA coh | 0.702 | 0.051 | 0.365 | 0.742 | 0.320 | 1.07 | 1.07 | 1.25 |
+| Gemma-4-E4B (base) LoRA, supervised | LoRA sup | 0.708 | 0.061 | 0.359 | 0.748 | 0.335 | 1.10 | 1.09 | 0.88 |
 | Gemma-4-E4B-it LoRA, supervised | LoRA sup | 0.737 | 0.057 | 0.330 | 0.792 | 0.316 | 1.23 | 1.77 | 1.52 |
 | Gemma-4-E4B-it LoRA, + coherence | LoRA coh | 0.742 | 0.053 | 0.322 | 0.799 | 0.297 | 1.19 | 1.31 | 1.32 |
 | 9B LoRA, supervised | LoRA sup | 0.759 | 0.052 | 0.302 | 0.798 | 0.314 | 1.16 | 1.46 | 1.36 |
@@ -106,15 +109,18 @@
 | 2B full FT, supervised, lr 1e-6 | full sup | 0.113 | 0.126 | 0.160 | 0.102 | 0.662 | 0.253 | 0.050 | 0.050 | 0.048 | 0.074 |
 | 2B full FT, supervised, lr 3e-7 | full sup | 0.130 | 0.137 | 0.169 | 0.119 | 0.667 | 0.286 | 0.051 | 0.051 | 0.062 | 0.087 |
 | 2B full FT, + coherence, lr 3e-6 | full coh | 0.101 | 0.127 | 0.103 | 0.134 | 0.670 | 0.277 | 0.048 | 0.047 | 0.044 | 0.063 |
+| 2B full FT, + coherence, lr 1e-6 | full coh | 0.109 | 0.123 | 0.148 | 0.105 | 0.677 | 0.250 | 0.049 | 0.049 | 0.051 | 0.069 |
 | **Readout fine-tuning · Qwen3.5-4B** | | | | | | | | | | | |
 | 4B LoRA, supervised, seed 0 | LoRA sup | 0.072 | 0.087 | 0.097 | 0.049 | 0.812 | 0.228 | 0.023 | 0.024 | 0.022 | 0.033 |
 | 4B LoRA, supervised, seed 1 | LoRA sup | 0.057 | 0.081 | 0.091 | 0.052 | 0.800 | 0.228 | 0.022 | 0.023 | 0.023 | 0.037 |
 | 4B LoRA, + coherence, seed 0 | LoRA coh | 0.057 | 0.080 | 0.109 | 0.046 | 0.820 | 0.230 | 0.023 | 0.023 | 0.022 | 0.035 |
+| 4B LoRA, + coherence, seed 1 | LoRA coh | 0.059 | 0.073 | 0.092 | 0.047 | 0.830 | 0.214 | 0.019 | 0.020 | 0.015 | 0.031 |
 | **Readout fine-tuning · other starting points** | | | | | | | | | | | |
 | Qwen3.5-4B-Base LoRA, supervised | LoRA sup | 0.064 | 0.085 | 0.101 | 0.055 | 0.788 | 0.237 | 0.020 | 0.020 | 0.023 | 0.032 |
 | Qwen3.5-4B-Base LoRA, + coherence | LoRA coh | 0.058 | 0.080 | 0.097 | 0.051 | 0.795 | 0.224 | 0.021 | 0.021 | 0.019 | 0.032 |
 | Qwen3.5-2B-Base LoRA, supervised | LoRA sup | 0.101 | 0.117 | 0.160 | 0.106 | 0.580 | 0.274 | 0.040 | 0.040 | 0.038 | 0.082 |
 | Qwen3.5-2B-Base LoRA, + coherence | LoRA coh | 0.079 | 0.112 | 0.134 | 0.102 | 0.568 | 0.279 | 0.041 | 0.041 | 0.042 | 0.076 |
+| Gemma-4-E4B (base) LoRA, supervised | LoRA sup | 0.116 | 0.123 | 0.099 | 0.082 | 0.805 | 0.255 | 0.023 | 0.023 | 0.031 | 0.031 |
 | Gemma-4-E4B-it LoRA, supervised | LoRA sup | 0.091 | 0.105 | 0.123 | 0.077 | 0.817 | 0.231 | 0.024 | 0.025 | 0.024 | 0.032 |
 | Gemma-4-E4B-it LoRA, + coherence | LoRA coh | 0.082 | 0.098 | 0.102 | 0.073 | 0.810 | 0.232 | 0.023 | 0.024 | 0.020 | 0.036 |
 | 9B LoRA, supervised | LoRA sup | 0.049 | 0.072 | 0.091 | 0.045 | 0.832 | 0.209 | 0.018 | 0.018 | 0.013 | 0.027 |
@@ -162,15 +168,18 @@
 | 2B full FT, supervised, lr 1e-6 | full sup | 0.344 | 0.980 | +0.006 | -0.000 |
 | 2B full FT, supervised, lr 3e-7 | full sup | 0.280 | 0.976 | +0.007 | +0.010 |
 | 2B full FT, + coherence, lr 3e-6 | full coh | 0.021 | 0.406 | +0.006 | -0.006 |
+| 2B full FT, + coherence, lr 1e-6 | full coh | 0.028 | 0.486 | +0.000 | +0.003 |
 | **Readout fine-tuning · Qwen3.5-4B** | | | | | |
 | 4B LoRA, supervised, seed 0 | LoRA sup | 0.283 | 0.917 | +0.018 | -0.001 |
 | 4B LoRA, supervised, seed 1 | LoRA sup | 0.271 | 0.934 | +0.006 | -0.005 |
 | 4B LoRA, + coherence, seed 0 | LoRA coh | 0.029 | 0.347 | +0.003 | +0.003 |
+| 4B LoRA, + coherence, seed 1 | LoRA coh | 0.030 | 0.444 | +0.015 | -0.011 |
 | **Readout fine-tuning · other starting points** | | | | | |
 | Qwen3.5-4B-Base LoRA, supervised | LoRA sup | 0.271 | 0.915 | +0.016 | -0.005 |
 | Qwen3.5-4B-Base LoRA, + coherence | LoRA coh | 0.033 | 0.396 | +0.013 | -0.003 |
 | Qwen3.5-2B-Base LoRA, supervised | LoRA sup | 0.362 | 0.986 | +0.014 | +0.001 |
 | Qwen3.5-2B-Base LoRA, + coherence | LoRA coh | 0.034 | 0.510 | +0.001 | +0.002 |
+| Gemma-4-E4B (base) LoRA, supervised | LoRA sup | 0.367 | 0.961 | +0.008 | +0.003 |
 | Gemma-4-E4B-it LoRA, supervised | LoRA sup | 0.295 | 0.891 | +0.011 | +0.007 |
 | Gemma-4-E4B-it LoRA, + coherence | LoRA coh | 0.031 | 0.458 | +0.011 | +0.000 |
 | 9B LoRA, supervised | LoRA sup | 0.323 | 0.954 | +0.006 | -0.001 |
@@ -219,15 +228,18 @@
 | 2B full FT, supervised, lr 1e-6 | full sup | 0.503 | 0.007 | 0.775 | 0.783 | 0.671 | 0.336 | +0.055 | +0.046 |
 | 2B full FT, supervised, lr 3e-7 | full sup | 0.504 | 0.008 | 0.891 | 0.767 | 0.520 | 0.630 | +0.114 | +0.046 |
 | 2B full FT, + coherence, lr 3e-6 | full coh | 0.504 | 0.008 | 0.805 | 0.767 | 0.606 | 0.310 | +0.076 | +0.019 |
+| 2B full FT, + coherence, lr 1e-6 | full coh | 0.503 | 0.006 | 0.772 | 0.800 | 0.612 | 0.462 | +0.021 | +0.023 |
 | **Readout fine-tuning · Qwen3.5-4B** | | | | | | | | | |
 | 4B LoRA, supervised, seed 0 | LoRA sup | 0.518 | 0.036 | 0.864 | 0.833 | 0.742 | 0.614 | +0.116 | +0.072 |
 | 4B LoRA, supervised, seed 1 | LoRA sup | 0.509 | 0.018 | 0.831 | 0.867 | 0.672 | 0.670 | +0.164 | +0.087 |
 | 4B LoRA, + coherence, seed 0 | LoRA coh | 0.506 | 0.013 | 0.929 | 0.900 | 0.723 | 0.682 | +0.089 | +0.072 |
+| 4B LoRA, + coherence, seed 1 | LoRA coh | 0.520 | 0.041 | 0.819 | 0.883 | 0.627 | 0.642 | +0.086 | +0.049 |
 | **Readout fine-tuning · other starting points** | | | | | | | | | |
 | Qwen3.5-4B-Base LoRA, supervised | LoRA sup | 0.509 | 0.018 | 0.886 | 0.817 | 0.730 | 0.656 | +0.133 | +0.049 |
 | Qwen3.5-4B-Base LoRA, + coherence | LoRA coh | 0.502 | 0.004 | 0.845 | 0.900 | 0.734 | 0.612 | +0.098 | +0.053 |
 | Qwen3.5-2B-Base LoRA, supervised | LoRA sup | 0.500 | 0.000 | 0.569 | 0.800 | 0.555 | 0.422 | +0.131 | +0.038 |
 | Qwen3.5-2B-Base LoRA, + coherence | LoRA coh | 0.500 | 0.000 | 0.621 | 0.800 | 0.658 | 0.536 | +0.144 | +0.034 |
+| Gemma-4-E4B (base) LoRA, supervised | LoRA sup | 0.500 | 0.000 | 0.276 | 0.867 | 0.527 | 0.256 | +0.088 | +0.114 |
 | Gemma-4-E4B-it LoRA, supervised | LoRA sup | 0.585 | 0.176 | 0.690 | 0.900 | 0.795 | 0.498 | +0.135 | +0.046 |
 | Gemma-4-E4B-it LoRA, + coherence | LoRA coh | 0.572 | 0.149 | 0.682 | 0.883 | 0.791 | 0.540 | +0.122 | +0.034 |
 | 9B LoRA, supervised | LoRA sup | 0.533 | 0.066 | 0.788 | 0.883 | 0.800 | 0.592 | +0.146 | +0.068 |

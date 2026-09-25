@@ -1268,10 +1268,12 @@ fine-tune variant trains every weight (fp32 master weights, learning rate chosen
 |   readout LoRA, supervised | 0.701 | 0.051 | 0.736 | 0.324 | 0.339 | 0.104 |
 |   readout LoRA + coherence | 0.702 | 0.054 | 0.742 | 0.315 | 0.031 | 0.094 |
 |   full fine-tune, supervised (lr 1e-6) | 0.703 | 0.056 | 0.746 | 0.315 | 0.344 | 0.113 |
-|   full fine-tune + coherence (lr 3e-6) | 0.693 | 0.063 | 0.718 | 0.311 | 0.021 | 0.101 |
+|   full fine-tune + coherence (lr 1e-6) | 0.704 | 0.056 | 0.742 | 0.307 | 0.028 | 0.109 |
 | Qwen3.5-4B, untuned | 0.662 | 0.090 | 0.719 | 0.438 | 0.151 | 0.140 |
 |   readout LoRA, supervised | 0.743 | 0.059 | 0.774 | 0.326 | 0.283 | 0.072 |
 |   readout LoRA + coherence | 0.751 | 0.058 | 0.792 | 0.303 | 0.029 | 0.057 |
+|   readout LoRA, supervised (seed 1) | 0.739 | 0.060 | 0.767 | 0.333 | 0.271 | 0.057 |
+|   readout LoRA + coherence (seed 1) | 0.754 | 0.054 | 0.784 | 0.323 | 0.030 | 0.059 |
 | Qwen3.5-9B, untuned | 0.689 | 0.092 | 0.745 | 0.423 | 0.141 | 0.118 |
 |   readout LoRA, supervised | 0.759 | 0.052 | 0.798 | 0.314 | 0.323 | 0.049 |
 |   readout LoRA + coherence | 0.763 | 0.056 | 0.804 | 0.301 | 0.022 | — |
@@ -1294,13 +1296,18 @@ alone sharpens it without keeping its siblings consistent.
 label distributions improves in every case (TVD 2B 0.324 → 0.315, 4B
 0.326 → 0.303, 9B 0.314 → 0.301, Gemma
 0.316 → 0.297) — small, but the same direction at every size and in
-the seed means (18.5). It also works under full fine-tuning (sure loss 0.021).
+the seed means (18.5). It also works under full fine-tuning at the selected learning rate (sure loss 0.344 →
+0.028, accuracy 0.703 → 0.704).
 
-**18.3 After readout fine-tuning, the starting checkpoint stops mattering.** From Qwen3.5-4B-Base the same
-recipe reaches 0.741 (supervised) and 0.747 (+ coherence), against
+**18.3 After readout fine-tuning, the starting checkpoint matters little — in Qwen3.5 not at all.** From
+Qwen3.5-4B-Base the same recipe reaches 0.741 (supervised) and 0.747 (+ coherence), against
 0.743 and 0.751 from the instruct checkpoint — the untuned gap was
-0.647 vs 0.662. At 2B: 0.696 from the base,
-0.701 from the instruct model (untuned 0.533 vs 0.577).
+0.647 vs 0.662. At 2B: 0.696 / 0.702 from the base,
+0.701 / 0.702 from the instruct model (untuned 0.533 vs 0.577). Gemma-4-E4B, where the
+untuned gap is widest, closes most of it but not all: the base (no template) reaches
+0.708 (held-out 0.748) against 0.737 (0.792) from the
+instruct model in its template, from 0.488 vs 0.658 untuned — part of what remains may be the prompt, since
+the Gemma base has no template.
 
 **18.4 Full fine-tuning matches LoRA at 2B.** Validation loss is lowest at 1e-6 and rises on both sides
 (1e-5: 0.803, 3e-6: 0.669, 1e-6: 0.605, 3e-7: 0.620), and at the selected 1e-6 the full fine-tune scores
@@ -1313,8 +1320,11 @@ Full fine-tuning was run at 2B only.
 0.008 (+ coherence), sure loss 0.335 vs 0.033;
 4B, two seeds, 0.748 ± 0.005 vs 0.748 ±
 0.003, sure loss 0.288 vs 0.030.
-Re-running 2B seed 0 to save its adapter reproduced it to 0.001 accuracy. Out-of-distribution results vary
-far more between identical runs (15.2), so the table below is one seed and is read for direction only.
+The adapter-saving 4B seed-1 runs repeat it (supervised 0.739 / sure loss
+0.271; + coherence 0.754 / 0.030), and re-running
+2B seed 0 to save its adapter reproduced it to 0.001 accuracy. Out-of-distribution results vary far more
+between identical runs (15.2): the table below has both 4B seeds, and anything that flips between them is
+not a finding.
 
 | model | stated rule | "none" when gone | hijack | phishing AUROC |
 |---|---|---|---|---|
@@ -1322,10 +1332,12 @@ far more between identical runs (15.2), so the table below is one seed and is re
 |   readout LoRA, supervised | 0.536 | 0.472 | 0.055 | 0.776 |
 |   readout LoRA + coherence | 0.545 | 0.596 | 0.041 | 0.803 |
 |   full fine-tune, supervised (lr 1e-6) | 0.671 | 0.336 | 0.055 | 0.775 |
-|   full fine-tune + coherence (lr 3e-6) | 0.606 | 0.310 | 0.076 | 0.805 |
+|   full fine-tune + coherence (lr 1e-6) | 0.612 | 0.462 | 0.021 | 0.772 |
 | Qwen3.5-4B, untuned | 0.619 | 0.484 | 0.394 | 0.784 |
 |   readout LoRA, supervised | 0.742 | 0.614 | 0.116 | 0.864 |
 |   readout LoRA + coherence | 0.723 | 0.682 | 0.089 | 0.929 |
+|   readout LoRA, supervised (seed 1) | 0.672 | 0.670 | 0.164 | 0.831 |
+|   readout LoRA + coherence (seed 1) | 0.627 | 0.642 | 0.086 | 0.819 |
 | Qwen3.5-9B, untuned | 0.689 | 0.674 | 0.296 | 0.753 |
 |   readout LoRA, supervised | 0.800 | 0.592 | 0.146 | 0.788 |
 |   readout LoRA + coherence | — | — | — | — |
@@ -1337,8 +1349,7 @@ far more between identical runs (15.2), so the table below is one seed and is re
 **18.6 Out of distribution: fewer hijacks everywhere, the rest mixed.** Every readout fine-tune follows
 injected instructions far less (4B 0.394 → 0.116, 9B 0.296 →
 0.146) and applies stated rules better at 4B, 9B and on Gemma; at 2B the LoRA arms get worse
-at stated rules and at "none of the above", and Gemma's phishing ranking drops. The coherence penalty does
-not change these consistently.
+at stated rules and at "none of the above", and Gemma's phishing ranking drops. Across both 4B seeds (coherence − supervised), the penalty consistently costs a little on stated rules (-0.019, -0.045) and helps on hijack rate (-0.028, -0.078); its effect on "none of the above" (+0.068, -0.028) and phishing AUROC (+0.066, -0.013) flips between seeds.
 
 **Published models** (each repo: recipe, adapter merged at load, `results/` with every number above and a
 reproduction check — loading the repo with `load_jevified` and re-scoring 72 test records gave the same
@@ -1352,7 +1363,10 @@ top choice as the training run, mean |Δp| ≤ 0.007):
 [-coh](https://huggingface.co/Praveenrajus/jevify-gemma-4-e4b-it-readout-coh) ·
 from the base checkpoints [jevify-qwen3.5-4b-base-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-base-readout) ·
 [-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-4b-base-readout-coh) ·
-[jevify-qwen3.5-2b-base-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-base-readout).
+[jevify-qwen3.5-2b-base-readout](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-base-readout) ·
+[-coh](https://huggingface.co/Praveenrajus/jevify-qwen3.5-2b-base-readout-coh) ·
+[jevify-gemma-4-e4b-readout](https://huggingface.co/Praveenrajus/jevify-gemma-4-e4b-readout). The 4B repos also carry
+the seed-1 runs on a `seed1` branch.
 
 *(`results/post-training/`; `scripts/publish_readout.py` packages a run.)*
 

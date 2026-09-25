@@ -223,7 +223,8 @@ decision distribution — takes Qwen3.5 2B/4B/9B and Gemma-4-E4B to **0.70–0.7
 0.733 / 0.113), but makes their answers to related questions contradict each other more (sure loss 0.15 → 0.28 at
 4B). Adding that sure loss as a penalty cuts it tenfold, to 0.02–0.03 — below Jev's 0.081 — at no accuracy cost
 and with closer agreement to human label distributions at every size. Starting from the base checkpoint ends in
-the same place (4B: 0.741 vs 0.743), and full fine-tuning matches LoRA at 2B.
+the same place in Qwen3.5 (4B: 0.741 vs 0.743; Gemma-4 closes most of its wider gap), and full
+fine-tuning matches LoRA at 2B.
 [· results](results/post-training/README.md) [· FINDINGS 17–18](docs/FINDINGS.md#17-what-post-training-does-to-a-decision-readout)
 
 ## Try it
