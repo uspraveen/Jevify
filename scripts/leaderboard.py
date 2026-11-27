@@ -73,6 +73,13 @@ def main() -> int:
                         "params": "Qwen3-8B frozen + 20M head",
                         "metrics": json.loads((clm_dir / "test_metrics.json").read_text(encoding="utf-8")),
                         "preds": clm_dir / "test_predictions.jsonl", "cost": None, "gpu": None})
+    oxta_dir = ROOT / "results" / "oxta-decision-115m"
+    if (oxta_dir / "test_metrics.json").exists():
+        # 100%-own 115.3M Port-Hamiltonian Liquid-Cayley + RoPE decision model trained from scratch on TPU v6e-1
+        entries.append({"run": "oxta-decision-115m", "label": "Oxta-Decision-115M (NSOS Liquid-M3, from scratch)", "tier": "External",
+                        "params": "115.3M (TPU v6e-1, zero pretrained weights)",
+                        "metrics": json.loads((oxta_dir / "test_metrics.json").read_text(encoding="utf-8")),
+                        "preds": None, "cost": None, "gpu": "TPU v6e-1"})
     for d in sorted((ROOT / "results").glob("*/")):
         # a Jevified run always carries run.json; results/jev-1.13.0 (the baseline, added
         # explicitly above) and results/leaderboard do not, and neither is a model row
